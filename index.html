@@ -1,12 +1,18 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>বর্ণিল</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="বর্ণিল: a foundation model that reads, writes and reasons in bangla first, and an assistant on top of it.">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="বর্ণিল">
+<meta property="og:description" content="বর্ণিল: a foundation model that reads, writes and reasons in bangla first, and an assistant on top of it.">
 <meta name="theme-color" content="#F5F4F0" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1A1B1E" media="(prefers-color-scheme: dark)">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 role=%22img%22 aria-labelledby=%22bornil-favicon-title%22 lang=%22bn%22 xml:lang=%22bn%22%3E%3Ctitle id=%22bornil-favicon-title%22%3E%E0%A6%AC%E0%A6%B0%E0%A7%8D%E0%A6%A3%E0%A6%BF%E0%A6%B2%3C/title%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%232E46D1%22/%3E%3Cpath fill=%22%23FFFFFF%22 fill-rule=%22evenodd%22 d=%22M6 6 26 6 26 8 6 8Z M6 10 26 10 26 24 14 24 8 12 6 12Z M11 12 16 22 24 22 24 12Z%22/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400&display=swap">
 <style>
 /* Layout: planck's page is a bare document, so this is one too: the logo, then paragraphs in one left column,
@@ -46,8 +52,9 @@ a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:2px}
 ::selection{background:var(--ink-fill);color:var(--on-ink)}
 </style>
-
-<main lang="en">
+</head>
+<body>
+<main>
 <h1 lang="bn"><svg class="logo" viewBox="0 0 274.318 80.025" role="img" aria-labelledby="logo-title"><title id="logo-title">বর্ণিল</title><path d="M0 13.941 72 13.941 72 20.941 0 20.941ZM0 26.941 72 26.941 72 79.941 32 79.941 5 33.941 0 33.941ZM16 33.941 37.717 70.941 63 70.941 63 33.941Z"/><path d="M94 26.941H148.385V26.059Q148.385 19.177 151.259 14.792Q154.134 10.407 159.904 8.288Q165.674 6.169 174.36 6.169Q178.492 6.169 182.198 6.84Q185.903 7.511 189.13 8.624Q190.713 9.169 192.178 9.79L201.049 0H210.239L195.636 17.876H195.465Q192.255 16.408 189.011 15.359Q185.766 14.31 182.351 13.764Q178.936 13.219 175.18 13.219Q168.989 13.219 164.918 14.603Q160.848 15.988 158.897 18.926Q156.945 21.863 156.945 26.605V26.941H160.596L161.1 33.99H156.987V79.941H148.343V33.99H139.824V80.025H132.355L100.546 65.757V48.804Q108.226 45.447 117.101 42.446Q124.068 40.091 131.306 38.318V33.99H94.462L94 26.941ZM168.506 56.945Q163.995 52.79 163.995 44.985V43.516Q163.995 35.04 168.548 30.529Q173.101 26.017 181.788 26.017Q188.418 26.017 192.447 28.535Q196.475 31.053 197.776 36.173H198.196V26.941H273.814L274.318 33.99H265.337V79.941H256.693V51.446Q256.158 49.995 254.825 49.16Q253.252 48.174 251.028 48.174Q248.804 48.174 247.44 49.013Q246.076 49.853 245.489 51.405Q244.901 52.958 244.859 55.056L244.775 59.756H237.222L237.096 55.14Q237.012 51.825 234.935 50Q232.857 48.174 229.5 48.174Q225.766 48.174 223.856 50.125Q221.947 52.077 221.947 55.979V57.91Q221.947 61.561 223.982 63.428Q226.017 65.295 230.088 65.295Q231.095 65.295 232.06 65.232Q233.025 65.169 233.99 65.044L233.277 72.513Q232.228 72.681 231.284 72.744Q230.34 72.807 229.207 72.807Q221.318 72.807 217.289 69.03Q213.26 65.253 213.26 57.7V55.812Q213.26 48.258 217.205 44.376Q221.15 40.495 228.2 40.495Q232.857 40.495 236.11 42.341Q239.362 44.188 240.411 47.377H240.789Q241.712 44.02 244.167 42.278Q246.622 40.537 250.23 40.537Q253.252 40.537 255.203 41.817Q256.212 42.479 256.902 43.359L256.777 39.656V33.955L215.232 33.985L215.233 33.99H206.253V79.941H197.608V44.782Q196.173 39.363 192.74 36.634Q189.257 33.865 183.844 33.865Q178.347 33.865 175.619 36.298Q172.892 38.732 172.892 43.558V45.027Q172.892 49.223 175.346 51.3Q177.801 53.378 182.711 53.378Q184.054 53.378 185.25 53.252Q186.446 53.126 187.495 52.916L186.907 60.595Q185.732 60.847 184.411 60.973Q183.089 61.099 181.494 61.099Q173.017 61.099 168.506 56.945ZM126.06 47.755Q120.689 49.265 115.59 51.112Q112.27 52.314 109.191 53.676V61.501L131.456 71.531L131.18 66.177V46.408Q128.625 47.033 126.06 47.755Z"/></svg></h1>
 <p>bangla letters hang from one line, the matra. a word is letters joined along it.</p>
 <p><span lang="bn">বর্ণিল</span> is built the same way. everything hangs from one line of work: a foundation model that reads, writes and reasons in bangla first, and an assistant on top of it. there is no second line.</p>
@@ -55,9 +62,9 @@ a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-
 <p>ours learns from writing that began in bangla, and the people who wrote it come first. chatgaiya, sylheti and barishailla hang at the same height as standard bangla.</p>
 <p>a source is our reph, a small mark above the line. a claim without one is misspelt. one rule under a figure means it is still being checked. two mean it was checked against its source. nothing unmeasured reaches the page.</p>
 <p><span lang="bn">বর্ণিল</span> means colourful. its root means a letter, and also a colour. we keep them in that order. a source takes its colour once it has been read. graphite is our hand. blue ink is yours, where you act.</p>
-<p>we are a small team in dhaka. our attention is long. the line has room for a few more researchers, engineers and linguists who want to do their life's work in bangla. write to <a class="addr" href="mailto:shayan.r@bornil.io">shayan.r@bornil.io</a>.</p>
+<p>we are a small team in dhaka. our attention is long. the line has room for a few more researchers, engineers and linguists who want to do their life's work in bangla. write to <a class="addr" href="mailto:shayan.ra@bornil.io">shayan.ra@bornil.io</a>.</p>
 <p>constants: <span class="ver">11</span> vowels and <span class="ver">39</span> consonants, as taught in bangladesh. <span class="ver">one</span> matra. the rest we measure.</p>
 <p class="meta">last edited on <time datetime="2026-11-16">16 nov 2026</time></p>
 </main>
-
-</body></html>
+</body>
+</html>
