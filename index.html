@@ -4,67 +4,305 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>বর্ণিল</title>
-<meta name="description" content="বর্ণিল: a foundation model that reads, writes and reasons in bangla first, and an assistant on top of it.">
+<meta name="description" content="বর্ণিল is a bangla chat app. the model on the phone is free, unlimited and keeps answering offline, and so do the five tools: code, study, translation, scanning and voice.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:title" content="বর্ণিল">
-<meta property="og:description" content="বর্ণিল: a foundation model that reads, writes and reasons in bangla first, and an assistant on top of it.">
+<meta property="og:description" content="a bangla chat app that keeps working offline. free and unlimited on the phone.">
+<meta property="og:image" content="/screens/home.png">
 <meta name="theme-color" content="#F5F4F0" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1A1B1E" media="(prefers-color-scheme: dark)">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600&display=swap">
 <style>
-/* Layout: planck's page is a bare document, so this is one too: the logo, then paragraphs in one left column,
-   nothing else. The identity is in the materials: paper, graphite type, the name in Bangla script,
-   the double rule under checked figures, and blue ink only where the reader acts (selection, focus). */
+/* বর্ণিল — the identity's materials and nothing else: paper as one surface, graphite as বর্ণিল's hand,
+   blue ink only where the reader acts. Every section hangs from a rule, the way bangla letters hang
+   from the matra. No cards, no shadows: space separates. */
 @font-face{font-family:'Google Sans';font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/googlesans/v76/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiAUvbQoi-Entw.woff2) format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0980-09FE,U+1CD0,U+1CD2,U+1CD5-1CD6,U+1CD8,U+1CE1,U+1CEA,U+1CED,U+1CF2,U+1CF5-1CF7,U+200C-200D,U+20B9,U+25CC,U+A8F1,U+11DF0-11DF1}
+@font-face{font-family:'Google Sans';font-style:normal;font-weight:500;font-display:swap;src:url(https://fonts.gstatic.com/s/googlesans/v76/4UasrENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RPiAUvbQoi-Entw.woff2) format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0980-09FE,U+1CD0,U+1CD2,U+1CD5-1CD6,U+1CD8,U+1CE1,U+1CEA,U+1CED,U+1CF2,U+1CF5-1CF7,U+200C-200D,U+20B9,U+25CC,U+A8F1,U+11DF0-11DF1}
+
 :root{
-  --paper:#F5F4F0;      /* the identity's one surface */
+  --paper:#F5F4F0;      /* the one surface */
   --graphite:#18191C;   /* বর্ণিল's hand */
-  --g2:#55575B;         /* secondary text */
-  --ink:#2E46D1;        /* the reader's hand: links, focus */
-  --ink-fill:#2E46D1;   /* fill behind white text: selection */
+  --g2:#55575B;
+  --g3:#6A6C72;
+  --key:#E8E7E1;        /* keys and chips at rest */
+  --seg:#CFCEC8;        /* the rule */
+  --ink:#2E46D1;        /* your hand: links, focus, the one action */
+  --ink-fill:#2E46D1;
   --on-ink:#FFFFFF;
-  --g3:#6A6C72;         /* the one rule: still being checked */
   --text:'IBM Plex Sans','Google Sans','Noto Sans Bengali',sans-serif;
+  --head:'Anek Bangla','IBM Plex Sans','Noto Sans Bengali',sans-serif;
+  --fig:'Noto Sans Bengali','IBM Plex Sans',sans-serif;
+  --edge:max(20px, calc((100% - 1000px) / 2 + 20px));
   color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#1A1B1E;--graphite:#EDECE7;--g2:#A9AAAF;--g3:#8C8D93;--ink:#93A3FF;--ink-fill:#4258E0;--on-ink:#FFFFFF;color-scheme:dark}}
-:root[data-theme="dark"]{--paper:#1A1B1E;--graphite:#EDECE7;--g2:#A9AAAF;--g3:#8C8D93;--ink:#93A3FF;--ink-fill:#4258E0;--on-ink:#FFFFFF;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#1A1B1E;--graphite:#EDECE7;--g2:#A9AAAF;--g3:#8C8D93;--key:#262728;--seg:#3A3B41;
+  --ink:#93A3FF;--ink-fill:#4258E0;--on-ink:#FFFFFF;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#1A1B1E;--graphite:#EDECE7;--g2:#A9AAAF;--g3:#8C8D93;--key:#262728;--seg:#3A3B41;
+  --ink:#93A3FF;--ink-fill:#4258E0;--on-ink:#FFFFFF;color-scheme:dark}
+
+*{box-sizing:border-box}
 html{background:var(--paper)}
-body{margin:0;background:var(--paper);color:var(--graphite);font:400 16px/26px var(--text);font-synthesis:none;
-  -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%;
-  padding:40px max(16px,env(safe-area-inset-right,0px)) 64px max(16px,env(safe-area-inset-left,0px))}
-@media (min-width:720px){body{padding:64px max(48px,env(safe-area-inset-right,0px)) 96px max(48px,env(safe-area-inset-left,0px))}}
-main{max-width:36em}
-h1{margin:0 0 40px;line-height:0}
-.logo{display:block;width:auto;height:48px;fill:currentColor;color:var(--graphite)}
-p{margin:0 0 20px;overflow-wrap:break-word}
-.chk{text-decoration:underline solid var(--g3);text-decoration-thickness:1.5px;text-underline-offset:.22em;text-decoration-skip-ink:none}
-.ver{text-decoration:underline double currentColor;text-decoration-thickness:1.5px;text-underline-offset:.22em;text-decoration-skip-ink:none}
-.chk::after,.ver::after{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.chk::after{content:" (still being checked)"}
-.ver::after{content:" (checked against its source)"}
-.addr{white-space:nowrap}
-.meta{color:var(--g2);margin:0}
+body{margin:0;background:var(--paper);color:var(--graphite);
+  font:400 16px/26px var(--text);font-synthesis:none;
+  -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.wrap{max-width:1000px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.col{max-width:34em}
+.tk{font-family:var(--fig)}            /* ৳ and the figures beside it */
+h1,h2{margin:0;font-family:var(--head);font-weight:600;text-wrap:balance}
+p{margin:0}
 a{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.3em}
+a:hover{text-decoration-thickness:2px}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:2px}
 ::selection{background:var(--ink-fill);color:var(--on-ink)}
+img{max-width:100%;display:block}
+
+/* masthead */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:28px 0 0}
+.logo{display:block;width:auto;height:30px;fill:currentColor;color:var(--graphite)}
+.top-right{display:flex;align-items:center;gap:18px;font-size:14px;line-height:20px}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;
+  background:var(--key);color:var(--g2);font-weight:500;font-size:13px;white-space:nowrap}
+
+/* a section hangs from its rule, the way letters hang from the matra */
+.band{border-top:1px solid var(--seg);margin-top:72px;padding-top:14px}
+.band--tight{margin-top:56px}
+.label{font-size:13px;line-height:20px;font-weight:500;color:var(--g2);margin-bottom:28px}
+h2{font-size:24px;line-height:34px;margin-bottom:16px}
+
+/* hero */
+.hero{padding:64px 0 0}
+.hero h1{font-size:clamp(34px,6.2vw,54px);line-height:1.16}
+.hero .lede{margin-top:22px;font-size:18px;line-height:30px}
+.hero .facts{margin-top:18px;color:var(--g2);font-size:15px;line-height:24px}
+/* the fill ink, not the text ink: white has to sit on it in both themes */
+.cta{display:inline-flex;align-items:center;height:48px;margin-top:30px;padding:0 24px;border-radius:999px;
+  background:var(--ink-fill);color:var(--on-ink);font-weight:500;font-size:16px;
+  text-decoration:none;white-space:nowrap}
+.cta:hover{text-decoration:none;opacity:.92}
+.cta-note{margin-top:14px;color:var(--g2);font-size:14px;line-height:22px}
+
+/* the screens ride off the right edge, so the strip invites the scroll */
+/* the inset lives on the scroll container: inside .rail, which is sized to max-content,
+   a percentage padding would resolve to zero and the first screen would sit on the edge */
+.strip{margin-top:40px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin;
+  padding-left:var(--edge);padding-right:var(--edge);scroll-padding-left:var(--edge)}
+.rail{display:flex;gap:20px;width:max-content;padding:0 0 10px}
+.shot{flex:none;width:236px;scroll-snap-align:start;margin:0}
+.shot img{width:236px;height:511px;border:1px solid var(--seg);border-radius:18px;background:var(--paper)}
+.shot figcaption{margin-top:10px;font-size:14px;line-height:22px;color:var(--g2)}
+@media (min-width:720px){.shot,.shot img{width:264px}.shot img{height:571px}}
+
+/* lists: the name on the left, what it costs on the right */
+.rows{display:flex;flex-direction:column;gap:22px;margin-top:4px}
+.row{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+.row-name{font-weight:500;font-size:17px;line-height:26px;flex:1 1 auto;min-width:0}
+.row-val{color:var(--g2);font-size:15px;line-height:24px;white-space:nowrap}
+.row-note{flex:1 0 100%;color:var(--g2);font-size:15px;line-height:24px;max-width:34em}
+
+/* pro */
+.ticks{list-style:none;margin:0 0 24px;padding:0;display:flex;flex-direction:column;gap:12px;max-width:34em}
+.ticks li{display:flex;align-items:flex-start;gap:12px;font-size:16px;line-height:26px}
+.ticks svg{flex:none;width:20px;height:20px;margin-top:3px;color:var(--graphite)}
+.price{font-size:18px;line-height:28px;font-weight:500}
+.price-2{margin-top:8px;color:var(--g2);font-size:16px;line-height:26px}
+.pay{margin-top:18px;color:var(--g2);font-size:15px;line-height:24px;max-width:34em}
+
+/* desktop shot: fits the column on a wide screen, scrolls inside its own box on a narrow one */
+.desk{margin-top:28px;overflow-x:auto}
+.desk img{width:100%;min-width:720px;max-width:none;border:1px solid var(--seg);border-radius:14px}
+
+/* company */
+.prose p{margin-bottom:20px;max-width:34em}
+.prose p:last-child{margin-bottom:0}
+.chk{text-decoration:underline solid var(--g3);text-decoration-thickness:1.5px;
+  text-underline-offset:.22em;text-decoration-skip-ink:none}
+.chk::after{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);
+  white-space:nowrap;content:" (still being checked)"}
+
+footer{border-top:1px solid var(--seg);margin-top:72px;padding:14px 0 64px;
+  display:flex;flex-wrap:wrap;gap:8px 24px;color:var(--g2);font-size:14px;line-height:22px}
+footer .sp{margin-left:auto}
+
+@media (min-width:720px){
+  .band{margin-top:96px}
+  .hero{padding:88px 0 0}
+  footer{margin-top:96px}
+}
+/* one quiet entrance: the hero settles onto the line the way a word settles onto the matra */
+@media (prefers-reduced-motion:no-preference){
+  .rise{animation:rise .5s cubic-bezier(.2,.6,.2,1) both}
+  .rise-2{animation-delay:.06s}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+}
 </style>
 </head>
 <body>
-<main>
-<h1 lang="bn"><svg class="logo" viewBox="0 0 274.318 80.025" role="img" aria-labelledby="logo-title"><title id="logo-title">বর্ণিল</title><path d="M0 13.941 72 13.941 72 20.941 0 20.941ZM0 26.941 72 26.941 72 79.941 32 79.941 5 33.941 0 33.941ZM16 33.941 37.717 70.941 63 70.941 63 33.941Z"/><path d="M94 26.941H148.385V26.059Q148.385 19.177 151.259 14.792Q154.134 10.407 159.904 8.288Q165.674 6.169 174.36 6.169Q178.492 6.169 182.198 6.84Q185.903 7.511 189.13 8.624Q190.713 9.169 192.178 9.79L201.049 0H210.239L195.636 17.876H195.465Q192.255 16.408 189.011 15.359Q185.766 14.31 182.351 13.764Q178.936 13.219 175.18 13.219Q168.989 13.219 164.918 14.603Q160.848 15.988 158.897 18.926Q156.945 21.863 156.945 26.605V26.941H160.596L161.1 33.99H156.987V79.941H148.343V33.99H139.824V80.025H132.355L100.546 65.757V48.804Q108.226 45.447 117.101 42.446Q124.068 40.091 131.306 38.318V33.99H94.462L94 26.941ZM168.506 56.945Q163.995 52.79 163.995 44.985V43.516Q163.995 35.04 168.548 30.529Q173.101 26.017 181.788 26.017Q188.418 26.017 192.447 28.535Q196.475 31.053 197.776 36.173H198.196V26.941H273.814L274.318 33.99H265.337V79.941H256.693V51.446Q256.158 49.995 254.825 49.16Q253.252 48.174 251.028 48.174Q248.804 48.174 247.44 49.013Q246.076 49.853 245.489 51.405Q244.901 52.958 244.859 55.056L244.775 59.756H237.222L237.096 55.14Q237.012 51.825 234.935 50Q232.857 48.174 229.5 48.174Q225.766 48.174 223.856 50.125Q221.947 52.077 221.947 55.979V57.91Q221.947 61.561 223.982 63.428Q226.017 65.295 230.088 65.295Q231.095 65.295 232.06 65.232Q233.025 65.169 233.99 65.044L233.277 72.513Q232.228 72.681 231.284 72.744Q230.34 72.807 229.207 72.807Q221.318 72.807 217.289 69.03Q213.26 65.253 213.26 57.7V55.812Q213.26 48.258 217.205 44.376Q221.15 40.495 228.2 40.495Q232.857 40.495 236.11 42.341Q239.362 44.188 240.411 47.377H240.789Q241.712 44.02 244.167 42.278Q246.622 40.537 250.23 40.537Q253.252 40.537 255.203 41.817Q256.212 42.479 256.902 43.359L256.777 39.656V33.955L215.232 33.985L215.233 33.99H206.253V79.941H197.608V44.782Q196.173 39.363 192.74 36.634Q189.257 33.865 183.844 33.865Q178.347 33.865 175.619 36.298Q172.892 38.732 172.892 43.558V45.027Q172.892 49.223 175.346 51.3Q177.801 53.378 182.711 53.378Q184.054 53.378 185.25 53.252Q186.446 53.126 187.495 52.916L186.907 60.595Q185.732 60.847 184.411 60.973Q183.089 61.099 181.494 61.099Q173.017 61.099 168.506 56.945ZM126.06 47.755Q120.689 49.265 115.59 51.112Q112.27 52.314 109.191 53.676V61.501L131.456 71.531L131.18 66.177V46.408Q128.625 47.033 126.06 47.755Z"/></svg></h1>
-<p>bangla letters hang from one line, the matra. a word is letters joined along it.</p>
-<p><span lang="bn">বর্ণিল</span> is built the same way. everything hangs from one line of work: a foundation model that reads, writes and reasons in bangla first, and an assistant on top of it. there is no second line.</p>
-<p><span class="chk">hundreds of millions</span> know bangla first-hand. most large models learnt it second-hand. they speak it, and it shows.</p>
-<p>ours learns from writing that began in bangla, and the people who wrote it come first. chatgaiya, sylheti and barishailla hang at the same height as standard bangla.</p>
-<p>a source is our reph, a small mark above the line. a claim without one is misspelt. one rule under a figure means it is still being checked. two mean it was checked against its source. nothing unmeasured reaches the page.</p>
-<p><span lang="bn">বর্ণিল</span> means colourful. its root means a letter, and also a colour. we keep them in that order. a source takes its colour once it has been read. graphite is our hand. blue ink is yours, where you act.</p>
-<p>we are a small team in dhaka. our attention is long. the line has room for a few more researchers, engineers and linguists who want to do their life's work in bangla. write to <a class="addr" href="mailto:shayan.ar@bornil.io">shayan.ar@bornil.io</a>.</p>
-<p>constants: <span class="ver">11</span> vowels and <span class="ver">39</span> consonants, as taught in bangladesh. <span class="ver">one</span> matra. the rest we measure.</p>
-<p class="meta">last edited on <time datetime="2026-11-16">16 nov 2026</time></p>
-</main>
+
+<div class="wrap">
+  <header class="top">
+    <a href="/" aria-label="বর্ণিল, home" style="display:block;color:var(--graphite);text-decoration:none">
+      <svg class="logo" viewBox="0 0 274.318 80.025" role="img" aria-label="বর্ণিল"><path d="M0 13.941 72 13.941 72 20.941 0 20.941ZM0 26.941 72 26.941 72 79.941 32 79.941 5 33.941 0 33.941ZM16 33.941 37.717 70.941 63 70.941 63 33.941Z"/><path d="M94 26.941H148.385V26.059Q148.385 19.177 151.259 14.792Q154.134 10.407 159.904 8.288Q165.674 6.169 174.36 6.169Q178.492 6.169 182.198 6.84Q185.903 7.511 189.13 8.624Q190.713 9.169 192.178 9.79L201.049 0H210.239L195.636 17.876H195.465Q192.255 16.408 189.011 15.359Q185.766 14.31 182.351 13.764Q178.936 13.219 175.18 13.219Q168.989 13.219 164.918 14.603Q160.848 15.988 158.897 18.926Q156.945 21.863 156.945 26.605V26.941H160.596L161.1 33.99H156.987V79.941H148.343V33.99H139.824V80.025H132.355L100.546 65.757V48.804Q108.226 45.447 117.101 42.446Q124.068 40.091 131.306 38.318V33.99H94.462L94 26.941ZM168.506 56.945Q163.995 52.79 163.995 44.985V43.516Q163.995 35.04 168.548 30.529Q173.101 26.017 181.788 26.017Q188.418 26.017 192.447 28.535Q196.475 31.053 197.776 36.173H198.196V26.941H273.814L274.318 33.99H265.337V79.941H256.693V51.446Q256.158 49.995 254.825 49.16Q253.252 48.174 251.028 48.174Q248.804 48.174 247.44 49.013Q246.076 49.853 245.489 51.405Q244.901 52.958 244.859 55.056L244.775 59.756H237.222L237.096 55.14Q237.012 51.825 234.935 50Q232.857 48.174 229.5 48.174Q225.766 48.174 223.856 50.125Q221.947 52.077 221.947 55.979V57.91Q221.947 61.561 223.982 63.428Q226.017 65.295 230.088 65.295Q231.095 65.295 232.06 65.232Q233.025 65.169 233.99 65.044L233.277 72.513Q232.228 72.681 231.284 72.744Q230.34 72.807 229.207 72.807Q221.318 72.807 217.289 69.03Q213.26 65.253 213.26 57.7V55.812Q213.26 48.258 217.205 44.376Q221.15 40.495 228.2 40.495Q232.857 40.495 236.11 42.341Q239.362 44.188 240.411 47.377H240.789Q241.712 44.02 244.167 42.278Q246.622 40.537 250.23 40.537Q253.252 40.537 255.203 41.817Q256.212 42.479 256.902 43.359L256.777 39.656V33.955L215.232 33.985L215.233 33.99H206.253V79.941H197.608V44.782Q196.173 39.363 192.74 36.634Q189.257 33.865 183.844 33.865Q178.347 33.865 175.619 36.298Q172.892 38.732 172.892 43.558V45.027Q172.892 49.223 175.346 51.3Q177.801 53.378 182.711 53.378Q184.054 53.378 185.25 53.252Q186.446 53.126 187.495 52.916L186.907 60.595Q185.732 60.847 184.411 60.973Q183.089 61.099 181.494 61.099Q173.017 61.099 168.506 56.945ZM126.06 47.755Q120.689 49.265 115.59 51.112Q112.27 52.314 109.191 53.676V61.501L131.456 71.531L131.18 66.177V46.408Q128.625 47.033 126.06 47.755Z"/></svg>
+    </a>
+    <div class="top-right">
+      <span class="pill">coming soon</span>
+      <a href="/manifesto">manifesto</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero col">
+      <h1 class="rise">a bangla chat app that keeps working offline</h1>
+      <p class="lede rise rise-2">the model on the phone, <span lang="bn">বর্ণিল-3B</span>, is free and unlimited, and it keeps answering when the network drops. so do the five tools beside it.</p>
+      <p class="facts">code · study · translation · scanning · voice</p>
+      <a class="cta" href="mailto:shayan.ar@bornil.io?subject=tell%20me%20when%20%E0%A6%AC%E0%A6%B0%E0%A7%8D%E0%A6%A3%E0%A6%BF%E0%A6%B2%20opens">tell me when it opens</a>
+      <p class="cta-note">the app is not out yet. the screens below are from the design.</p>
+    </section>
+  </main>
+</div>
+
+<section aria-labelledby="screens-h">
+  <div class="wrap">
+    <div class="band">
+      <p class="label" id="screens-h">screens</p>
+    </div>
+  </div>
+  <div class="strip">
+    <div class="rail">
+      <figure class="shot">
+        <img src="/screens/home.png" width="236" height="511" loading="lazy" decoding="async" alt="the home screen: বর্ণিল-3B in the top bar, a greeting, and four suggestions.">
+        <figcaption>home</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="/screens/study.png" width="236" height="511" loading="lazy" decoding="async" alt="the study screen: a geometry construction worked out step by step, with the textbook page cited below.">
+        <figcaption>study</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="/screens/scan.png" width="236" height="511" loading="lazy" decoding="async" alt="the scan screen: a handwritten shopping list scanned flat, with a button to save it as a pdf.">
+        <figcaption>scanning</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="/screens/code.png" width="236" height="511" loading="lazy" decoding="async" alt="the code screen: files edited in a repository, asking permission before running the tests.">
+        <figcaption>code</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="/screens/models.png" width="236" height="511" loading="lazy" decoding="async" alt="the model list: বর্ণিল-3B and বর্ণিল-31B with their prices, and the five tools under them.">
+        <figcaption>models and tools</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="/screens/voice.png" width="236" height="511" loading="lazy" decoding="async" alt="a spoken conversation: বর্ণিল's mark in the middle, with mute and end buttons below.">
+        <figcaption>voice</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="/screens/translate.png" width="236" height="511" loading="lazy" decoding="async" alt="translation: an english email above, its bangla translation below.">
+        <figcaption>translation</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="/screens/offline.png" width="236" height="511" loading="lazy" decoding="async" alt="a conversation with no network: বর্ণিল-3B in the top bar beside an offline mark, still answering.">
+        <figcaption>offline</figcaption>
+      </figure>
+      <figure class="shot">
+        <img src="/screens/search.png" width="236" height="511" loading="lazy" decoding="async" alt="a web-search answer: the sources read, and numbered citations in the text.">
+        <figcaption>web search · pro</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="band" aria-labelledby="models-h">
+    <p class="label" id="models-h">models</p>
+    <div class="rows col">
+      <div class="row">
+        <span class="row-name" lang="bn">বর্ণিল-3B</span>
+        <span class="row-val">free · unlimited · offline</span>
+        <span class="row-note">runs inside the phone, so the answers don't stop when the network does.</span>
+      </div>
+      <div class="row">
+        <span class="row-name" lang="bn">বর্ণিল-31B</span>
+        <span class="row-val">3 free answers a day</span>
+        <span class="row-note">the larger model, online. strong at code, maths and science. unlimited on pro.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band--tight" aria-labelledby="tools-h">
+    <p class="label" id="tools-h">tools · all free, unlimited, and they work offline too</p>
+    <div class="rows col">
+      <div class="row">
+        <span class="row-name" lang="bn">বর্ণিল-Code</span>
+        <span class="row-note">connect a repository: plan, edit files, run tests with your permission, read the diff, commit.</span>
+      </div>
+      <div class="row">
+        <span class="row-name" lang="bn">বর্ণিল-NCTB-2027</span>
+        <span class="row-note">classes 1 to 12. pick the class, subject and chapter; answers come with the textbook page.</span>
+      </div>
+      <div class="row">
+        <span class="row-name" lang="bn">বর্ণিল-Translate</span>
+        <span class="row-note">bangla and english, both directions.</span>
+      </div>
+      <div class="row">
+        <span class="row-name" lang="bn">বর্ণিল-CamScan</span>
+        <span class="row-note">scan documents to pdf. bangla ocr for handwriting and for old books.</span>
+      </div>
+      <div class="row">
+        <span class="row-name" lang="bn">বর্ণিল-Voice</span>
+        <span class="row-note">speak to it, dictate to it, have it read aloud.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="pro-h">
+    <p class="label" id="pro-h">pro</p>
+    <h2 class="col">what pro adds</h2>
+    <ul class="ticks">
+      <li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>unlimited <span lang="bn">বর্ণিল-31B</span></span></li>
+      <li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span><span lang="bn">বর্ণিল-Code</span> in the cloud</span></li>
+      <li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>file and long-text translation</span></li>
+      <li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>dialects and long audio</span></li>
+      <li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>web search</span></li>
+      <li><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>no ads</span></li>
+    </ul>
+    <p class="price"><span class="tk">৳199</span> a month · <span class="tk">৳1,999</span> a year</p>
+    <p class="price price-2">outside bangladesh, pro global — $4.99 a month · $39.99 a year</p>
+    <p class="pay">prices include vat. pay with bkash, grameenphone balance or card; card only outside bangladesh.</p>
+    <p class="pay">the free plan carries ads. they come from google, they are never picked for a particular person, and they are never matched to the conversation.</p>
+  </section>
+
+  <section class="band" aria-labelledby="desk-h">
+    <p class="label" id="desk-h">desktop and web</p>
+    <p class="col">the same conversations, the same projects. what you start on the phone opens on the desktop.</p>
+  </section>
+</div>
+<div class="wrap desk">
+  <img src="/screens/desktop.png" width="1000" height="667" loading="lazy" decoding="async" alt="বর্ণিল on the desktop: tools and projects listed down the left, a conversation waiting in the middle.">
+</div>
+
+<div class="wrap">
+  <section class="band" aria-labelledby="co-h">
+    <p class="label" id="co-h">company</p>
+    <div class="prose">
+      <p>we are a small team in dhaka. we build a foundation model that reads, writes and reasons in bangla first, and this assistant on top of it.</p>
+      <p><span class="chk">hundreds of millions</span> know bangla first-hand. most large models learnt it second-hand. they speak it, and it shows.</p>
+      <p>ours learns from writing that began in bangla, and the people who wrote it come first. chatgaiya, sylheti and barishailla hang at the same height as standard bangla.</p>
+      <p>a source is our reph, a small mark above the line. a claim without one is misspelt. nothing unmeasured reaches the page — on the screens above, one rule under a figure means it is still being checked, and two mean it was checked against its source.</p>
+      <p>the line has room for a few more researchers, engineers and linguists who want to do their life's work in bangla. write to <a href="mailto:shayan.ar@bornil.io">shayan.ar@bornil.io</a>, or read <a href="/manifesto">the longer note</a>.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>dhaka, bangladesh</span>
+    <a href="mailto:shayan.ar@bornil.io">shayan.ar@bornil.io</a>
+    <a href="/manifesto">manifesto</a>
+    <span class="sp">last edited on <time datetime="2026-11-23">23 nov 2026</time></span>
+  </footer>
+</div>
+
 </body>
 </html>
