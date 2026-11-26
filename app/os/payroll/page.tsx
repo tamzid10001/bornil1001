@@ -3,8 +3,8 @@ import { db } from '@/lib/db'
 import { employees } from '@/lib/db/schema'
 import { getActor, grantsFor } from '@/lib/actor'
 import { getConfig, getFloorPlan } from '@/lib/settings'
-import { lineName, optionLabel, wage } from '@/lib/config'
-import { bdt, bn } from '@/lib/format'
+import { lineName, optionLabel, today, wage, wageDueDate } from '@/lib/config'
+import { bdt, bn, day } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Empty, ModuleOff, NoAccess, PageHeader, Section, Stat, TextLink } from '@/components/os/ui'
 import { addEmployee, updateAttendance } from '../actions/ops'
@@ -35,7 +35,7 @@ export default async function PayrollPage() {
         actions={can['settings.manage'] ? <TextLink href="/os/settings/payroll">বেতন কাঠামো বদলান</TextLink> : null}
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={bdt(total)} label="মোট প্রদেয়" />
+        <Stat value={bdt(total)} label={`মোট প্রদেয় · ${day(wageDueDate(today()))}-এর মধ্যে`} />
         <Stat value={bdt(ot)} label="ওভারটাইম" />
         <Stat value={bn(staff.length)} label="শ্রমিক" />
         <Stat value={bdt(lowest.gross)} label={`সর্বনিম্ন মজুরি (গ্রেড ${bn(lowest.grade)})`} />
@@ -95,9 +95,6 @@ export default async function PayrollPage() {
             </table>
           </div>
         )}
-        <p className="text-xs text-subtle">
-          মাসে {bn(p.workingDays)} কর্মদিবস ধরে হিসাব · ওটি মূল বেতনের {bn(p.otMultiplier)} গুণ · মাসে ৫২ ঘণ্টার বেশি ওভারটাইম লাল রঙে দেখানো হয়।
-        </p>
       </Section>
 
       {canEdit ? (

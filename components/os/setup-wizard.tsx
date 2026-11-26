@@ -62,14 +62,13 @@ export function SetupWizard({ action }: { action: (state: ActionState, fd: FormD
           </label>
         </div>
         <label className="flex flex-col gap-1.5">
-          <span className="label">লোগো (ঐচ্ছিক · PNG, JPG, WebP বা SVG · ৫১২ কেবি পর্যন্ত)</span>
+          <span className="label">লোগো (ঐচ্ছিক)</span>
           <input name="logo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="text-sm file:mr-3 file:rounded-full file:border-0 file:bg-key file:px-4 file:py-2 file:text-sm file:font-medium" />
         </label>
       </fieldset>
 
       <fieldset ref={(el) => void (sets.current[1] = el)} hidden={step !== 1} className="flex flex-col gap-5">
         <legend className="sr-only">মালিকের তথ্য</legend>
-        <p className="text-sm leading-relaxed text-muted">আপনিই প্রথম মালিক — সব অনুমতি আপনার থাকবে। পরে সেটিংস থেকে কর্মী যোগ করে প্রত্যেককে ভূমিকা দেবেন।</p>
         <label className="flex flex-col gap-1.5">
           <span className="label">আপনার নাম</span>
           <input name="owner_name" required maxLength={120} className="field" autoComplete="name" />
@@ -88,7 +87,6 @@ export function SetupWizard({ action }: { action: (state: ActionState, fd: FormD
 
       <fieldset ref={(el) => void (sets.current[2] = el)} hidden={step !== 2} className="flex flex-col gap-5">
         <legend className="sr-only">ফ্লোর প্ল্যান</legend>
-        <p className="text-sm leading-relaxed text-muted">একটা শুরুর কাঠামো দিন। পরে প্রতিটি ফ্লোর ও লাইনের নাম, ধরন, লক্ষ্য ও অপারেটর আলাদা করে বদলাতে পারবেন।</p>
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5">
             <span className="label">কতটি ফ্লোর</span>
@@ -137,12 +135,9 @@ export function SetupWizard({ action }: { action: (state: ActionState, fd: FormD
           <span className="label">কোন মডিউল চালু থাকবে</span>
           <div className="grid gap-2 sm:grid-cols-2">
             {MODULES.map((m) => (
-              <label key={m.key} className="flex items-start gap-3 rounded-lg border border-rule px-3 py-2.5 text-sm has-[:checked]:border-foreground">
-                <input type="checkbox" name={`module_${m.key}`} defaultChecked className="mt-0.5 size-4 accent-[var(--ink-fill)]" />
-                <span className="flex flex-col">
-                  {m.label}
-                  <span className="text-xs text-subtle">{m.hint}</span>
-                </span>
+              <label key={m.key} className="flex items-center gap-3 rounded-lg border border-rule px-3 py-2.5 text-sm has-[:checked]:border-foreground">
+                <input type="checkbox" name={`module_${m.key}`} defaultChecked className="size-4 accent-[var(--ink-fill)]" />
+                {m.label}
               </label>
             ))}
           </div>

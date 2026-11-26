@@ -13,7 +13,7 @@ export const NAV: { group: string; items: NavItem[] }[] = [
   {
     group: 'অর্ডার প্রবাহ',
     items: [
-      { href: '/os', label: 'আজ রাতের সারাংশ', icon: 'moon' },
+      { href: '/os', label: 'সারাংশ', icon: 'dashboard' },
       { href: '/os/inquiries', label: 'ইনকোয়ারি', icon: 'mail', module: 'inquiries' },
       { href: '/os/costing', label: 'কস্টিং', icon: 'calculator', module: 'costing' },
       { href: '/os/orders', label: 'অর্ডার', icon: 'package' },

@@ -80,7 +80,6 @@ export function LcAmendments({
               <span className="label">কারণ</span>
               <input name="reason" required className="field" placeholder="যেমন ক্রেতা শিপমেন্ট দুই সপ্তাহ পিছাতে বলেছে" />
             </label>
-            <p className="text-xs leading-relaxed text-muted">তারিখ বছর-মাস-দিন আকারে এবং টাকার পরিমাণ শুধু অঙ্কে লিখুন। লেখার সঙ্গে সঙ্গে বি/এল-এর খসড়া নতুন এলসির সঙ্গে আবার মিলিয়ে দেখা হবে।</p>
             <div>
               <Submit small>সংশোধনী লিখুন</Submit>
             </div>

@@ -55,10 +55,9 @@ export default async function InquiryPage({ params }: { params: Promise<{ id: st
               </p>
             ) : null
           ) : !canConfirm ? (
-            <p className="text-sm text-muted">ইনকোয়ারি নিশ্চিত করার অনুমতি আছে এমন কেউ এটি যাচাই করবেন।</p>
+            <p className="text-sm text-muted">যাচাইয়ের অপেক্ষায়।</p>
           ) : (
             <ActionForm action={confirmInquiry} className="flex flex-col gap-4 rounded-xl border border-rule p-5">
-              <p className="text-sm leading-relaxed text-muted">কস্ট শিটে যাওয়ার আগে ৭০%-এর কম নিশ্চয়তার তথ্যগুলো ঠিক করে নিন।</p>
               <input type="hidden" name="id" value={inq.id} />
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5">

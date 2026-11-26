@@ -51,11 +51,10 @@ export function PlanSection({ order, milestones, can, config }: { order: Order; 
               {can['settings.manage'] ? <TextLink href="/os/settings/tna">মাইলস্টোনের টেমপ্লেট বদলান</TextLink> : null}
             </div>
           </ActionForm>
-          <ActionForm action={commitTna} className="flex flex-col gap-3 border-t border-rule pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm leading-relaxed text-muted">নিশ্চিত করলে প্রতিটি বিভাগ নিজ নিজ তারিখের দায়িত্ব নেবে; এরপর আর তারিখ বদলানো যাবে না।</p>
+          <ActionForm action={commitTna} className="border-t border-rule pt-4">
             <input type="hidden" name="order_id" value={order.id} />
-            <Submit small disabled={!canPlan}>
-              পরিকল্পনা নিশ্চিত করুন
+            <Submit small disabled={!canPlan} confirm="তারিখগুলো লক হয়ে যাবে, পরে আর বদলানো যাবে না। নিশ্চিত করবেন?">
+              পরিকল্পনা নিশ্চিত ও লক করুন
             </Submit>
           </ActionForm>
         </div>

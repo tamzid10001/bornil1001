@@ -12,10 +12,10 @@ import { acronyms } from '@/lib/acronyms'
 // A layout's title template skips pages in its own segment, so the dashboard names the factory itself.
 export async function generateMetadata() {
   const f = await getFactory()
-  return { title: { absolute: f.exists ? `আজ রাতের সারাংশ · ${f.name}` : 'আজ রাতের সারাংশ' } }
+  return { title: { absolute: f.exists ? `সারাংশ · ${f.name}` : 'সারাংশ' } }
 }
 
-export default async function TonightPage() {
+export default async function SummaryPage() {
   const t = today()
   const [config, exceptions, openOrders, allSewing, recent, bls] = await Promise.all([
     getConfig(),
@@ -40,7 +40,7 @@ export default async function TonightPage() {
     <>
       <PageHeader
         eyebrow={new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Dhaka' })}
-        title="আজ রাতের সারাংশ"
+        title="সারাংশ"
         hideTitle
         divider={false}
       />
@@ -55,7 +55,7 @@ export default async function TonightPage() {
       <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
         <Section title="ব্যতিক্রম" aside={<span className="num text-sm text-muted">{bn(exceptions.length)}টি খোলা</span>}>
           {exceptions.length === 0 ? (
-            <p className="text-muted">এখন আপনার মনোযোগ দেওয়ার মতো কিছু নেই। নিশ্চিন্তে বাড়ি যান।</p>
+            <p className="text-muted">এখন মনোযোগ দেওয়ার মতো কিছু নেই।</p>
           ) : (
             <ul className="flex flex-col">
               {[...gates, ...risks, ...info].map((e, i) => (

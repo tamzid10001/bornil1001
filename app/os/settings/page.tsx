@@ -22,12 +22,11 @@ export default async function ProfileSettingsPage({ searchParams }: { searchPara
   return (
     <>
       {welcome ? (
-        <div className="flex flex-col gap-1 rounded-xl border border-ok/40 px-4 py-3 text-sm" role="status">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-xl border border-ok/40 px-4 py-3 text-sm" role="status">
           <p className="font-medium text-ok">{factory.name} চালু হয়েছে।</p>
-          <p className="leading-relaxed text-muted">
-            এবার <TextLink href="/os/settings/people">কর্মী যোগ করে ভূমিকা দিন</TextLink>, <TextLink href="/os/settings/floor">ফ্লোর প্ল্যান মিলিয়ে নিন</TextLink>, তারপর{' '}
-            <TextLink href="/os/orders">প্রথম অর্ডার নিন</TextLink>।
-          </p>
+          <TextLink href="/os/settings/people">কর্মী যোগ করুন</TextLink>
+          <TextLink href="/os/settings/floor">ফ্লোর প্ল্যান</TextLink>
+          <TextLink href="/os/orders">প্রথম অর্ডার</TextLink>
         </div>
       ) : null}
 

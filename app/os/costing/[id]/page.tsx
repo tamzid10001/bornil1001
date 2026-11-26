@@ -141,7 +141,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
                 </div>
               </ActionForm>
             ) : (
-              <p className="text-sm text-muted">অনুমোদনের অপেক্ষায়। সিদ্ধান্ত নিতে “বর্তমান ব্যবহারকারী” থেকে কস্টিং গেট ছাড়ের অনুমতি আছে এমন কাউকে বেছে নিন।</p>
+              <p className="text-sm text-muted">অনুমোদনের অপেক্ষায়।</p>
             )
           ) : null}
 

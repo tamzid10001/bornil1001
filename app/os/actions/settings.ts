@@ -462,6 +462,10 @@ async function sectionValue(section: SectionKey, fd: FormData): Promise<unknown>
         blTolerance: num(fd, 'blTolerance', { min: 0, max: 20, label: 'বি/এল পরিমাণের ছাড়' }),
         btbCap: num(fd, 'btbCap', { min: 10, max: 100, label: 'বিটুবির সীমা' }),
         tenorDays: int(fd, 'tenorDays', { min: 0, max: 360, label: 'মাস্টার এলসির মেয়াদ' }),
+        sourceTaxPct: num(fd, 'sourceTaxPct', { min: 0, max: 10, label: 'উৎসে কর' }),
+        centralFundPct: num(fd, 'centralFundPct', { min: 0, max: 1, label: 'কেন্দ্রীয় তহবিল' }),
+        presentationDays: int(fd, 'presentationDays', { min: 1, max: 60, label: 'কাগজ জমার সময়' }),
+        realisationDays: int(fd, 'realisationDays', { min: 30, max: 360, label: 'রপ্তানি আয় দেশে আনার সময়' }),
       }
     }
     case 'payroll': {
@@ -475,6 +479,7 @@ async function sectionValue(section: SectionKey, fd: FormData): Promise<unknown>
         otMultiplier: num(fd, 'otMultiplier', { min: 1, max: 4, label: 'ওটির গুণক' }),
         otHoursBase: num(fd, 'otHoursBase', { min: 50, max: 400, label: 'মাসিক ঘণ্টা' }),
         workingDays: int(fd, 'workingDays', { min: 20, max: 31, label: 'কর্মদিবস' }),
+        absenceDivisor: int(fd, 'absenceDivisor', { min: 1, max: 31, label: 'অনুপস্থিতি কর্তনের ভাজক' }),
         attendanceBonus: num(fd, 'attendanceBonus', { min: 0, max: 1_000_000, label: 'হাজিরা বোনাস' }),
       }
     }

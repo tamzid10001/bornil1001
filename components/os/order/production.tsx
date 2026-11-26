@@ -110,9 +110,7 @@ export function ProductionSection({
             <GateNote gate="pp" open={!!order.ppSignedAt}>
               {order.ppSignedAt ? `স্বাক্ষর করেছেন ${nameOf(order.ppSignedBy)} · ${stamp(order.ppSignedAt)}` : 'মান নিয়ন্ত্রণ বিভাগ পিপি মিটিংয়ে স্বাক্ষর না করা পর্যন্ত বাল্ক সেলাইয়ের আউটপুট নেওয়া হবে না।'}
             </GateNote>
-          ) : (
-            <p className="text-sm text-muted">এই কারখানায় পিপি গেট বন্ধ রাখা আছে — স্বাক্ষর ছাড়াই আউটপুট নেওয়া যায়। চাইলে তবুও সিদ্ধান্ত লিখে রাখুন।</p>
-          )}
+          ) : null}
           {!order.ppSignedAt && !closed ? (
             can['gate.pp'] ? (
               <ActionForm action={signPp} className="flex flex-col gap-3">
@@ -121,7 +119,7 @@ export function ProductionSection({
                 <Submit small>পিপি মিটিংয়ে স্বাক্ষর করুন</Submit>
               </ActionForm>
             ) : (
-              <p className="text-sm text-muted">স্বাক্ষর করতে “বর্তমান ব্যবহারকারী” থেকে পিপি গেট ছাড়ের অনুমতি আছে এমন কাউকে বেছে নিন।</p>
+              <p className="text-sm text-muted">স্বাক্ষরের অপেক্ষায়।</p>
             )
           ) : null}
         </div>

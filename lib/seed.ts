@@ -132,7 +132,7 @@ export async function seedExampleFactory() {
       { code: 'PO-2044', quoteId: qs[0].id, buyer: 'Nordhavn Apparel', style: 'NH-PQ-220 piqué polo', category: 'knit-top', fabric: '220gsm cotton piqué', quantity: 36000, sizes: { S: 3600, M: 10800, L: 10800, XL: 7200, XXL: 3600 }, shipDate: addDays(t, 24), fob: 592.92, stage: 'sew', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 9) },
       { code: 'PO-2051', quoteId: qs[2].id, buyer: 'Halden Workwear', style: 'HW-TC-280 twill chino', category: 'woven-bottom', fabric: '280gsm stretch twill', quantity: 18000, sizes: { '30': 3600, '32': 5400, '34': 5400, '36': 3600 }, shipDate: addDays(t, 64), fob: 896.7, stage: 'materials', tnaCommitted: true },
       { code: 'PO-2039', buyer: 'Aster Retail', style: 'AS-JT-150 jersey tee', category: 'knit-top', fabric: '150gsm combed jersey', quantity: 48000, sizes: { S: 9600, M: 14400, L: 14400, XL: 9600 }, shipDate: addDays(t, 3), fob: 294.02, stage: 'ship', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 45) },
-      { code: 'PO-2027', buyer: 'Nordhavn Apparel', style: 'NH-SW-300 crew sweatshirt', category: 'knit-fleece', fabric: '300gsm fleece', quantity: 22000, sizes: { S: 4400, M: 6600, L: 6600, XL: 4400 }, shipDate: addDays(t, -38), fob: 841.8, stage: 'paid', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 90), realisedAmount: 18358560, btbSettled: 10516400, airFreight: 0, discount: 161040, realisedAt: addDays(t, -6), closedAt: hoursAgo(24 * 5) },
+      { code: 'PO-2027', buyer: 'Nordhavn Apparel', style: 'NH-SW-300 crew sweatshirt', category: 'knit-fleece', fabric: '300gsm fleece', quantity: 22000, sizes: { S: 4400, M: 6600, L: 6600, XL: 4400 }, shipDate: addDays(t, -38), fob: 841.8, stage: 'paid', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 90), realisedAmount: 18358560, sourceTax: 183585.6, centralFund: 5507.57, btbSettled: 10516400, airFreight: 0, discount: 161040, realisedAt: addDays(t, -6), closedAt: hoursAgo(24 * 5) },
     ])
     .returning()
   const [o2044, o2051, o2039, o2027] = os
@@ -254,7 +254,7 @@ export async function seedExampleFactory() {
     names.map((name, i) => ({
       code: `OP-${String(1001 + i)}`,
       name,
-      grade: [3, 4, 4, 5, 3, 4, 2, 5, 4, 3, 5, 4, 3, 4, 5, 2][i],
+      grade: [3, 4, 4, 4, 3, 4, 2, 4, 4, 3, 4, 4, 3, 4, 4, 2][i],
       section: 'sewing',
       line: lineId((i % 4) + 1),
       daysPresent: [26, 26, 25, 26, 24, 26, 26, 23, 26, 26, 25, 26, 26, 22, 26, 26][i],

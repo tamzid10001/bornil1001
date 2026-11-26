@@ -1,6 +1,6 @@
 'use server'
 
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { bl, bom, defects, lays, lcs, lots, orders, sewing, tna, ud, type Order } from '@/lib/db/schema'
 import { can, record, requireActor, requireGate, requirePermission } from '@/lib/actor'
@@ -17,12 +17,12 @@ async function advance(o: Order, to: Stage) {
   }
 }
 
-/** Ticks a milestone the work itself proves done; a no-op if the factory removed it from its template. */
+/** Ticks a milestone the work itself proves done; keeps the first date, and is a no-op if the factory removed it from its template. */
 async function tick(orderId: number, milestone: string) {
   await db
     .update(tna)
     .set({ doneAt: today() })
-    .where(and(eq(tna.orderId, orderId), eq(tna.name, milestone)))
+    .where(and(eq(tna.orderId, orderId), eq(tna.name, milestone), isNull(tna.doneAt)))
 }
 
 export async function commitTna(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -295,6 +295,7 @@ export async function saveBl(_: ActionState, fd: FormData): Promise<ActionState>
     const [existing] = await db.select().from(bl).where(and(eq(bl.orderId, o.id), inArray(bl.status, ['draft', 'discrepant'])))
     if (existing) await db.update(bl).set({ ...values, status }).where(eq(bl.id, existing.id))
     else await db.insert(bl).values({ ...values, status })
+    if (values.onBoard <= today()) await tick(o.id, 'ex-factory')
     await record(actor, 'বি/এল খসড়া সংরক্ষণ করেছেন', 'order', o.id, `${o.code}: ${failed.length ? `${bn(failed.length)}টি অমিল` : 'সব তথ্য মিলেছে'}`)
     refreshOrder(o)
     return failed.length ? `এলসির সঙ্গে ${bn(failed.length)}টি অমিল — পাঠানোর আগে ঠিক করুন` : 'বি/এল সংরক্ষণ করা হয়েছে'
@@ -316,6 +317,7 @@ export async function releaseBl(_: ActionState, fd: FormData): Promise<ActionSta
     }
     await db.update(bl).set({ status: 'released', releasedBy: actor.id, releasedAt: new Date() }).where(eq(bl.id, id))
     await tick(o.id, 'ex-factory')
+    await tick(o.id, 'documents to bank')
     await record(actor, 'কাগজপত্র ব্যাংকে পাঠিয়েছেন', 'order', o.id, `${o.code} বি/এল`)
     refreshOrder(o)
     return 'কাগজপত্র পাঠানো হয়েছে'
@@ -328,8 +330,12 @@ export async function realiseOrder(_: ActionState, fd: FormData): Promise<Action
     const o = await loadOpenOrder(fd)
     const [released] = await db.select({ id: bl.id }).from(bl).where(and(eq(bl.orderId, o.id), eq(bl.status, 'released')))
     if (!released) throw new Error('আগে বি/এল পাঠান — ক্রেতা বা ব্যাংক কাগজপত্রের বিপরীতেই টাকা দেয়।')
+    const { commercial } = await getConfig()
+    const realisedAmount = num(fd, 'realised', { min: 0, max: 10_000_000_000, label: 'প্রাপ্ত টাকা' })
     const values = {
-      realisedAmount: num(fd, 'realised', { min: 0, max: 10_000_000_000, label: 'প্রাপ্ত টাকা' }),
+      realisedAmount,
+      sourceTax: Math.round(realisedAmount * commercial.sourceTaxPct) / 100,
+      centralFund: Math.round(realisedAmount * commercial.centralFundPct) / 100,
       btbSettled: num(fd, 'btb_settled', { min: 0, max: 10_000_000_000, label: 'বিটুবি পরিশোধ' }),
       airFreight: num(fd, 'air_freight', { min: 0, max: 1_000_000_000, label: 'এয়ার ফ্রেইট' }),
       discount: num(fd, 'discount', { min: 0, max: 1_000_000_000, label: 'ছাড়' }),

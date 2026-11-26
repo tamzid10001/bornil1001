@@ -156,6 +156,8 @@ export const orders = pgTable('orders', {
   ppSignedBy: integer('pp_signed_by'),
   ppSignedAt: ts('pp_signed_at'),
   realisedAmount: doublePrecision('realised_amount'),
+  sourceTax: doublePrecision('source_tax'),
+  centralFund: doublePrecision('central_fund'),
   btbSettled: doublePrecision('btb_settled'),
   airFreight: doublePrecision('air_freight'),
   discount: doublePrecision('discount'),

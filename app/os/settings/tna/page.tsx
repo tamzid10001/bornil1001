@@ -51,7 +51,6 @@ export default async function TnaSettingsPage({ searchParams }: { searchParams: 
       <SectionForm
         section="tna"
         title="ক্রিটিক্যাল পাথের টেমপ্লেট"
-        lede="প্রতিটি মাইলস্টোন অন্য একটি মাইলস্টোন বা শিপমেন্টের তারিখের কত দিন আগে হবে তা লিখুন। নতুন অর্ডার খুললে শিপমেন্টের তারিখ থেকে পিছিয়ে সব তারিখ হিসাব হয়। কোনো মাইলস্টোন শুধু নির্দিষ্ট পোশাকের জন্য হলে “পোশাক” থেকে বেছে নিন; না বাছলে সব পোশাকে থাকবে। আগে খোলা অর্ডারের তারিখ বদলায় না।"
       >
         <ListEditor
           key={JSON.stringify(config.tna)}

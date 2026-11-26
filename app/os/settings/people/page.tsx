@@ -41,9 +41,6 @@ export default async function PeopleSettingsPage() {
         title="ভূমিকা ও অনুমতি"
         aside={<span className="text-sm text-muted">{isOwner ? `${bn(roles.length)}টি ভূমিকা` : 'শুধু মালিক বদলাতে পারেন'}</span>}
       >
-        <p className="max-w-2xl text-sm leading-relaxed text-muted">
-          প্রতিটি ভূমিকা কী কী করতে পারবে তা টিক দিয়ে ঠিক করুন। গেট ছাড়ের অনুমতি যাকে দেবেন, শুধু তিনিই সেই গেট খুলতে পারবেন — সিস্টেম প্রতিটি কাজের আগে সার্ভারে এটি যাচাই করে।
-        </p>
         <ul className="flex flex-col">
           {roles.map((r) => (
             <li key={r.id} className="border-t border-rule first:border-t-0">

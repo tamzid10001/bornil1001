@@ -21,7 +21,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
 
   return (
     <>
-      <PageHeader eyebrow="প্রশাসন" title="সেটিংস" lede="আপনার কারখানার নাম, ব্র্যান্ড, মানুষ, ফ্লোর আর কাজের নিয়ম — সব এখান থেকে সাজান। প্রতিটি পরিবর্তন অডিট ট্রেইলে থাকে।" divider={false} />
+      <PageHeader eyebrow="প্রশাসন" title="সেটিংস" divider={false} />
       <SettingsTabs tabs={tabs} />
       <div className="flex flex-col gap-10">{children}</div>
     </>

@@ -31,14 +31,10 @@ export default async function OsLayout({ children }: { children: React.ReactNode
         <header className="flex flex-col gap-4">
           <BornilLogo className="h-9 w-auto self-start text-foreground" />
           <h1 className="text-balance text-4xl leading-tight">আপনার কারখানা সেটআপ করুন</h1>
-          <p className="text-pretty leading-relaxed text-muted">
-            নাম, লোগো, ফ্লোর প্ল্যান আর কোন ধরনের পোশাক বানান — চার ধাপে এটুকু দিলেই সিস্টেম আপনার কারখানার মতো করে সেজে যাবে। ভূমিকা, অনুমতি, ক্রিটিক্যাল পাথ, মান নিয়ন্ত্রণ ও বেতন কাঠামো পরে সেটিংস থেকে বদলানো যাবে।
-          </p>
         </header>
         <SetupWizard action={setupFactory} />
-        <form action={loadExampleFactory} className="flex flex-col gap-2 border-t border-rule pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm leading-relaxed text-muted">আগে ঘুরে দেখতে চান? চারটি অর্ডার, চারটি লাইন ও দশজন কর্মীসহ একটি নমুনা কারখানা লোড করুন।</p>
-          <button type="submit" className="btn-quiet shrink-0">
+        <form action={loadExampleFactory} className="border-t border-rule pt-6">
+          <button type="submit" className="btn-quiet">
             নমুনা কারখানা দেখুন
           </button>
         </form>

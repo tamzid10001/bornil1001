@@ -24,7 +24,6 @@ export default async function QualitySettingsPage() {
       <SectionForm
         section="quality"
         title="চূড়ান্ত পরিদর্শন"
-        lede="আইএসও ২৮৫৯-১ অনুযায়ী সাধারণ পরিদর্শন, একক নমুনা। ক্রেতা যে লেভেল ও একিউএল চায় তা বেছে নিন — লটের আকার থেকে নমুনার সংখ্যা ও গ্রহণযোগ্য ত্রুটির সীমা নিজে থেকে হিসাব হবে।"
         className="grid gap-4 sm:grid-cols-2 lg:max-w-xl"
       >
         <label className="flex flex-col gap-1.5">
@@ -77,7 +76,7 @@ export default async function QualitySettingsPage() {
         </div>
       </Section>
 
-      <SectionForm section="defects" title="ত্রুটির তালিকা" lede="লাইনে ত্রুটি লেখার সময় এই তালিকা থেকে বেছে নেওয়া হয়। আগে লেখা ত্রুটি তার কোড ধরে রাখে, তাই নাম বদলালে ইতিহাসেও নতুন নাম দেখা যাবে।">
+      <SectionForm section="defects" title="ত্রুটির তালিকা">
         <ListEditor key={JSON.stringify(config.defects)} fields={DEFECT_FIELDS} initial={config.defects} blank={{ code: '', label: '' }} addLabel="ত্রুটি যোগ করুন" />
       </SectionForm>
     </>

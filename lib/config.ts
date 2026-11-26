@@ -82,13 +82,13 @@ export const DEFAULT_ROLES: { key: string; name: string; isOwner?: boolean; perm
 /* ---------- modules ---------- */
 
 export const MODULES = [
-  { key: 'inquiries', label: 'ইনকোয়ারি', hint: 'ক্রেতার ইমেইল থেকে এআই দিয়ে তথ্য তোলা' },
-  { key: 'costing', label: 'কস্টিং ও কোটেশন', hint: 'কস্ট শিট, মার্জিন ও কোটেশন সংস্করণ' },
-  { key: 'commercial', label: 'এলসি ও রপ্তানির কাগজ', hint: 'মাস্টার ও বিটুবি এলসি, বি/এল, ইনভয়েস, সংশোধনী' },
-  { key: 'bond', label: 'ইউডি ও বন্ডেড গুদাম', hint: 'ইউডির সীমার মধ্যে কাঁচামাল গ্রহণ ও ব্যবহার' },
-  { key: 'techpack', label: 'টেক প্যাক', hint: 'এআই দিয়ে মাপ, ট্রিম ও অপারেশন তোলা' },
-  { key: 'maintenance', label: 'রক্ষণাবেক্ষণ', hint: 'মেশিন তালিকা ও ব্রেকডাউন টিকিট' },
-  { key: 'payroll', label: 'বেতন', hint: 'গ্রেডভিত্তিক মজুরি, হাজিরা ও ওভারটাইম' },
+  { key: 'inquiries', label: 'ইনকোয়ারি' },
+  { key: 'costing', label: 'কস্টিং ও কোটেশন' },
+  { key: 'commercial', label: 'এলসি ও রপ্তানির কাগজ' },
+  { key: 'bond', label: 'ইউডি ও বন্ডেড গুদাম' },
+  { key: 'techpack', label: 'টেক প্যাক' },
+  { key: 'maintenance', label: 'রক্ষণাবেক্ষণ' },
+  { key: 'payroll', label: 'বেতন' },
 ] as const
 
 export type ModuleKey = (typeof MODULES)[number]['key']
@@ -191,6 +191,11 @@ export const DEFAULT_DEFECTS: Defect[] = [
   { code: 'D07', label: 'মাপ ভুল' },
   { code: 'D08', label: 'কুঁচকানো' },
   { code: 'D09', label: 'লেবেল ভুল জায়গায়' },
+  { code: 'D10', label: 'সুতা কাটা হয়নি' },
+  { code: 'D11', label: 'কাপড়ে ফুটো' },
+  { code: 'D12', label: 'ময়লা দাগ' },
+  { code: 'D13', label: 'বোতাম বা চেইনের ত্রুটি' },
+  { code: 'D14', label: 'প্রিন্ট বা এমব্রয়ডারির ত্রুটি' },
 ]
 
 /** Milestones the system ticks off by itself when the matching work is recorded. */
@@ -204,7 +209,8 @@ export const AUTO_MILESTONES: Record<string, string> = {
   'sewing start': 'প্রথম ঘণ্টার আউটপুট লেখা হলে',
   'sewing complete': 'লট গৃহীত হলে',
   'final inspection': 'লট গৃহীত হলে',
-  'ex-factory': 'বি/এল ব্যাংকে গেলে',
+  'ex-factory': 'বি/এল লেখা হলে',
+  'documents to bank': 'বি/এল ব্যাংকে গেলে',
 }
 
 /** The original critical path, expressed as "N days before its anchor" so factories can reshape it. */
@@ -213,8 +219,10 @@ export const DEFAULT_TNA: Milestone[] = [
   { key: 'master lc received', label: 'মাস্টার এলসি প্রাপ্তি', dept: 'commercial', anchor: 'btb lc opened', days: 4, span: 'none', categories: [] },
   { key: 'btb lc opened', label: 'বিটুবি এলসি খোলা', dept: 'commercial', anchor: 'fabric booking', days: 2, span: 'none', categories: [] },
   { key: 'fabric booking', label: 'কাপড় বুকিং', dept: 'store', anchor: 'fabric in-house', days: 0, span: 'fabricLead', categories: [] },
-  { key: 'trims booking', label: 'ট্রিমস বুকিং', dept: 'store', anchor: 'sewing start', days: 20, span: 'none', categories: [] },
+  { key: 'trims booking', label: 'ট্রিমস বুকিং', dept: 'store', anchor: 'trims in-house', days: 15, span: 'none', categories: [] },
+  { key: 'trims in-house', label: 'ট্রিমস কারখানায় পৌঁছানো', dept: 'store', anchor: 'pp meeting', days: 3, span: 'none', categories: [] },
   { key: 'fabric in-house', label: 'কাপড় কারখানায় পৌঁছানো', dept: 'store', anchor: 'bulk cutting start', days: 4, span: 'none', categories: [] },
+  { key: 'fabric inspection', label: 'কাপড় পরিদর্শন (৪-পয়েন্ট)', dept: 'quality', anchor: 'bulk cutting start', days: 2, span: 'none', categories: [] },
   { key: 'wash standard approval', label: 'ওয়াশ স্ট্যান্ডার্ড অনুমোদন', dept: 'washing', anchor: 'pp sample approval', days: 3, span: 'none', categories: ['denim'] },
   { key: 'pp sample approval', label: 'পিপি স্যাম্পল অনুমোদন', dept: 'merchandising', anchor: 'pp meeting', days: 4, span: 'none', categories: [] },
   { key: 'pp meeting', label: 'পিপি মিটিং', dept: 'quality', anchor: 'bulk cutting start', days: 2, span: 'none', categories: [] },
@@ -223,6 +231,7 @@ export const DEFAULT_TNA: Milestone[] = [
   { key: 'sewing complete', label: 'সেলাই সম্পন্ন', dept: 'sewing', anchor: 'final inspection', days: 3, span: 'none', categories: [] },
   { key: 'final inspection', label: 'চূড়ান্ত পরিদর্শন', dept: 'quality', anchor: 'ex-factory', days: 2, span: 'none', categories: [] },
   { key: 'ex-factory', label: 'এক্স-ফ্যাক্টরি', dept: 'commercial', anchor: 'ship', days: 2, span: 'none', categories: [] },
+  { key: 'documents to bank', label: 'কাগজপত্র ব্যাংকে জমা', dept: 'commercial', anchor: 'ship', days: -7, span: 'none', categories: [] },
 ]
 
 export const DEFAULT_STAGES: Record<Stage, string> = {
@@ -291,14 +300,18 @@ export const commercialSchema = z.object({
   blTolerance: num(0, 20, 5),
   btbCap: num(10, 100, 75),
   tenorDays: whole(0, 360, 90),
+  sourceTaxPct: num(0, 10, 1),
+  centralFundPct: num(0, 1, 0.03),
+  presentationDays: whole(1, 60, 21),
+  realisationDays: whole(30, 360, 120),
 })
 export const gradeSchema = z.object({ grade: z.number().int().min(1).max(30), gross: z.number().min(0).max(10_000_000) })
+/** Worker grades from the December 2023 minimum wage gazette for the garment sector. */
 export const DEFAULT_GRADES = [
-  { grade: 1, gross: 14750 },
-  { grade: 2, gross: 14100 },
+  { grade: 1, gross: 15035 },
+  { grade: 2, gross: 14273 },
   { grade: 3, gross: 13550 },
-  { grade: 4, gross: 13025 },
-  { grade: 5, gross: 12500 },
+  { grade: 4, gross: 12500 },
 ]
 export const payrollSchema = z.object({
   grades: z.array(gradeSchema).min(1).max(30).catch(DEFAULT_GRADES),
@@ -307,6 +320,7 @@ export const payrollSchema = z.object({
   otMultiplier: num(1, 4, 2),
   otHoursBase: num(50, 400, 208),
   workingDays: whole(20, 31, 26),
+  absenceDivisor: whole(1, 31, 30),
   attendanceBonus: num(0, 1_000_000, 450),
 })
 export const gatesSchema = z.object({
@@ -512,10 +526,24 @@ export function wage(p: Config['payroll'], grade: number, daysPresent: number, o
   const gross = (byGrade.find((g) => g.grade === grade) ?? byGrade[byGrade.length - 1]).gross
   const basic = Math.max(0, (gross - p.allowances) / p.basicDivisor)
   const otRate = (basic / p.otHoursBase) * p.otMultiplier
-  const earned = (gross * Math.min(daysPresent, p.workingDays)) / p.workingDays
+  // Absence comes off basic pay only, one day's basic per day absent; allowances stay whole.
+  const absentDays = Math.max(0, p.workingDays - daysPresent)
+  const deduction = Math.min(gross, (basic / p.absenceDivisor) * absentDays)
+  const earned = gross - deduction
   const bonus = daysPresent >= p.workingDays ? p.attendanceBonus : 0
   const ot = otRate * otHours
-  return { gross, basic, otRate, earned, bonus, ot, net: earned + bonus + ot }
+  return { gross, basic, otRate, deduction, earned, bonus, ot, net: earned + bonus + ot }
+}
+
+/** Wages fall due before the seventh working day after the month ends; Friday is the weekly holiday. */
+export function wageDueDate(isoInMonth: string) {
+  const [y, m] = isoInMonth.split('-').map(Number)
+  let d = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10)
+  for (let left = 7; left > 0; ) {
+    d = addDays(d, 1)
+    if (new Date(`${d}T00:00:00Z`).getUTCDay() !== 5) left--
+  }
+  return d
 }
 
 /* ---------- dates ---------- */

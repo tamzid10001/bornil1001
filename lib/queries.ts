@@ -98,6 +98,29 @@ export async function getExceptions(): Promise<Exception[]> {
       }
     }
 
+    if (modules.commercial) {
+      const shipped = allBl.filter((b) => b.orderId === o.id && b.onBoard <= t).sort((a, b) => a.onBoard.localeCompare(b.onBoard))
+      const unsent = shipped.find((b) => b.status !== 'released')
+      const sent = shipped.find((b) => b.status === 'released')
+      const deadlines = [
+        unsent && { b: unsent, days: commercial.presentationDays, warn: 7, what: 'কাগজপত্র ব্যাংকে জমার', href: `/os/orders/${o.id}/shipping` },
+        sent && { b: sent, days: commercial.realisationDays, warn: 30, what: 'রপ্তানি আয় দেশে আনার', href: `/os/orders/${o.id}` },
+      ]
+      for (const d of deadlines) {
+        if (!d) continue
+        const due = addDays(d.b.onBoard, d.days)
+        const left = daysBetween(t, due)
+        if (left > d.warn) continue
+        out.push({
+          kind: 'risk',
+          dept: 'commercial',
+          title: left < 0 ? `${o.code} ${d.what} সময় ${bn(-left)} দিন পেরিয়েছে` : `${o.code} ${d.what} আর ${bn(left)} দিন বাকি`,
+          detail: `জাহাজীকরণ ${day(d.b.onBoard)} · শেষ দিন ${day(due)}`,
+          href: d.href,
+        })
+      }
+    }
+
     const overdue = allTna.filter((m) => m.orderId === o.id && m.dueDate < t)
     if (o.tnaCommitted && overdue.length) {
       const worst = overdue.sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0]

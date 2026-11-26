@@ -180,7 +180,7 @@ export function ExportDocsSection({
           rows.length ? (
             <ActionForm action={saveInvoice} className="flex flex-col gap-3 rounded-xl border border-rule p-4">
               <input type="hidden" name="order_id" value={order.id} />
-              <p className="text-sm text-muted">পরিমাণ প্যাকিং লিস্ট থেকে আসবে: {n(t.pcs)} পিস।</p>
+              <p className="text-sm text-muted">পরিমাণ {n(t.pcs)} পিস</p>
               <div className="grid gap-3 sm:grid-cols-3">
                 <label className="flex flex-col gap-1.5">
                   <span className="label">পিসপ্রতি দর (৳)</span>
@@ -196,7 +196,7 @@ export function ExportDocsSection({
                 </label>
               </div>
               <label className="flex flex-col gap-1.5">
-                <span className="label">পণ্যের বিবরণ — এলসির সঙ্গে হুবহু মিলতে হবে</span>
+                <span className="label">পণ্যের বিবরণ</span>
                 <input name="description" required className="field" defaultValue={invoice?.description ?? master?.description ?? ''} />
               </label>
               <div>
@@ -206,7 +206,7 @@ export function ExportDocsSection({
               </div>
             </ActionForm>
           ) : (
-            <p className="text-sm text-muted">প্যাকিং লিস্ট তৈরি হলে ইনভয়েস তৈরি করা যাবে।</p>
+            <p className="text-sm text-muted">আগে প্যাকিং লিস্ট তৈরি করুন।</p>
           )
         ) : null}
       </div>

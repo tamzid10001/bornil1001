@@ -30,12 +30,11 @@ export default async function ProductionSettingsPage() {
       <SectionForm
         section="categories"
         title="পোশাকের ধরন"
-        lede="প্রতিটি ধরনের নিজস্ব কাপড়ের একক, সাইজ ও সাইজের অনুপাত থাকে। নতুন অর্ডারে পরিমাণ এই অনুপাতে সাইজে ভাগ হয়, কস্ট শিটে কাপড় এই এককে হিসাব হয়, আর ক্রিটিক্যাল পাথে ধরন-নির্দিষ্ট মাইলস্টোন যোগ হয়।"
       >
         <ListEditor key={JSON.stringify(config.categories)} fields={CATEGORY_FIELDS} initial={config.categories} blank={{ key: '', label: '', unit: 'kg', sizes: ['S', 'M', 'L', 'XL'], ratio: [1, 2, 2, 1] }} addLabel="ধরন যোগ করুন" stackBelow="xl" />
       </SectionForm>
 
-      <SectionForm section="production" title="উৎপাদনের হিসাব" lede="নতুন অর্ডারের ক্রিটিক্যাল পাথ, সেলাই শেষের পূর্বাভাস আর ফ্লোরের সতর্কতা এই সংখ্যাগুলো দিয়ে হিসাব হয়।" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <SectionForm section="production" title="উৎপাদনের হিসাব" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <NumberField name="perLineDay" label="লাইনপ্রতি দৈনিক উৎপাদন" value={p.perLineDay} min={10} max={20000} suffix="পিস" />
         <NumberField name="fabricLeadDays" label="কাপড়ের লিড টাইম" value={p.fabricLeadDays} min={1} max={180} suffix="দিন" />
         <NumberField name="efficiencyAlert" label="এর নিচে দক্ষতা হলে সতর্ক করুন" value={p.efficiencyAlert} min={30} max={100} suffix="%" />
@@ -44,7 +43,7 @@ export default async function ProductionSettingsPage() {
         <NumberField name="hoursPerDay" label="দৈনিক কর্মঘণ্টা" value={p.hoursPerDay} min={1} max={24} suffix="ঘণ্টা" />
       </SectionForm>
 
-      <SectionForm section="stages" title="অর্ডারের ধাপের নাম" lede="ধাপগুলোর ক্রম একই থাকে, নাম আপনার কারখানার ভাষায় দিন — যেমন সোয়েটার কারখানায় “কাটিং”-এর বদলে “নিটিং”, “সেলাই”-এর বদলে “লিংকিং”।" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <SectionForm section="stages" title="অর্ডারের ধাপের নাম" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {STAGES.map((s) => (
           <label key={s} className="flex flex-col gap-1.5">
             <span className="label">{s}</span>
@@ -53,11 +52,11 @@ export default async function ProductionSettingsPage() {
         ))}
       </SectionForm>
 
-      <SectionForm section="departments" title="বিভাগ" lede="কর্মী, মাইলস্টোনের দায়িত্ব আর ব্যতিক্রমের তালিকায় এই বিভাগগুলো দেখা যায়।">
+      <SectionForm section="departments" title="বিভাগ">
         <ListEditor key={JSON.stringify(config.departments)} fields={OPTION_FIELDS} initial={config.departments} blank={{ key: '', label: '' }} addLabel="বিভাগ যোগ করুন" />
       </SectionForm>
 
-      <SectionForm section="machineTypes" title="মেশিনের ধরন" lede="রক্ষণাবেক্ষণে মেশিন যোগ করার সময় এই তালিকা থেকে ধরন বেছে নেওয়া হয়।">
+      <SectionForm section="machineTypes" title="মেশিনের ধরন">
         <ListEditor key={JSON.stringify(config.machineTypes)} fields={OPTION_FIELDS} initial={config.machineTypes} blank={{ key: '', label: '' }} addLabel="মেশিনের ধরন যোগ করুন" />
       </SectionForm>
     </>

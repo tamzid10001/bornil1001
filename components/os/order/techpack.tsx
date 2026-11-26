@@ -130,7 +130,6 @@ export function TechPackSection({ order, pack, nameOf, canManage }: { order: Ord
               aria-label="টেক প্যাকের লেখা"
               placeholder={'Style: NV-TS-2201\nFabric: Single jersey, 180 GSM, 100% cotton\nSizes: S M L XL\nChest width 1/2   50 52 54 56  tol ±1\nCare label 1 pc\nAttach collar 0.85'}
             />
-            <p className="text-xs leading-relaxed text-muted">পিডিএফ থেকে লেখা কপি করে পেস্ট করুন। এআই মাপ, ট্রিম ও অপারেশন আলাদা করবে — কম নিশ্চিত তথ্য লাল রঙে দেখানো হবে।</p>
             <div>
               <Submit small>টেক প্যাক বিশ্লেষণ করুন</Submit>
             </div>

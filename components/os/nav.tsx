@@ -6,8 +6,8 @@ import {
   Activity,
   Calculator,
   Landmark,
+  LayoutDashboard,
   Mail,
-  Moon,
   Package,
   Settings,
   Shield,
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 
 const ICONS: Record<string, LucideIcon> = {
-  moon: Moon,
+  dashboard: LayoutDashboard,
   mail: Mail,
   calculator: Calculator,
   package: Package,

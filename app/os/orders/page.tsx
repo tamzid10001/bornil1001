@@ -23,9 +23,6 @@ export default async function OrdersPage() {
       {can['order.create'] ? (
         <details className="rounded-xl border border-rule p-4" open={rows.length === 0}>
           <summary className="font-medium">সরাসরি নতুন অর্ডার নিন</summary>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
-            রিপিট অর্ডার, সাব-কন্ট্রাক্ট বা সিস্টেমের বাইরে কস্টিং হওয়া অর্ডারের জন্য। সাইজ ভাগ, ক্রিটিক্যাল পাথ ও কাঁচামালের তালিকা পোশাকের ধরন অনুযায়ী নিজে থেকেই তৈরি হবে।
-          </p>
           <ActionForm action={createOrder} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="flex flex-col gap-1.5">
               <span className="label">ক্রেতা</span>

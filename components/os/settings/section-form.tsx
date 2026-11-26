@@ -6,25 +6,20 @@ import { resetSettings, saveSettings } from '@/app/os/actions/settings'
 export function SectionForm({
   section,
   title,
-  lede,
   children,
   className = 'flex flex-col gap-4',
 }: {
   section: SectionKey
   title: string
-  lede?: React.ReactNode
   children: React.ReactNode
   className?: string
 }) {
   return (
     <section className="flex flex-col gap-4 border-t border-rule pt-8 first:border-t-0 first:pt-0" aria-labelledby={`s-${section}`}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex max-w-2xl flex-col gap-1">
-          <h2 id={`s-${section}`} className="text-xl">
-            {title}
-          </h2>
-          {lede ? <p className="text-pretty text-sm leading-relaxed text-muted">{lede}</p> : null}
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id={`s-${section}`} className="text-xl">
+          {title}
+        </h2>
         <ActionForm action={resetSettings} className="flex shrink-0 flex-col items-end gap-1">
           <input type="hidden" name="section" value={section} />
           <Submit quiet small confirm={`“${title}” শুরুর অবস্থায় ফেরাবেন? আপনার পরিবর্তনগুলো মুছে যাবে।`}>
