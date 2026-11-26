@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { inquiries, quotes } from '@/lib/db/schema'
+import { getActor, grantsFor } from '@/lib/actor'
+import { getConfig } from '@/lib/settings'
 import { bn, stamp, input } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, PageHeader, Section, TextLink } from '@/components/os/ui'
@@ -9,9 +11,12 @@ import { confirmInquiry } from '../../actions/sales'
 
 export default async function InquiryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [inq] = await db.select().from(inquiries).where(eq(inquiries.id, Number(id)))
+  const inquiryId = Number(id)
+  if (!Number.isInteger(inquiryId) || inquiryId <= 0) notFound()
+  const [inq] = await db.select().from(inquiries).where(eq(inquiries.id, inquiryId))
   if (!inq) notFound()
-  const [quote] = await db.select().from(quotes).where(eq(quotes.inquiryId, inq.id))
+  const [[quote], config, actor] = await Promise.all([db.select().from(quotes).where(eq(quotes.inquiryId, inq.id)), getConfig(), getActor()])
+  const canConfirm = grantsFor(actor)['inquiry.manage']
   const field = (k: string) => inq.fields.find((f) => f.key === k)
   const locked = inq.status !== 'draft'
 
@@ -25,9 +30,9 @@ export default async function InquiryPage({ params }: { params: Promise<{ id: st
       />
       <div className="grid gap-10 lg:grid-cols-2">
         <Section title="ইমেইল">
-          <pre className="whitespace-pre-wrap rounded-xl bg-key p-5 font-mono text-sm leading-relaxed">{inq.body}</pre>
+          <pre className="whitespace-pre-wrap wrap-anywhere rounded-xl bg-key p-5 font-mono text-sm leading-relaxed">{inq.body}</pre>
         </Section>
-        <Section title={locked ? 'নিশ্চিত করা তথ্য' : 'যা পড়া হয়েছে তা যাচাই করুন'}>
+        <Section title={locked ? 'নিশ্চিত করা তথ্য' : 'ইমেইল থেকে পাওয়া তথ্য যাচাই করুন'}>
           <ul className="flex flex-col">
             {inq.fields.map((f) => (
               <li key={f.key} className="flex items-baseline gap-3 border-t border-rule py-2.5 first:border-t-0">
@@ -46,17 +51,28 @@ export default async function InquiryPage({ params }: { params: Promise<{ id: st
           {locked ? (
             quote ? (
               <p className="text-sm text-muted">
-                নিশ্চিত হয়েছে। কস্টিং চলছে <TextLink href={`/os/costing/${quote.id}`}>{quote.code}</TextLink> হিসেবে।
+                নিশ্চিত করা হয়েছে — কস্টিং চলছে <TextLink href={`/os/costing/${quote.id}`}>{quote.code}</TextLink> নামে।
               </p>
             ) : null
+          ) : !canConfirm ? (
+            <p className="text-sm text-muted">যাচাইয়ের অপেক্ষায়।</p>
           ) : (
             <ActionForm action={confirmInquiry} className="flex flex-col gap-4 rounded-xl border border-rule p-5">
-              <p className="text-sm leading-relaxed text-muted">কস্ট শিটে যাওয়ার আগে ৭০%-এর নিচের যেকোনো তথ্য ঠিক করে নিন।</p>
               <input type="hidden" name="id" value={inq.id} />
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5">
                   <span className="label">স্টাইল</span>
                   <input name="style" defaultValue={inq.style ?? ''} required className="field" />
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="label">পোশাকের ধরন</span>
+                  <select name="category" defaultValue={inq.category ?? config.categories[0].key} required className="field">
+                    {config.categories.map((c) => (
+                      <option key={c.key} value={c.key}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <label className="flex flex-col gap-1.5">
                   <span className="label">কাপড়</span>

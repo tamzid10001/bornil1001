@@ -1,4 +1,5 @@
 import type { Carton, Invoice, Lc, Order } from '@/lib/db/schema'
+import type { Grants } from '@/lib/actor'
 import { invoiceChecks, packingTotals } from '@/lib/export-checks'
 import { today } from '@/lib/domain'
 import { bn, day, kg, n, tk } from '@/lib/format'
@@ -12,25 +13,25 @@ export function ExportDocsSection({
   rows,
   invoice,
   blQty,
-  role,
+  can,
 }: {
   order: Order
   master: Lc | undefined
   rows: Carton[]
   invoice: Invoice | undefined
   blQty: number | null
-  role: string
+  can: Grants
 }) {
   const t = packingTotals(rows)
   const closed = !!order.closedAt
   const locked = invoice?.status === 'issued'
-  const canPack = ['owner', 'store', 'qa', 'commercial'].includes(role) && !closed && !locked
-  const canInvoice = ['owner', 'commercial'].includes(role) && !closed
+  const canPack = can['packing.manage'] && !closed && !locked
+  const canInvoice = can['commercial.manage'] && !closed
   const sizes = Object.keys(order.sizes)
   const checks = invoice ? invoiceChecks(invoice, master, t.pcs, blQty) : []
 
   return (
-    <Section title="রপ্তানি ডকুমেন্ট">
+    <Section title="রপ্তানির কাগজপত্র">
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <span className="label">প্যাকিং লিস্ট</span>
@@ -46,7 +47,7 @@ export function ExportDocsSection({
                   <th className="py-2 pr-3 text-right font-normal">কার্টন</th>
                   <th className="py-2 pr-3 text-right font-normal">পিস/কার্টন</th>
                   <th className="py-2 pr-3 text-right font-normal">মোট পিস</th>
-                  <th className="py-2 pr-3 text-right font-normal">নেট/গ্রস কেজি</th>
+                  <th className="py-2 pr-3 text-right font-normal">নিট/গ্রস কেজি</th>
                   <th className="py-2 text-right font-normal">
                     <span className="sr-only">কাজ</span>
                   </th>
@@ -131,7 +132,7 @@ export function ExportDocsSection({
                 ))}
               </select>
               <input name="pcs" type="number" min={1} required className="field num" placeholder="পিস/কার্টন" aria-label="কার্টনপ্রতি পিস" />
-              <input name="net" type="number" step="0.01" min={0.1} required className="field num" placeholder="নেট কেজি" aria-label="কার্টনপ্রতি নেট ওজন" />
+              <input name="net" type="number" step="0.01" min={0.1} required className="field num" placeholder="নিট কেজি" aria-label="কার্টনপ্রতি নিট ওজন" />
               <input name="gross" type="number" step="0.01" min={0.1} required className="field num" placeholder="গ্রস কেজি" aria-label="কার্টনপ্রতি গ্রস ওজন" />
               <input name="cbm" type="number" step="0.001" min={0.001} required className="field num" placeholder="সিবিএম" aria-label="কার্টনপ্রতি সিবিএম" defaultValue="0.065" />
               <Submit small>কার্টন যোগ করুন</Submit>
@@ -162,7 +163,7 @@ export function ExportDocsSection({
                     {c.ok ? '✓' : '✕'}
                   </span>
                   <span>{c.label}</span>
-                  {!c.ok ? <span className="text-xs text-muted">আশা ছিল {c.expected}, পাওয়া গেছে {c.found}</span> : <span className="sr-only">মিলেছে</span>}
+                  {!c.ok ? <span className="text-xs text-muted">প্রত্যাশিত {c.expected}, পাওয়া গেছে {c.found}</span> : <span className="sr-only">মিলেছে</span>}
                 </li>
               ))}
             </ul>
@@ -179,7 +180,7 @@ export function ExportDocsSection({
           rows.length ? (
             <ActionForm action={saveInvoice} className="flex flex-col gap-3 rounded-xl border border-rule p-4">
               <input type="hidden" name="order_id" value={order.id} />
-              <p className="text-sm text-muted">পরিমাণ প্যাকিং লিস্ট থেকে আসবে: {n(t.pcs)} পিস।</p>
+              <p className="text-sm text-muted">পরিমাণ {n(t.pcs)} পিস</p>
               <div className="grid gap-3 sm:grid-cols-3">
                 <label className="flex flex-col gap-1.5">
                   <span className="label">পিসপ্রতি দর (৳)</span>
@@ -195,17 +196,17 @@ export function ExportDocsSection({
                 </label>
               </div>
               <label className="flex flex-col gap-1.5">
-                <span className="label">পণ্যের বিবরণ — এলসির সঙ্গে হুবহু মিলতে হবে</span>
+                <span className="label">পণ্যের বিবরণ</span>
                 <input name="description" required className="field" defaultValue={invoice?.description ?? master?.description ?? ''} />
               </label>
               <div>
                 <Submit small quiet={!!invoice}>
-                  {invoice ? 'খসড়া হালনাগাদ করুন' : 'ইনভয়েসের খসড়া করুন'}
+                  {invoice ? 'খসড়া হালনাগাদ করুন' : 'ইনভয়েসের খসড়া তৈরি করুন'}
                 </Submit>
               </div>
             </ActionForm>
           ) : (
-            <p className="text-sm text-muted">প্যাকিং লিস্ট তৈরি হলে ইনভয়েস করা যাবে।</p>
+            <p className="text-sm text-muted">আগে প্যাকিং লিস্ট তৈরি করুন।</p>
           )
         ) : null}
       </div>

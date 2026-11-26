@@ -13,6 +13,11 @@
   --alert: #b4361f;
   --alert-soft: #f3e3dc;
   --ok: #2c6e49;
+  --scrim: rgb(24 25 28 / 0.45);
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2355575b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  --focus-ring: 0 0 0 3px color-mix(in oklab, var(--ink) 22%, transparent);
   color-scheme: light;
 }
 
@@ -30,6 +35,9 @@
     --alert: #f08a6e;
     --alert-soft: #3a2621;
     --ok: #7cc49a;
+    --scrim: rgb(0 0 0 / 0.6);
+    --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a9aaaf' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --focus-ring: 0 0 0 3px color-mix(in oklab, var(--ink) 30%, transparent);
     color-scheme: dark;
   }
 }
@@ -49,6 +57,9 @@
   --color-ok: var(--ok);
   --font-sans: var(--font-plex), var(--font-anek), 'Noto Sans Bengali', sans-serif;
   --font-heading: var(--font-anek), var(--font-plex), sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace, var(--font-anek),
+    'Noto Sans Bengali';
   --radius: 0.75rem;
 }
 
@@ -93,14 +104,125 @@
   textarea {
     font: inherit;
   }
+  summary {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.375rem;
+    list-style: none;
+    cursor: pointer;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  /* Keeps visually hidden cell text inside its table, so it can't widen the page from within a horizontal scroller. */
+  table {
+    position: relative;
+  }
+  html:has(.drawer[open]) {
+    overflow: hidden;
+  }
+  summary::before {
+    content: '';
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    background-color: currentColor;
+    mask: var(--icon-chevron) center / contain no-repeat;
+    rotate: -90deg;
+    transition: rotate 150ms ease;
+  }
+  details[open] > summary::before {
+    rotate: 0deg;
+  }
 }
 
 @layer components {
   .field {
-    @apply h-10 w-full rounded-lg border border-rule bg-background px-3 text-foreground placeholder:text-subtle;
+    @apply h-10 w-full rounded-lg border border-rule bg-background px-3 text-foreground transition-[border-color,box-shadow] duration-150 placeholder:text-subtle disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .field:hover:not(:focus, :disabled) {
+    border-color: color-mix(in oklab, var(--seg), var(--graphite) 30%);
+  }
+  /* Transparent rather than none so forced-colors mode still draws a system focus outline. */
+  .field:focus {
+    outline-color: transparent;
+    border-color: var(--ink);
+    box-shadow: var(--focus-ring);
   }
   textarea.field {
     @apply h-auto py-2 leading-relaxed;
+  }
+  select.field {
+    appearance: none;
+    padding-inline-end: 2.25rem;
+    background-image: var(--chevron);
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    cursor: pointer;
+  }
+  select.field:has(> option[value='']:checked) {
+    color: var(--g3);
+  }
+  select.field option {
+    color: var(--graphite);
+  }
+  select.field option:disabled {
+    color: var(--g3);
+  }
+  @supports (appearance: base-select) {
+    select.field,
+    select.field::picker(select) {
+      appearance: base-select;
+    }
+    select.field {
+      display: inline-flex;
+      align-items: center;
+    }
+    select.field::picker-icon {
+      display: none;
+    }
+    select.field:open {
+      border-color: var(--ink);
+      box-shadow: var(--focus-ring);
+    }
+    select.field::picker(select) {
+      margin-block: 0.375rem;
+      padding: 0.25rem;
+      border: 1px solid var(--seg);
+      border-radius: 0.75rem;
+      background-color: var(--paper);
+      color: var(--graphite);
+      box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.35);
+      max-block-size: min(20rem, 60dvh);
+    }
+    select.field option {
+      gap: 0.75rem;
+      min-block-size: 2.25rem;
+      padding: 0.375rem 0.625rem;
+      border-radius: 0.5rem;
+    }
+    select.field option:hover,
+    select.field option:focus-visible {
+      outline-color: transparent;
+      background-color: var(--key);
+    }
+    select.field option:checked {
+      font-weight: 500;
+    }
+    select.field option::checkmark {
+      order: 1;
+      margin-inline-start: auto;
+      content: '';
+      inline-size: 1rem;
+      block-size: 1rem;
+      background-color: var(--ink);
+      mask: var(--icon-check) center / contain no-repeat;
+    }
+    select.field option:not(:checked)::checkmark {
+      visibility: hidden;
+    }
   }
   .btn {
     @apply inline-flex h-10 items-center justify-center gap-2 rounded-full bg-ink-fill px-5 font-medium text-on-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
@@ -125,5 +247,67 @@
   }
   .num {
     font-variant-numeric: tabular-nums;
+  }
+  /* Paper covers scroll with the content and hide each edge shadow once that end is reached. */
+  .scroll-shade {
+    background:
+      linear-gradient(var(--paper) 30%, transparent) top / 100% 2.5rem no-repeat local,
+      linear-gradient(transparent, var(--paper) 70%) bottom / 100% 2.5rem no-repeat local,
+      radial-gradient(farthest-side at 50% 0, color-mix(in oklab, var(--scrim) 40%, transparent), transparent) top / 100% 0.75rem
+        no-repeat scroll,
+      radial-gradient(farthest-side at 50% 100%, color-mix(in oklab, var(--scrim) 40%, transparent), transparent) bottom / 100%
+        0.75rem no-repeat scroll;
+  }
+  .drawer {
+    inset-block: 0;
+    inset-inline: 0 auto;
+    margin: 0;
+    width: min(20rem, 85vw);
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-inline-end: 1px solid var(--seg);
+    background-color: var(--paper);
+    color: var(--graphite);
+    translate: -100% 0;
+    transition:
+      translate 240ms cubic-bezier(0.32, 0.72, 0, 1),
+      overlay 240ms allow-discrete,
+      display 240ms allow-discrete;
+  }
+  .drawer[open] {
+    translate: 0 0;
+  }
+  .drawer::backdrop {
+    background-color: var(--scrim);
+    opacity: 0;
+    transition:
+      opacity 240ms ease,
+      overlay 240ms allow-discrete,
+      display 240ms allow-discrete;
+  }
+  .drawer[open]::backdrop {
+    opacity: 1;
+  }
+  @starting-style {
+    .drawer[open] {
+      translate: -100% 0;
+    }
+    .drawer[open]::backdrop {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .drawer,
+    .drawer::backdrop {
+      transition: none;
+    }
+  }
+}
+
+/* Unlayered so it outranks text-size utilities: iOS zooms the page into any form control set below 16px. */
+@media (pointer: coarse) {
+  .field {
+    font-size: 1rem;
   }
 }

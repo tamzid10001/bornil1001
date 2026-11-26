@@ -3,16 +3,22 @@ import { desc, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { audit, bl, orders, sewing } from '@/lib/db/schema'
 import { getExceptions, projection } from '@/lib/queries'
-import { DEPT_LABEL, today } from '@/lib/domain'
+import { getConfig, getFactory } from '@/lib/settings'
+import { optionLabel, today } from '@/lib/config'
 import { bn, day, n, pct, stamp, tkK } from '@/lib/format'
 import { PageHeader, Section, StageRail, Stat } from '@/components/os/ui'
 import { acronyms } from '@/lib/acronyms'
 
-export const metadata = { title: 'আজ রাতে' }
+// A layout's title template skips pages in its own segment, so the dashboard names the factory itself.
+export async function generateMetadata() {
+  const f = await getFactory()
+  return { title: { absolute: f.exists ? `সারাংশ · ${f.name}` : 'সারাংশ' } }
+}
 
-export default async function TonightPage() {
+export default async function SummaryPage() {
   const t = today()
-  const [exceptions, openOrders, allSewing, recent, bls] = await Promise.all([
+  const [config, exceptions, openOrders, allSewing, recent, bls] = await Promise.all([
+    getConfig(),
     getExceptions(),
     db.select().from(orders).where(isNull(orders.closedAt)),
     db.select().from(sewing),
@@ -34,13 +40,14 @@ export default async function TonightPage() {
     <>
       <PageHeader
         eyebrow={new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Dhaka' })}
-        title="আজ রাত"
-  hideTitle
+        title="সারাংশ"
+        hideTitle
+        divider={false}
       />
 
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={gates.length} label="গেটে আটকে আছে" tone={gates.length ? 'alert' : 'ok'} />
-        <Stat value={risks.length} label="পিছিয়ে আছে বা বন্ধ" tone={risks.length ? 'alert' : undefined} />
+        <Stat value={bn(gates.length)} label="গেটে আটকে আছে" tone={gates.length ? 'alert' : 'ok'} />
+        <Stat value={bn(risks.length)} label="পিছিয়ে আছে বা বন্ধ" tone={risks.length ? 'alert' : undefined} />
         <Stat value={target ? pct((actual / target) * 100, 0) : '—'} label={`ফ্লোর দক্ষতা · আজ ${bn(lines)}টি লাইন`} />
         <Stat value={tkK(book)} label={`চলমান অর্ডার বুক · ${bn(openOrders.length)}টি অর্ডার`} />
       </div>
@@ -48,7 +55,7 @@ export default async function TonightPage() {
       <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
         <Section title="ব্যতিক্রম" aside={<span className="num text-sm text-muted">{bn(exceptions.length)}টি খোলা</span>}>
           {exceptions.length === 0 ? (
-            <p className="text-muted">কিছুই আপনার নজর চাইছে না। বাড়ি যান।</p>
+            <p className="text-muted">এখন মনোযোগ দেওয়ার মতো কিছু নেই।</p>
           ) : (
             <ul className="flex flex-col">
               {[...gates, ...risks, ...info].map((e, i) => (
@@ -64,7 +71,7 @@ export default async function TonightPage() {
                     </span>
                     <span className="hidden shrink-0 text-xs text-subtle sm:block">
                       <span className="sr-only">{e.kind === 'gate' ? 'গেট' : e.kind === 'risk' ? 'ঝুঁকি' : 'তথ্য'} · </span>
-                      {DEPT_LABEL[e.dept] ?? e.dept}
+                      {optionLabel(config.departments, e.dept)}
                     </span>
                   </Link>
                 </li>
@@ -77,7 +84,7 @@ export default async function TonightPage() {
           <Section title="ফ্লোরে চলমান অর্ডার">
             <ul className="flex flex-col gap-4">
               {openOrders.map((o) => {
-                const p = projection(o, allSewing.filter((s) => s.orderId === o.id))
+                const p = projection(o, allSewing.filter((s) => s.orderId === o.id), config.production.shipBufferDays)
                 return (
                   <li key={o.id}>
                     <Link href={`/os/orders/${o.id}`} className="group flex flex-col gap-2">
@@ -87,18 +94,18 @@ export default async function TonightPage() {
                       </span>
                       <span className="truncate text-sm text-muted">
                         {o.buyer} · {n(o.quantity)} পিস
-                        {p.sewn ? ` · ${n(p.sewn)} সেলাই হয়েছে` : ''}
+                        {p.sewn ? ` · ${n(p.sewn)} পিস সেলাই হয়েছে` : ''}
                       </span>
-                      <StageRail stage={o.stage} />
+                      <StageRail stage={o.stage} labels={config.stages} />
                     </Link>
                   </li>
                 )
               })}
             </ul>
-            {shippingSoon ? <p className="text-sm text-muted">{bn(shippingSoon)}টি বি/এল খসড়া অবস্থায়।</p> : null}
+            {shippingSoon ? <p className="text-sm text-muted">{bn(shippingSoon)}টি বি/এল এখনো খসড়া অবস্থায় আছে।</p> : null}
           </Section>
 
-          <Section title="আজকের স্বাক্ষর">
+          <Section title="সাম্প্রতিক কার্যক্রম">
             <ul className="flex flex-col gap-3 text-sm">
               {recent.map((a) => (
                 <li key={a.id} className="flex flex-col">
@@ -112,7 +119,7 @@ export default async function TonightPage() {
               ))}
             </ul>
             <Link href="/os/approvals" className="text-sm text-ink underline underline-offset-4">
-              পূর্ণ অডিট ট্রেইল
+              পুরো অডিট ট্রেইল দেখুন
             </Link>
           </Section>
         </div>

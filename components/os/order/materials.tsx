@@ -1,13 +1,16 @@
 import type { Lc, LcAmendment, Order } from '@/lib/db/schema'
+import type { Grants } from '@/lib/actor'
 import { LcAmendments } from '@/components/os/order/amend'
-import { canPass } from '@/lib/domain'
+import { UNITS, unitLabel, type Config } from '@/lib/config'
 import { bn, day, n, tk } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, GateNote, Section } from '@/components/os/ui'
-import { bookMaterial, issueUd, openBtb, openMasterLc, requestBtb } from '@/app/os/actions/orders'
+import { addBomLine, bookMaterial, issueUd, openBtb, openMasterLc, requestBtb } from '@/app/os/actions/orders'
 
-type Bom = { id: number; material: string; qty: number; unit: string; rate: number; supplier: string | null; source: string; status: string; btbId: number | null; bookedBy: number | null }
-type Ud = { id: number; number: string; yarnPermittedKg: number }
+type Bom = { id: number; material: string; kind: string; qty: number; unit: string; rate: number; supplier: string | null; source: string; status: string; btbId: number | null; bookedBy: number | null }
+type Ud = { id: number; number: string; material: string; permittedQty: number; permittedUnit: string }
+
+const UNIT_CHOICES = ['kg', 'lb', 'yd', 'm', 'pcs', 'set', 'dz', 'cone', 'roll']
 
 export async function MaterialsSection({
   order,
@@ -16,7 +19,8 @@ export async function MaterialsSection({
   ud,
   materials,
   nameOf,
-  role,
+  can,
+  config,
   amendments,
 }: {
   order: Order
@@ -26,18 +30,25 @@ export async function MaterialsSection({
   ud: Ud[]
   materials: Bom[]
   nameOf: (id: number | null) => string
-  role: string
+  can: Grants
+  config: Config
 }) {
+  const { modules, gates, commercial } = config
   const btbs = lcs.filter((l) => l.kind === 'btb')
   const btbUsed = btbs.reduce((s, l) => s + l.amount, 0)
-  const needsBtb = materials.some((m) => m.source === 'import' && m.status === 'pending' && !m.btbId)
+  const cap = master ? master.amount * (commercial.btbCap / 100) : 0
+  const needsBtb = gates.btb && materials.some((m) => m.source === 'import' && m.status === 'pending' && !m.btbId)
   const closed = !!order.closedAt
-  const isCommercial = role === 'owner' || role === 'commercial'
-  const yarnUsed = materials.filter((m) => m.unit === 'kg').reduce((s, m) => s + m.qty, 0)
+  const isCommercial = can['commercial.manage']
+  const canAddLine = (can['materials.book'] || can['techpack.manage']) && !closed
+  const usedFor = (u: Ud) => materials.filter((m) => m.kind === 'fabric' && m.unit === u.permittedUnit).reduce((s, m) => s + m.qty, 0)
+  const category = config.categories.find((c) => c.key === order.category)
 
   return (
-    <Section title="ঋণপত্র ও কাঁচামাল">
+    <Section title={modules.commercial ? 'এলসি ও কাঁচামাল' : 'কাঁচামাল'}>
+      {modules.commercial || modules.bond ? (
       <div className="grid gap-6 md:grid-cols-2">
+        {modules.commercial ? (
         <div className="flex flex-col gap-3 rounded-xl border border-rule p-4">
           <div className="flex items-center justify-between">
             <span className="label">মাস্টার এলসি</span>
@@ -66,38 +77,58 @@ export async function MaterialsSection({
               ) : null}
             </>
           ) : (
-            <p className="text-sm text-muted">নেই</p>
+            <p className="text-sm text-muted">এখনো কোনো মাস্টার এলসি আসেনি</p>
           )}
         </div>
+        ) : null}
 
+        {modules.bond ? (
         <div className="flex flex-col gap-3 rounded-xl border border-rule p-4">
           <span className="label">ইউটিলাইজেশন ডিক্লারেশন (ইউডি)</span>
           {ud.length ? (
-            ud.map((u) => (
-              <p key={u.id} className="text-sm">
-                <span className="font-medium">{u.number}</span> · অনুমোদিত সুতা {n(u.yarnPermittedKg)} কেজি · বুক করা {n(yarnUsed)} কেজি{' '}
-                <span className={yarnUsed > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}>{yarnUsed > u.yarnPermittedKg ? '· ইউডির বেশি' : '· সীমার মধ্যে'}</span>
-              </p>
-            ))
-          ) : isCommercial && !closed ? (
-            <ActionForm action={issueUd} className="flex flex-col gap-3 sm:flex-row">
+            ud.map((u) => {
+              const used = usedFor(u)
+              return (
+                <p key={u.id} className="text-sm">
+                  <span className="font-medium">{u.number}</span> · অনুমোদিত {u.material} {n(u.permittedQty)} {unitLabel(u.permittedUnit)} · বুক করা {n(used)} {unitLabel(u.permittedUnit)}{' '}
+                  <span className={used > u.permittedQty ? 'text-alert' : 'text-ok'}>{used > u.permittedQty ? '· ইউডির সীমা ছাড়িয়েছে' : '· সীমার মধ্যে'}</span>
+                </p>
+              )
+            })
+          ) : (can['commercial.manage'] || can['bond.manage']) && !closed ? (
+            <ActionForm action={issueUd} className="flex flex-col gap-3">
               <input type="hidden" name="order_id" value={order.id} />
-              <input name="number" placeholder="বিজিএমইএ ইউডি নং" required className="field" />
-              <input name="yarn_kg" type="number" placeholder="সুতা (কেজি)" required className="field num" />
-              <Submit small>লিখুন</Submit>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input name="number" placeholder="ইউডি নং" required className="field" aria-label="ইউডি নং" />
+                <input name="material" placeholder="সুতা / কাপড়" defaultValue="সুতা" required className="field" aria-label="অনুমোদিত কাঁচামাল" />
+                <input name="qty" type="number" step="0.01" placeholder="অনুমোদিত পরিমাণ" required className="field num" aria-label="অনুমোদিত পরিমাণ" />
+                <select name="unit" defaultValue={category?.unit ?? 'kg'} className="field" aria-label="একক">
+                  {UNIT_CHOICES.map((u) => (
+                    <option key={u} value={u}>
+                      {UNITS[u]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Submit small>লিখুন</Submit>
+              </div>
             </ActionForm>
           ) : (
             <p className="text-sm text-muted">এখনো ইস্যু হয়নি</p>
           )}
         </div>
+        ) : null}
       </div>
+      ) : null}
 
+      {modules.commercial ? (
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <span className="label">ব্যাক-টু-ব্যাক এলসি</span>
           {master ? (
-            <span className={`num text-sm ${btbUsed > master.amount * 0.75 ? 'text-alert' : 'text-muted'}`}>
-              অনুমোদিত {tk(master.amount * 0.75)}-এর মধ্যে {tk(btbUsed)} (৭৫%)
+            <span className={`num text-sm ${btbUsed > cap ? 'text-alert' : 'text-muted'}`}>
+              সীমা {tk(cap)} (মাস্টার এলসির {bn(commercial.btbCap)}%) · ব্যবহৃত {tk(btbUsed)}
             </span>
           ) : null}
         </div>
@@ -112,7 +143,7 @@ export async function MaterialsSection({
               <ActionForm action={openBtb} className="ml-auto flex flex-wrap items-center gap-2">
                 <input type="hidden" name="order_id" value={order.id} />
                 <input type="hidden" name="lc_id" value={b.id} />
-                <Submit small disabled={!canPass('btb', role)}>
+                <Submit small disabled={!can['gate.btb']}>
                   ব্যাংকে খুলুন
                 </Submit>
               </ActionForm>
@@ -132,19 +163,22 @@ export async function MaterialsSection({
               </select>
             </label>
             <Submit small quiet>
-              আমদানি পণ্যের জন্য বিটুবি অনুরোধ করুন
+              আমদানি পণ্যের জন্য বিটুবি এলসির আবেদন করুন
             </Submit>
           </ActionForm>
         ) : null}
       </div>
+      ) : null}
 
       <div className="flex flex-col gap-3">
-        <span className="label">বিল অব ম্যাটেরিয়ালস</span>
-        <GateNote gate="btb" open={!materials.some((m) => m.source === 'import' && m.status === 'pending')}>
-          বিটুবি এলসি না খোলা পর্যন্ত আমদানি করা কাঁচামাল বুক করা যাবে না। দেশীয় পণ্য সরাসরি বুক করা যায়।
-        </GateNote>
+        <span className="label">কাঁচামালের তালিকা (বিওএম)</span>
+        {gates.btb ? (
+          <GateNote gate="btb" open={!materials.some((m) => m.source === 'import' && m.status === 'pending')}>
+            বিটুবি এলসি না খোলা পর্যন্ত আমদানি করা কাঁচামাল বুক করা যাবে না। দেশীয় পণ্য সরাসরি বুক করা যায়।
+          </GateNote>
+        ) : null}
         <div className="overflow-x-auto">
-          <table className="tbl">
+          <table className="tbl min-w-160">
             <thead>
               <tr>
                 <th>কাঁচামাল</th>
@@ -160,15 +194,18 @@ export async function MaterialsSection({
             <tbody>
               {materials.map((m) => {
                 const btb = btbs.find((b) => b.id === m.btbId)
-                const blocked = m.source === 'import' && btb?.status !== 'opened'
+                const blocked = (gates.btb && m.source === 'import' && btb?.status !== 'opened') || !can['materials.book']
                 return (
                   <tr key={m.id}>
                     <td>
                       {m.material}
-                      {m.supplier ? <div className="text-xs text-subtle">{m.supplier} · {nameOf(m.bookedBy)}</div> : null}
+                      <div className="text-xs text-subtle">
+                        {m.kind === 'fabric' ? 'কাপড়' : 'ট্রিম'}
+                        {m.supplier ? ` · ${m.supplier} · ${nameOf(m.bookedBy)}` : ''}
+                      </div>
                     </td>
                     <td className="num text-right">
-                      {n(m.qty)} {m.unit === 'kg' ? 'কেজি' : m.unit === 'pcs' ? 'পিস' : m.unit}
+                      {n(m.qty)} {unitLabel(m.unit)}
                     </td>
                     <td className="num text-right">{tk(m.qty * m.rate)}</td>
                     <td>{m.source === 'import' ? 'আমদানি' : m.source === 'local' ? 'দেশীয়' : m.source}</td>
@@ -193,6 +230,37 @@ export async function MaterialsSection({
             </tbody>
           </table>
         </div>
+        {canAddLine ? (
+          <details className="rounded-xl border border-rule p-4">
+            <summary className="text-sm font-medium">বিওএম-এ কাঁচামাল যোগ করুন</summary>
+            <ActionForm action={addBomLine} resetOnSuccess className="mt-4 grid gap-3 sm:grid-cols-6">
+              <input type="hidden" name="order_id" value={order.id} />
+              <input name="material" required placeholder="যেমন ১২ মিমি বোতাম, ড্রস্ট্রিং, ডেনিম ১২ আউন্স" className="field sm:col-span-3" aria-label="কাঁচামাল" />
+              <select name="kind" defaultValue="trim" className="field" aria-label="ধরন">
+                <option value="fabric">কাপড়</option>
+                <option value="trim">ট্রিম ও অ্যাক্সেসরিজ</option>
+              </select>
+              <select name="source" defaultValue="local" className="field sm:col-span-2" aria-label="উৎস">
+                <option value="local">দেশীয়</option>
+                <option value="import">আমদানি{gates.btb ? ' (বিটুবি লাগবে)' : ''}</option>
+              </select>
+              <input name="qty" type="number" step="0.01" min={0.01} required placeholder="পরিমাণ" className="field num sm:col-span-2" aria-label="পরিমাণ" />
+              <select name="unit" defaultValue="pcs" className="field" aria-label="একক">
+                {UNIT_CHOICES.map((u) => (
+                  <option key={u} value={u}>
+                    {UNITS[u]}
+                  </option>
+                ))}
+              </select>
+              <input name="rate" type="number" step="0.01" min={0} defaultValue={0} placeholder="এককপ্রতি দর" className="field num sm:col-span-2" aria-label="এককপ্রতি দর (টাকা)" />
+              <div className="sm:col-span-1">
+                <Submit small quiet>
+                  যোগ করুন
+                </Submit>
+              </div>
+            </ActionForm>
+          </details>
+        ) : null}
       </div>
     </Section>
   )

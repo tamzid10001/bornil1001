@@ -21,20 +21,19 @@ export const pct = (v: number, digits = 1) => `${bn(v.toFixed(digits))}%`
 export function day(iso: string | null | undefined) {
   if (!iso) return '—'
   const d = new Date(iso.length === 10 ? `${iso}T00:00:00Z` : iso)
-  return d.toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+  return d.toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 }
 
+const stampDate = new Intl.DateTimeFormat('bn-BD', { day: 'numeric', month: 'long', timeZone: 'Asia/Dhaka' })
+const stampTime = new Intl.DateTimeFormat('bn-BD', { hour: 'numeric', minute: '2-digit', dayPeriod: 'short', timeZone: 'Asia/Dhaka' })
+
+/** Dhaka time with the part of day first, as it is spoken: "২৬ নভেম্বর, রাত ১১:৩১". ICU says the formal "রাত্রি". */
 export function stamp(v: Date | string | null | undefined) {
   if (!v) return '—'
   const d = typeof v === 'string' ? new Date(v) : v
-  return d
-    .toLocaleString('bn-BD', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Asia/Dhaka',
-    })
+  const t = Object.fromEntries(stampTime.formatToParts(d).map((p) => [p.type, p.value]))
+  const period = t.dayPeriod === 'রাত্রি' ? 'রাত' : t.dayPeriod
+  return `${stampDate.format(d)}, ${period} ${t.hour}:${t.minute}`
 }
 
 const bnDigits = '০১২৩৪৫৬৭৮৯'

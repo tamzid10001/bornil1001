@@ -36,7 +36,7 @@ export function LcAmendments({
     <div className="flex flex-col gap-3 border-t border-rule pt-3">
       <div className="flex items-baseline justify-between">
         <span className="label">সংশোধনী</span>
-        <span className="text-xs text-muted">{amendments.length ? `${bn(amendments.length)}টি` : 'কোনো সংশোধন নেই'}</span>
+        <span className="text-xs text-muted">{amendments.length ? `${bn(amendments.length)}টি` : 'কোনো সংশোধনী নেই'}</span>
       </div>
       {amendments.length ? (
         <ol className="flex flex-col gap-2">
@@ -78,9 +78,8 @@ export function LcAmendments({
             </div>
             <label className="flex flex-col gap-1.5">
               <span className="label">কারণ</span>
-              <input name="reason" required className="field" placeholder="যেমন ক্রেতা শিপমেন্ট দুই সপ্তাহ পেছাতে বলেছে" />
+              <input name="reason" required className="field" placeholder="যেমন ক্রেতা শিপমেন্ট দুই সপ্তাহ পিছাতে বলেছে" />
             </label>
-            <p className="text-xs leading-relaxed text-muted">তারিখ YYYY-MM-DD আকারে, টাকা শুধু অঙ্কে লিখুন। লেখার সঙ্গে সঙ্গে বি/এল-এর খসড়া নতুন এলসির সঙ্গে আবার মেলানো হবে।</p>
             <div>
               <Submit small>সংশোধনী লিখুন</Submit>
             </div>

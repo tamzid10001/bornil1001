@@ -24,12 +24,12 @@ export function ActionForm({ action, children, className, resetOnSuccess, hideOk
     <form ref={ref} action={formAction} className={className}>
       {children}
       {state?.error ? (
-        <p role="alert" className="basis-full rounded-lg bg-alert-soft px-3 py-2 text-sm text-alert">
+        <p role="alert" className="col-span-full basis-full rounded-lg bg-alert-soft px-3 py-2 text-sm text-alert">
           {state.error}
         </p>
       ) : null}
       {state?.ok && !hideOk ? (
-        <p role="status" className="basis-full text-sm text-ok">
+        <p role="status" className="col-span-full basis-full text-sm text-ok">
           {state.ok}
         </p>
       ) : null}
@@ -44,6 +44,8 @@ export function Submit({
   disabled,
   name,
   value,
+  confirm,
+  danger,
 }: {
   children: React.ReactNode
   quiet?: boolean
@@ -51,6 +53,9 @@ export function Submit({
   disabled?: boolean
   name?: string
   value?: string
+  /** Asks before submitting, for actions that are hard to undo. */
+  confirm?: string
+  danger?: boolean
 }) {
   const { pending } = useFormStatus()
   return (
@@ -60,7 +65,8 @@ export function Submit({
       value={value}
       disabled={pending || disabled}
       aria-busy={pending}
-      className={`${quiet ? 'btn-quiet' : 'btn'} ${small ? 'btn-sm' : ''}`}
+      onClick={confirm ? (e) => void (!window.confirm(confirm) && e.preventDefault()) : undefined}
+      className={`${quiet ? 'btn-quiet' : 'btn'} ${small ? 'btn-sm' : ''} ${danger ? 'text-alert' : ''}`}
     >
       {pending ? 'চলছে…' : children}
     </button>

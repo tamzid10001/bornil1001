@@ -10,17 +10,22 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
 
   if (order.closedAt) {
     const realised = order.realisedAmount ?? 0
-    const costs = (order.btbSettled ?? 0) + (order.airFreight ?? 0) + (order.discount ?? 0)
-    const net = realised - costs
+    // Orders closed before source tax and the Central Fund were recorded have no amount to show.
+    const deductions = [
+      { label: 'উৎসে কর', v: order.sourceTax },
+      { label: 'কেন্দ্রীয় তহবিল', v: order.centralFund },
+      { label: 'বিটুবি এলসি পরিশোধ', v: order.btbSettled ?? 0 },
+      { label: 'আকাশপথে পরিবহন খরচ', v: order.airFreight ?? 0 },
+      { label: 'ক্রেতার ছাড় / দাবি', v: order.discount ?? 0 },
+    ].filter((d): d is { label: string; v: number } => d.v != null)
+    const net = realised - deductions.reduce((s, d) => s + d.v, 0)
     const rows = [
       { label: 'এফওবি অনুযায়ী প্রত্যাশিত', v: expected },
-      { label: 'ব্যাংক থেকে প্রাপ্ত', v: realised },
-      { label: 'বিটুবি এলসি পরিশোধ', v: -(order.btbSettled ?? 0) },
-      { label: 'এয়ার ফ্রেইট', v: -(order.airFreight ?? 0) },
-      { label: 'বায়ারের ছাড় / ক্লেইম', v: -(order.discount ?? 0) },
+      { label: 'ব্যাংকে আসা রপ্তানি মূল্য', v: realised },
+      ...deductions.map((d) => ({ label: d.label, v: -d.v })),
     ]
     return (
-      <Section title="অর্ডারে আসলে কত লাভ হলো">
+      <Section title="অর্ডারে প্রকৃত লাভ কত হলো">
         <dl className="flex max-w-md flex-col">
           {rows.map((r) => (
             <div key={r.label} className="flex justify-between border-t border-rule py-2 text-sm first:border-t-0">
@@ -47,10 +52,10 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
         <input type="hidden" name="order_id" value={order.id} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { name: 'realised', label: 'প্রাপ্ত (৳)', v: expected },
+            { name: 'realised', label: 'প্রাপ্ত রপ্তানি মূল্য (৳)', v: expected },
             { name: 'btb_settled', label: 'বিটুবি পরিশোধ (৳)', v: btb },
-            { name: 'air_freight', label: 'এয়ার ফ্রেইট (৳)', v: 0 },
-            { name: 'discount', label: 'ছাড় / ক্লেইম (৳)', v: 0 },
+            { name: 'air_freight', label: 'আকাশপথে পরিবহন খরচ (৳)', v: 0 },
+            { name: 'discount', label: 'ছাড় / দাবি (৳)', v: 0 },
           ].map((f) => (
             <label key={f.name} className="flex flex-col gap-1.5">
               <span className="label">{f.label}</span>
@@ -58,7 +63,7 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
             </label>
           ))}
         </div>
-        <Submit>লিখে রেখে অর্ডার বন্ধ করুন</Submit>
+        <Submit>হিসাব লিখে অর্ডার বন্ধ করুন</Submit>
       </ActionForm>
     </Section>
   )

@@ -1,10 +1,9 @@
 import 'server-only'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from './db'
-import { orders, type Order } from './db/schema'
+import { lines, orders, type Order } from './db/schema'
 import { int } from './action'
-import { ROLE_LABEL } from './domain'
 
 export async function loadOpenOrder(fd: FormData) {
   const id = int(fd, 'order_id')
@@ -19,6 +18,10 @@ export function refreshOrder(o: Order) {
   revalidatePath(`/os/orders/${o.id}`, 'layout')
 }
 
-export function allowRoles(role: string, allowed: string[], what: string) {
-  if (role !== 'owner' && !allowed.includes(role)) throw new Error(`শুধু ${allowed.map((r) => ROLE_LABEL[r] ?? r).join(' বা ')} ${what} পারেন।`)
+/** A line picked from the floor plan; it must exist and be running. */
+export async function activeLine(fd: FormData, key = 'line') {
+  const id = int(fd, key, { min: 1, label: 'লাইন' })
+  const [line] = await db.select().from(lines).where(and(eq(lines.id, id), eq(lines.active, true)))
+  if (!line) throw new Error('ফ্লোর প্ল্যান থেকে একটি চালু লাইন বেছে নিন।')
+  return line
 }
