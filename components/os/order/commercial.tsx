@@ -13,14 +13,14 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
     const costs = (order.btbSettled ?? 0) + (order.airFreight ?? 0) + (order.discount ?? 0)
     const net = realised - costs
     const rows = [
-      { label: 'expected at FOB', v: expected },
-      { label: 'realised from the bank', v: realised },
-      { label: 'BTB LCs settled', v: -(order.btbSettled ?? 0) },
-      { label: 'air freight', v: -(order.airFreight ?? 0) },
-      { label: 'buyer discount / claim', v: -(order.discount ?? 0) },
+      { label: 'এফওবি অনুযায়ী প্রত্যাশিত', v: expected },
+      { label: 'ব্যাংক থেকে প্রাপ্ত', v: realised },
+      { label: 'বিটুবি এলসি পরিশোধ', v: -(order.btbSettled ?? 0) },
+      { label: 'এয়ার ফ্রেইট', v: -(order.airFreight ?? 0) },
+      { label: 'বায়ারের ছাড় / ক্লেইম', v: -(order.discount ?? 0) },
     ]
     return (
-      <Section title="what the order really made">
+      <Section title="অর্ডারে আসলে কত লাভ হলো">
         <dl className="flex max-w-md flex-col">
           {rows.map((r) => (
             <div key={r.label} className="flex justify-between border-t border-rule py-2 text-sm first:border-t-0">
@@ -29,7 +29,7 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
             </div>
           ))}
           <div className="flex justify-between border-t-2 border-foreground py-2 font-medium">
-            <dt>net to the factory</dt>
+            <dt>কারখানার নিট আয়</dt>
             <dd className="num">
               {tk(net)} <span className="text-sm text-muted">· {pct(realised ? (net / realised) * 100 : 0)}</span>
             </dd>
@@ -42,15 +42,15 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
   if (order.stage !== 'ship') return null
 
   return (
-    <Section title="realisation">
+    <Section title="টাকা প্রাপ্তি">
       <ActionForm action={realiseOrder} className="flex flex-col gap-4">
         <input type="hidden" name="order_id" value={order.id} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { name: 'realised', label: 'realised (৳)', v: expected },
-            { name: 'btb_settled', label: 'BTB settled (৳)', v: btb },
-            { name: 'air_freight', label: 'air freight (৳)', v: 0 },
-            { name: 'discount', label: 'discount / claim (৳)', v: 0 },
+            { name: 'realised', label: 'প্রাপ্ত (৳)', v: expected },
+            { name: 'btb_settled', label: 'বিটুবি পরিশোধ (৳)', v: btb },
+            { name: 'air_freight', label: 'এয়ার ফ্রেইট (৳)', v: 0 },
+            { name: 'discount', label: 'ছাড় / ক্লেইম (৳)', v: 0 },
           ].map((f) => (
             <label key={f.name} className="flex flex-col gap-1.5">
               <span className="label">{f.label}</span>
@@ -58,7 +58,7 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
             </label>
           ))}
         </div>
-        <Submit>record and close the order</Submit>
+        <Submit>লিখে রেখে অর্ডার বন্ধ করুন</Submit>
       </ActionForm>
     </Section>
   )

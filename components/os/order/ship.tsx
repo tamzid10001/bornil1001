@@ -40,13 +40,13 @@ export function ShipSection({
   const canEdit = !order.closedAt && !released && (role === 'commercial' || role === 'owner')
 
   return (
-    <Section title="shipping documents">
+    <Section title="শিপিং ডকুমেন্ট">
       <GateNote gate="b/l" open={released || clean}>
         {released
-          ? `released to the bank by ${nameOf(current!.releasedBy)} · ${stamp(current!.releasedAt)}`
-          : 'documents leave the factory only when every B/L field matches the master LC. a discrepancy costs a bank fee and a payment delay.'}
+          ? `ব্যাংকে পাঠিয়েছেন ${nameOf(current!.releasedBy)} · ${stamp(current!.releasedAt)}`
+          : 'বি/এল-এর প্রতিটি তথ্য মাস্টার এলসির সঙ্গে মিললে তবেই ডকুমেন্ট কারখানা থেকে যাবে। অমিল হলে ব্যাংক ফি লাগে, টাকাও দেরিতে আসে।'}
       </GateNote>
-      {!quantityAccepted && !current ? <p className="text-sm text-muted">Waiting for an accepted final inspection.</p> : null}
+      {!quantityAccepted && !current ? <p className="text-sm text-muted">গৃহীত ফাইনাল ইন্সপেকশনের অপেক্ষায়।</p> : null}
 
       {quantityAccepted || current ? (
         <div className="grid gap-8 lg:grid-cols-2">
@@ -55,28 +55,28 @@ export function ShipSection({
               <input type="hidden" name="order_id" value={order.id} />
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5">
-                  <span className="label">port of loading</span>
+                  <span className="label">লোডিং বন্দর</span>
                   <input name="port_loading" defaultValue={current?.portLoading ?? master?.portLoading ?? ''} required className="field" />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="label">port of discharge</span>
+                  <span className="label">খালাস বন্দর</span>
                   <input name="port_discharge" defaultValue={current?.portDischarge ?? ''} required className="field" />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="label">quantity (pcs)</span>
+                  <span className="label">পরিমাণ (পিস)</span>
                   <input name="quantity" type="number" defaultValue={current?.quantity ?? order.quantity} required className="field num" />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="label">shipped on board</span>
+                  <span className="label">জাহাজে তোলার তারিখ</span>
                   <input name="on_board" type="date" defaultValue={current?.onBoard ?? today()} required className="field" />
                 </label>
               </div>
               <label className="flex flex-col gap-1.5">
-                <span className="label">description of goods</span>
+                <span className="label">পণ্যের বিবরণ</span>
                 <input name="description" defaultValue={current?.description ?? ''} required className="field" />
               </label>
               <Submit quiet small>
-                check against the lc
+                এলসির সঙ্গে মিলিয়ে দেখুন
               </Submit>
             </ActionForm>
           ) : null}
@@ -84,18 +84,18 @@ export function ShipSection({
           {current ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
-                <span className="label">B/L vs master LC</span>
+                <span className="label">বি/এল বনাম মাস্টার এলসি</span>
                 <Chip status={current.status} />
               </div>
               <ul className="flex flex-col">
                 {checks.map((c) => (
                   <li key={c.label} className="flex flex-col border-t border-rule py-2 text-sm first:border-t-0">
                     <span className={c.ok ? 'text-ok' : 'font-medium text-alert'}>
-                      {c.ok ? 'matches' : 'mismatch'} · {c.label}
+                      {c.ok ? 'মিলেছে' : 'অমিল'} · {c.label}
                     </span>
                     {!c.ok ? (
                       <span className="text-muted">
-                        lc says {c.expected}, b/l says {c.found}
+                        এলসিতে আছে {c.expected}, বি/এল-এ আছে {c.found}
                       </span>
                     ) : null}
                   </li>
@@ -106,7 +106,7 @@ export function ShipSection({
                   <input type="hidden" name="order_id" value={order.id} />
                   <input type="hidden" name="bl_id" value={current.id} />
                   <Submit small disabled={!canPass('bl', role)}>
-                    release documents to the bank
+                    ডকুমেন্ট ব্যাংকে পাঠান
                   </Submit>
                 </ActionForm>
               ) : null}

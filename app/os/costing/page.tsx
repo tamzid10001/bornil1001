@@ -3,33 +3,33 @@ import { desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { quotes } from '@/lib/db/schema'
 import { quoteMargin } from '@/lib/domain'
-import { n, pct, tk } from '@/lib/format'
+import { bn, n, pct, tk } from '@/lib/format'
 import { Chip, Empty, PageHeader, Section } from '@/components/os/ui'
 
-export const metadata = { title: 'costing' }
+export const metadata = { title: 'কস্টিং' }
 
 export default async function CostingPage() {
   const rows = await db.select().from(quotes).orderBy(desc(quotes.createdAt))
   return (
     <>
       <PageHeader
-        eyebrow="merchandising · costing gate"
-        title="Cost sheets"
+        eyebrow="মার্চেন্ডাইজিং · কস্টিং গেট"
+        title="কস্ট শিট"
       />
-      <Section title="quotes">
+      <Section title="কোটেশন">
         {rows.length === 0 ? (
-          <Empty>Confirm an inquiry to start a cost sheet.</Empty>
+          <Empty>কস্ট শিট শুরু করতে একটি ইনকোয়ারি নিশ্চিত করুন।</Empty>
         ) : (
           <div className="overflow-x-auto">
             <table className="tbl">
               <thead>
                 <tr>
-                  <th>quote</th>
-                  <th>buyer · style</th>
-                  <th className="text-right">qty</th>
-                  <th className="text-right">fob</th>
-                  <th className="text-right">margin</th>
-                  <th>status</th>
+                  <th>কোটেশন</th>
+                  <th>বায়ার · স্টাইল</th>
+                  <th className="text-right">পরিমাণ</th>
+                  <th className="text-right">এফওবি</th>
+                  <th className="text-right">মার্জিন</th>
+                  <th>অবস্থা</th>
                 </tr>
               </thead>
               <tbody>
@@ -42,7 +42,7 @@ export default async function CostingPage() {
                         <Link href={`/os/costing/${q.id}`} className="font-medium text-ink underline-offset-4 hover:underline">
                           {q.code}
                         </Link>
-                        <span className="ml-1 text-xs text-subtle">rev {q.rev}</span>
+                        <span className="ml-1 text-xs text-subtle">সংশোধন {bn(q.rev)}</span>
                       </td>
                       <td>
                         {q.buyer}

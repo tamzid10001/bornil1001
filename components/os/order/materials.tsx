@@ -1,6 +1,6 @@
 import type { Lc, Order } from '@/lib/db/schema'
 import { canPass } from '@/lib/domain'
-import { day, n, tk } from '@/lib/format'
+import { bn, day, n, tk } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, GateNote, Section } from '@/components/os/ui'
 import { bookMaterial, issueUd, openBtb, openMasterLc, requestBtb } from '@/app/os/actions/orders'
@@ -33,65 +33,65 @@ export async function MaterialsSection({
   const yarnUsed = materials.filter((m) => m.unit === 'kg').reduce((s, m) => s + m.qty, 0)
 
   return (
-    <Section title="letters of credit & materials">
+    <Section title="ঋণপত্র ও কাঁচামাল">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-3 rounded-xl border border-rule p-4">
           <div className="flex items-center justify-between">
-            <span className="label">master LC</span>
+            <span className="label">মাস্টার এলসি</span>
             {master ? <Chip status={master.status} /> : null}
           </div>
           {master ? (
             <>
               <p className="font-medium">{master.number}</p>
               <p className="text-sm text-muted">
-                {tk(master.amount)} · {master.bank ?? 'bank tbc'} · {master.portLoading} → {master.portDischarge ?? '—'} · latest shipment {day(master.latestShipment)}
+                {tk(master.amount)} · {master.bank ?? 'ব্যাংক নির্ধারিত হয়নি'} · {master.portLoading} → {master.portDischarge ?? '—'} · সর্বশেষ শিপমেন্ট {day(master.latestShipment)}
               </p>
               {master.status === 'requested' && isCommercial && !closed ? (
                 <ActionForm action={openMasterLc} className="flex flex-col gap-3">
                   <input type="hidden" name="order_id" value={order.id} />
                   <input type="hidden" name="lc_id" value={master.id} />
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <input name="bank" placeholder="advising bank" required className="field" />
-                    <input name="port_discharge" placeholder="port of discharge" required className="field" />
-                    <input name="latest_shipment" type="date" defaultValue={master.latestShipment ?? ''} required className="field" aria-label="latest shipment" />
+                    <input name="bank" placeholder="অ্যাডভাইজিং ব্যাংক" required className="field" />
+                    <input name="port_discharge" placeholder="খালাস বন্দর" required className="field" />
+                    <input name="latest_shipment" type="date" defaultValue={master.latestShipment ?? ''} required className="field" aria-label="সর্বশেষ শিপমেন্ট" />
                   </div>
-                  <Submit small>record received LC</Submit>
+                  <Submit small>প্রাপ্ত এলসি লিখুন</Submit>
                 </ActionForm>
               ) : null}
             </>
           ) : (
-            <p className="text-sm text-muted">none</p>
+            <p className="text-sm text-muted">নেই</p>
           )}
         </div>
 
         <div className="flex flex-col gap-3 rounded-xl border border-rule p-4">
-          <span className="label">utilization declaration (UD)</span>
+          <span className="label">ইউটিলাইজেশন ডিক্লারেশন (ইউডি)</span>
           {ud.length ? (
             ud.map((u) => (
               <p key={u.id} className="text-sm">
-                <span className="font-medium">{u.number}</span> · yarn permitted {n(u.yarnPermittedKg)} kg · booked {n(yarnUsed)} kg{' '}
-                <span className={yarnUsed > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}>{yarnUsed > u.yarnPermittedKg ? '· over the UD' : '· within'}</span>
+                <span className="font-medium">{u.number}</span> · অনুমোদিত সুতা {n(u.yarnPermittedKg)} কেজি · বুক করা {n(yarnUsed)} কেজি{' '}
+                <span className={yarnUsed > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}>{yarnUsed > u.yarnPermittedKg ? '· ইউডির বেশি' : '· সীমার মধ্যে'}</span>
               </p>
             ))
           ) : isCommercial && !closed ? (
             <ActionForm action={issueUd} className="flex flex-col gap-3 sm:flex-row">
               <input type="hidden" name="order_id" value={order.id} />
-              <input name="number" placeholder="BGMEA UD no." required className="field" />
-              <input name="yarn_kg" type="number" placeholder="yarn kg" required className="field num" />
-              <Submit small>record</Submit>
+              <input name="number" placeholder="বিজিএমইএ ইউডি নং" required className="field" />
+              <input name="yarn_kg" type="number" placeholder="সুতা (কেজি)" required className="field num" />
+              <Submit small>লিখুন</Submit>
             </ActionForm>
           ) : (
-            <p className="text-sm text-muted">not issued yet</p>
+            <p className="text-sm text-muted">এখনো ইস্যু হয়নি</p>
           )}
         </div>
       </div>
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <span className="label">back-to-back LCs</span>
+          <span className="label">ব্যাক-টু-ব্যাক এলসি</span>
           {master ? (
             <span className={`num text-sm ${btbUsed > master.amount * 0.75 ? 'text-alert' : 'text-muted'}`}>
-              {tk(btbUsed)} of {tk(master.amount * 0.75)} allowed (75%)
+              অনুমোদিত {tk(master.amount * 0.75)}-এর মধ্যে {tk(btbUsed)} (৭৫%)
             </span>
           ) : null}
         </div>
@@ -99,15 +99,15 @@ export async function MaterialsSection({
           <div key={b.id} className="flex flex-wrap items-center gap-3 border-t border-rule pt-3 text-sm">
             <span className="font-medium">{b.number}</span>
             <span className="num text-muted">{tk(b.amount)}</span>
-            <span className="text-muted">{b.tenorDays} days</span>
-            {b.maturity ? <span className="text-muted">matures {day(b.maturity)}</span> : null}
+            <span className="text-muted">{bn(b.tenorDays ?? 0)} দিন</span>
+            {b.maturity ? <span className="text-muted">মেয়াদপূর্তি {day(b.maturity)}</span> : null}
             <Chip status={b.status} />
             {b.status === 'requested' && !closed ? (
               <ActionForm action={openBtb} className="ml-auto flex flex-wrap items-center gap-2">
                 <input type="hidden" name="order_id" value={order.id} />
                 <input type="hidden" name="lc_id" value={b.id} />
                 <Submit small disabled={!canPass('btb', role)}>
-                  open at bank
+                  ব্যাংকে খুলুন
                 </Submit>
               </ActionForm>
             ) : null}
@@ -116,38 +116,38 @@ export async function MaterialsSection({
         {needsBtb && !closed ? (
           <ActionForm action={requestBtb} className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <input type="hidden" name="order_id" value={order.id} />
-            <input name="bank" placeholder="issuing bank" className="field" />
+            <input name="bank" placeholder="ইস্যুকারী ব্যাংক" className="field" />
             <label className="flex items-center gap-2">
-              <span className="text-sm text-muted">tenor</span>
+              <span className="text-sm text-muted">মেয়াদ</span>
               <select name="tenor_days" defaultValue="120" className="field">
-                <option value="90">90 days</option>
-                <option value="120">120 days</option>
-                <option value="180">180 days</option>
+                <option value="90">৯০ দিন</option>
+                <option value="120">১২০ দিন</option>
+                <option value="180">১৮০ দিন</option>
               </select>
             </label>
             <Submit small quiet>
-              request btb for imported items
+              আমদানি পণ্যের জন্য বিটুবি অনুরোধ করুন
             </Submit>
           </ActionForm>
         ) : null}
       </div>
 
       <div className="flex flex-col gap-3">
-        <span className="label">bill of materials</span>
+        <span className="label">বিল অব ম্যাটেরিয়ালস</span>
         <GateNote gate="btb" open={!materials.some((m) => m.source === 'import' && m.status === 'pending')}>
-          imported materials cannot be booked until their btb lc is opened. local items book freely.
+          বিটুবি এলসি না খোলা পর্যন্ত আমদানি করা কাঁচামাল বুক করা যাবে না। দেশীয় পণ্য সরাসরি বুক করা যায়।
         </GateNote>
         <div className="overflow-x-auto">
           <table className="tbl">
             <thead>
               <tr>
-                <th>material</th>
-                <th className="text-right">qty</th>
-                <th className="text-right">value</th>
-                <th>source</th>
-                <th>status</th>
+                <th>কাঁচামাল</th>
+                <th className="text-right">পরিমাণ</th>
+                <th className="text-right">মূল্য</th>
+                <th>উৎস</th>
+                <th>অবস্থা</th>
                 <th>
-                  <span className="sr-only">action</span>
+                  <span className="sr-only">কাজ</span>
                 </th>
               </tr>
             </thead>
@@ -162,10 +162,10 @@ export async function MaterialsSection({
                       {m.supplier ? <div className="text-xs text-subtle">{m.supplier} · {nameOf(m.bookedBy)}</div> : null}
                     </td>
                     <td className="num text-right">
-                      {n(m.qty)} {m.unit}
+                      {n(m.qty)} {m.unit === 'kg' ? 'কেজি' : m.unit === 'pcs' ? 'পিস' : m.unit}
                     </td>
                     <td className="num text-right">{tk(m.qty * m.rate)}</td>
-                    <td>{m.source}</td>
+                    <td>{m.source === 'import' ? 'আমদানি' : m.source === 'local' ? 'দেশীয়' : m.source}</td>
                     <td>
                       <Chip status={m.status} />
                     </td>
@@ -174,9 +174,9 @@ export async function MaterialsSection({
                         <ActionForm action={bookMaterial} className="flex min-w-56 flex-wrap gap-2">
                           <input type="hidden" name="order_id" value={order.id} />
                           <input type="hidden" name="bom_id" value={m.id} />
-                          <input name="supplier" placeholder="supplier" required aria-label={`supplier for ${m.material}`} className="field h-8 w-32 text-sm" />
+                          <input name="supplier" placeholder="সরবরাহকারী" required aria-label={`${m.material}-এর সরবরাহকারী`} className="field h-8 w-32 text-sm" />
                           <Submit small quiet disabled={blocked}>
-                            book
+                            বুক করুন
                           </Submit>
                         </ActionForm>
                       ) : null}

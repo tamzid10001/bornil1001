@@ -3,12 +3,12 @@ import { desc, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { audit, bl, orders, sewing } from '@/lib/db/schema'
 import { getExceptions, projection } from '@/lib/queries'
-import { today } from '@/lib/domain'
-import { day, n, pct, stamp, tkK } from '@/lib/format'
+import { DEPT_LABEL, today } from '@/lib/domain'
+import { bn, day, n, pct, stamp, tkK } from '@/lib/format'
 import { PageHeader, Section, StageRail, Stat } from '@/components/os/ui'
 import { acronyms } from '@/lib/acronyms'
 
-export const metadata = { title: 'tonight' }
+export const metadata = { title: 'আজ রাতে' }
 
 export default async function TonightPage() {
   const t = today()
@@ -33,21 +33,21 @@ export default async function TonightPage() {
   return (
     <>
       <PageHeader
-        eyebrow={new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Dhaka' }).toLowerCase()}
-        title="What needs you tonight."
+        eyebrow={new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Dhaka' })}
+        title="আজ রাতে যা আপনার নজর চায়।"
       />
 
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={gates.length} label="held at a gate" tone={gates.length ? 'alert' : 'ok'} />
-        <Stat value={risks.length} label="slipping or down" tone={risks.length ? 'alert' : undefined} />
-        <Stat value={target ? pct((actual / target) * 100, 0) : '—'} label={`floor efficiency · ${lines} lines today`} />
-        <Stat value={tkK(book)} label={`open order book · ${openOrders.length} orders`} />
+        <Stat value={gates.length} label="গেটে আটকে আছে" tone={gates.length ? 'alert' : 'ok'} />
+        <Stat value={risks.length} label="পিছিয়ে আছে বা বন্ধ" tone={risks.length ? 'alert' : undefined} />
+        <Stat value={target ? pct((actual / target) * 100, 0) : '—'} label={`ফ্লোর দক্ষতা · আজ ${bn(lines)}টি লাইন`} />
+        <Stat value={tkK(book)} label={`চলমান অর্ডার বুক · ${bn(openOrders.length)}টি অর্ডার`} />
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
-        <Section title="exceptions" aside={<span className="num text-sm text-muted">{exceptions.length} open</span>}>
+        <Section title="ব্যতিক্রম" aside={<span className="num text-sm text-muted">{bn(exceptions.length)}টি খোলা</span>}>
           {exceptions.length === 0 ? (
-            <p className="text-muted">Nothing needs you. Go home.</p>
+            <p className="text-muted">কিছুই আপনার নজর চাইছে না। বাড়ি যান।</p>
           ) : (
             <ul className="flex flex-col">
               {[...gates, ...risks, ...info].map((e, i) => (
@@ -62,8 +62,8 @@ export default async function TonightPage() {
                       <span className="text-sm leading-relaxed text-muted">{e.detail}</span>
                     </span>
                     <span className="hidden shrink-0 text-xs text-subtle sm:block">
-                      <span className="sr-only">{e.kind} · </span>
-                      {e.dept}
+                      <span className="sr-only">{e.kind === 'gate' ? 'গেট' : e.kind === 'risk' ? 'ঝুঁকি' : 'তথ্য'} · </span>
+                      {DEPT_LABEL[e.dept] ?? e.dept}
                     </span>
                   </Link>
                 </li>
@@ -73,7 +73,7 @@ export default async function TonightPage() {
         </Section>
 
         <div className="flex flex-col gap-10">
-          <Section title="orders on the floor">
+          <Section title="ফ্লোরে চলমান অর্ডার">
             <ul className="flex flex-col gap-4">
               {openOrders.map((o) => {
                 const p = projection(o, allSewing.filter((s) => s.orderId === o.id))
@@ -82,11 +82,11 @@ export default async function TonightPage() {
                     <Link href={`/os/orders/${o.id}`} className="group flex flex-col gap-2">
                       <span className="flex items-baseline justify-between gap-2">
                         <span className="font-medium group-hover:text-ink">{o.code}</span>
-                        <span className="text-xs text-muted">ships {day(o.shipDate)}</span>
+                        <span className="text-xs text-muted">শিপমেন্ট {day(o.shipDate)}</span>
                       </span>
                       <span className="truncate text-sm text-muted">
-                        {o.buyer} · {n(o.quantity)} pcs
-                        {p.sewn ? ` · ${n(p.sewn)} sewn` : ''}
+                        {o.buyer} · {n(o.quantity)} পিস
+                        {p.sewn ? ` · ${n(p.sewn)} সেলাই হয়েছে` : ''}
                       </span>
                       <StageRail stage={o.stage} />
                     </Link>
@@ -94,10 +94,10 @@ export default async function TonightPage() {
                 )
               })}
             </ul>
-            {shippingSoon ? <p className="text-sm text-muted">{shippingSoon} b/l in draft.</p> : null}
+            {shippingSoon ? <p className="text-sm text-muted">{bn(shippingSoon)}টি বি/এল খসড়া অবস্থায়।</p> : null}
           </Section>
 
-          <Section title="signed today">
+          <Section title="আজকের স্বাক্ষর">
             <ul className="flex flex-col gap-3 text-sm">
               {recent.map((a) => (
                 <li key={a.id} className="flex flex-col">
@@ -111,7 +111,7 @@ export default async function TonightPage() {
               ))}
             </ul>
             <Link href="/os/approvals" className="text-sm text-ink underline underline-offset-4">
-              full audit trail
+              পূর্ণ অডিট ট্রেইল
             </Link>
           </Section>
         </div>

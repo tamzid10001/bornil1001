@@ -1,6 +1,6 @@
 import type { Order } from '@/lib/db/schema'
 import { aqlPlan, canPass, DEFECT_CODES } from '@/lib/domain'
-import { n, pct, stamp } from '@/lib/format'
+import { bn, n, pct, stamp } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, GateNote, Section, TextLink } from '@/components/os/ui'
 import { addLay, inspectLot, logDefect, signPp } from '@/app/os/actions/orders'
@@ -42,19 +42,19 @@ export function ProductionSection({
   const plan = aqlPlan(order.quantity)
 
   return (
-    <Section title="cutting, sewing & quality">
+    <Section title="কাটিং, সেলাই ও মান">
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="flex flex-col gap-3">
-          <span className="label">cutting</span>
+          <span className="label">কাটিং</span>
           {lays.length ? (
             <table className="tbl">
               <thead>
                 <tr>
-                  <th>lay</th>
-                  <th className="text-right">plies</th>
-                  <th className="text-right">marker</th>
-                  <th className="text-right">pcs</th>
-                  <th>bundles</th>
+                  <th>লে</th>
+                  <th className="text-right">প্লাই</th>
+                  <th className="text-right">মার্কার</th>
+                  <th className="text-right">পিস</th>
+                  <th>বান্ডেল</th>
                 </tr>
               </thead>
               <tbody>
@@ -62,12 +62,12 @@ export function ProductionSection({
                   const pcs = l.plies * Object.values(l.ratio).reduce((a, b) => a + b, 0)
                   return (
                     <tr key={l.id}>
-                      <td>#{l.layNo}</td>
-                      <td className="num text-right">{l.plies}</td>
+                      <td>#{bn(l.layNo)}</td>
+                      <td className="num text-right">{n(l.plies)}</td>
                       <td className={`num text-right ${l.markerEff < 82 ? 'text-alert' : ''}`}>{pct(l.markerEff)}</td>
                       <td className="num text-right">{n(pcs)}</td>
                       <td className="num">
-                        {l.bundleFrom}–{l.bundleTo}
+                        {bn(l.bundleFrom)}–{bn(l.bundleTo)}
                       </td>
                     </tr>
                   )
@@ -75,38 +75,38 @@ export function ProductionSection({
               </tbody>
             </table>
           ) : (
-            <p className="text-sm text-muted">no lays yet</p>
+            <p className="text-sm text-muted">এখনো কোনো লে হয়নি</p>
           )}
           {!closed && (role === 'cutting' || role === 'owner') ? (
             <ActionForm action={addLay} resetOnSuccess className="flex flex-wrap items-end gap-3">
               <input type="hidden" name="order_id" value={order.id} />
               <label className="flex w-24 flex-col gap-1.5">
-                <span className="label">plies</span>
+                <span className="label">প্লাই</span>
                 <input name="plies" type="number" defaultValue={80} required className="field num" />
               </label>
               <label className="flex w-28 flex-col gap-1.5">
-                <span className="label">marker %</span>
+                <span className="label">মার্কার %</span>
                 <input name="marker_eff" type="number" step="0.1" defaultValue={84} required className="field num" />
               </label>
-              <Submit small>record lay</Submit>
+              <Submit small>লে লিখুন</Submit>
             </ActionForm>
           ) : null}
         </div>
 
         <div className="flex flex-col gap-3">
-          <span className="label">PP meeting</span>
+          <span className="label">পিপি মিটিং</span>
           <GateNote gate="pp" open={!!order.ppSignedAt}>
-            {order.ppSignedAt ? `signed by ${nameOf(order.ppSignedBy)} · ${stamp(order.ppSignedAt)}` : 'bulk sewing output is refused until quality signs the PP meeting.'}
+            {order.ppSignedAt ? `স্বাক্ষর করেছেন ${nameOf(order.ppSignedBy)} · ${stamp(order.ppSignedAt)}` : 'মান নিয়ন্ত্রণ পিপি মিটিং স্বাক্ষর না করা পর্যন্ত বাল্ক সেলাইয়ের আউটপুট নেওয়া হবে না।'}
           </GateNote>
           {!order.ppSignedAt && !closed ? (
             canPass('pp', role) ? (
               <ActionForm action={signPp} className="flex flex-col gap-3">
                 <input type="hidden" name="order_id" value={order.id} />
-                <textarea name="notes" rows={2} className="field" placeholder="decisions: shrinkage 3% allowed, collar tension adjusted…" aria-label="pp meeting decisions" />
-                <Submit small>sign the PP meeting</Submit>
+                <textarea name="notes" rows={2} className="field" placeholder="সিদ্ধান্ত: ৩% সংকোচন অনুমোদিত, কলারের টেনশন ঠিক করা হয়েছে…" aria-label="পিপি মিটিংয়ের সিদ্ধান্ত" />
+                <Submit small>পিপি মিটিং স্বাক্ষর করুন</Submit>
               </ActionForm>
             ) : (
-              <p className="text-sm text-muted">Switch “acting as” to quality or merchandising to sign.</p>
+              <p className="text-sm text-muted">স্বাক্ষর করতে “যিনি কাজ করছেন” থেকে মান নিয়ন্ত্রণ বা মার্চেন্ডাইজিং বেছে নিন।</p>
             )
           ) : null}
         </div>
@@ -115,8 +115,8 @@ export function ProductionSection({
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="flex flex-col gap-3">
           <div className="flex items-baseline justify-between">
-            <span className="label">sewing by line</span>
-            <TextLink href="/os/floor">log an hour</TextLink>
+            <span className="label">লাইনভিত্তিক সেলাই</span>
+            <TextLink href="/os/floor">এক ঘণ্টার হিসাব লিখুন</TextLink>
           </div>
           {byLine.size ? (
             <ul className="flex flex-col gap-3">
@@ -125,10 +125,10 @@ export function ProductionSection({
                 return (
                   <li key={line} className="flex flex-col gap-1">
                     <span className="flex justify-between text-sm">
-                      <span>line {line}</span>
+                      <span>লাইন {bn(line)}</span>
                       <span className="num text-muted">
                         {n(v.actual)} / {n(v.target)} · <span className={eff < 85 ? 'text-alert' : 'text-foreground'}>{pct(eff, 0)}</span>
-                        {v.down ? ` · ${v.down} min down` : ''}
+                        {v.down ? ` · ${n(v.down)} মিনিট বন্ধ` : ''}
                       </span>
                     </span>
                     <span className="h-1.5 overflow-hidden rounded-full bg-key" aria-hidden="true">
@@ -139,42 +139,42 @@ export function ProductionSection({
               })}
             </ul>
           ) : (
-            <p className="text-sm text-muted">no output yet</p>
+            <p className="text-sm text-muted">এখনো কোনো আউটপুট নেই</p>
           )}
         </div>
 
         <div className="flex flex-col gap-3">
           <div className="flex items-baseline justify-between">
-            <span className="label">defects</span>
+            <span className="label">ত্রুটি</span>
             <span className="num text-sm text-muted">
-              {n(defectTotal)} · {sewn ? pct((defectTotal / sewn) * 100) : '—'} dhu
+              {n(defectTotal)} · {sewn ? pct((defectTotal / sewn) * 100) : '—'} ডিএইচইউ
             </span>
           </div>
           <ul className="flex flex-col gap-2">
             {pareto.slice(0, 5).map((d) => (
               <li key={d.code} className="grid grid-cols-[8rem_1fr_3rem] items-center gap-3 text-sm">
-                <span className="truncate">{d.label}</span>
+                <span className="truncate">{d.bn}</span>
                 <span className="h-1.5 rounded-full bg-key" aria-hidden="true">
                   <span className="block h-full rounded-full bg-foreground/70" style={{ width: `${(d.count / top) * 100}%` }} />
                 </span>
-                <span className="num text-right text-muted">{d.count}</span>
+                <span className="num text-right text-muted">{n(d.count)}</span>
               </li>
             ))}
           </ul>
           {!closed ? (
             <ActionForm action={logDefect} resetOnSuccess className="flex flex-wrap items-end gap-2">
               <input type="hidden" name="order_id" value={order.id} />
-              <select name="code" required className="field w-40" aria-label="defect">
+              <select name="code" required className="field w-40" aria-label="ত্রুটি">
                 {DEFECT_CODES.map((d) => (
                   <option key={d.code} value={d.code}>
-                    {d.label} · {d.bn}
+                    {d.bn}
                   </option>
                 ))}
               </select>
-              <input name="line" type="number" min={1} defaultValue={1} className="field num w-16" aria-label="line" />
-              <input name="count" type="number" min={1} defaultValue={1} className="field num w-16" aria-label="count" />
+              <input name="line" type="number" min={1} defaultValue={1} className="field num w-16" aria-label="লাইন" />
+              <input name="count" type="number" min={1} defaultValue={1} className="field num w-16" aria-label="সংখ্যা" />
               <Submit small quiet>
-                log
+                লিখুন
               </Submit>
             </ActionForm>
           ) : null}
@@ -182,12 +182,12 @@ export function ProductionSection({
       </div>
 
       <div className="flex flex-col gap-3">
-        <span className="label">final inspection · AQL 2.5, level II</span>
+        <span className="label">ফাইনাল ইন্সপেকশন · একিউএল ২.৫, লেভেল II</span>
         {lots.map((l) => (
           <p key={l.id} className="flex flex-wrap items-center gap-3 text-sm">
             <Chip status={l.result} />
             <span className="num">
-              lot {n(l.lotSize)} · sampled {l.sample} · {l.major} major (accept ≤ {l.acceptMax})
+              লট {n(l.lotSize)} · নমুনা {n(l.sample)} · {n(l.major)}টি মেজর (গ্রহণযোগ্য ≤ {n(l.acceptMax)})
             </span>
             <span className="text-subtle">
               {nameOf(l.decidedBy)} · {stamp(l.createdAt)}
@@ -198,17 +198,17 @@ export function ProductionSection({
           <ActionForm action={inspectLot} className="flex flex-wrap items-end gap-3">
             <input type="hidden" name="order_id" value={order.id} />
             <label className="flex w-32 flex-col gap-1.5">
-              <span className="label">lot size</span>
+              <span className="label">লটের আকার</span>
               <input name="lot_size" type="number" defaultValue={order.quantity} required className="field num" />
             </label>
             <label className="flex w-32 flex-col gap-1.5">
-              <span className="label">major found</span>
+              <span className="label">মেজর ত্রুটি পাওয়া গেছে</span>
               <input name="major" type="number" min={0} required className="field num" />
             </label>
             <p className="pb-2 text-sm text-muted">
-              sample {plan.sample}, accept ≤ {plan.accept}
+              নমুনা {n(plan.sample)}, গ্রহণযোগ্য ≤ {n(plan.accept)}
             </p>
-            <Submit small>decide the lot</Submit>
+            <Submit small>লটের সিদ্ধান্ত দিন</Submit>
           </ActionForm>
         ) : null}
       </div>

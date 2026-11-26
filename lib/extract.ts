@@ -4,13 +4,13 @@ import { z } from 'zod'
 import type { ExtractedField } from './db/schema'
 
 const FIELD_LABELS: Record<string, string> = {
-  style: 'style',
-  fabric: 'fabric',
-  quantity: 'quantity (pcs)',
-  ratio: 'size ratio',
-  shipDate: 'ship date',
-  incoterm: 'incoterm & port',
-  targetPrice: 'target price (bdt/pc)',
+  style: 'স্টাইল',
+  fabric: 'কাপড়',
+  quantity: 'পরিমাণ (পিস)',
+  ratio: 'সাইজ অনুপাত',
+  shipDate: 'শিপমেন্টের তারিখ',
+  incoterm: 'ইনকোটার্ম ও বন্দর',
+  targetPrice: 'লক্ষ্য দর (৳/পিস)',
 }
 
 const schema = z.object({

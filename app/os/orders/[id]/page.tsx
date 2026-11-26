@@ -39,17 +39,17 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <PageHeader
-        eyebrow={`${o.buyer} · ships ${day(o.shipDate)}`}
+        eyebrow={`${o.buyer} · শিপমেন্ট ${day(o.shipDate)}`}
         title={`${o.code} — ${o.style}`}
-        lede={`${o.fabric ?? 'fabric tbc'} · ${Object.entries(o.sizes).map(([k, v]) => `${k} ${n(v)}`).join(' · ')}`}
-        actions={o.closedAt ? <Chip status="closed" /> : p.late ? <Chip status="late">projected late</Chip> : null}
+        lede={`${o.fabric ?? 'কাপড় নির্ধারিত হয়নি'} · ${Object.entries(o.sizes).map(([k, v]) => `${k} ${n(v)}`).join(' · ')}`}
+        actions={o.closedAt ? <Chip status="closed" /> : p.late ? <Chip status="late">দেরির আশঙ্কা</Chip> : null}
       />
       <StageRail stage={o.stage} />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={tkK(o.quantity * o.fob)} label={`order value · ${n(o.quantity)} pcs`} />
-        <Stat value={n(cut)} label="cut" />
-        <Stat value={n(p.sewn)} label={`sewn · ${n(p.pace)} / day pace`} />
-        <Stat value={day(p.finish)} label={`projected sewing finish · deadline ${day(p.sewingDeadline)}`} tone={p.late ? 'alert' : p.finish ? 'ok' : undefined} />
+        <Stat value={tkK(o.quantity * o.fob)} label={`অর্ডার মূল্য · ${n(o.quantity)} পিস`} />
+        <Stat value={n(cut)} label="কাটিং হয়েছে" />
+        <Stat value={n(p.sewn)} label={`সেলাই হয়েছে · দিনে ${n(p.pace)} গতি`} />
+        <Stat value={day(p.finish)} label={`সম্ভাব্য সেলাই শেষ · শেষ সময় ${day(p.sewingDeadline)}`} tone={p.late ? 'alert' : p.finish ? 'ok' : undefined} />
       </div>
 
       <PlanSection order={o} milestones={milestones} role={role} />

@@ -2,22 +2,22 @@ import Link from 'next/link'
 import { db } from '@/lib/db'
 import { sewing } from '@/lib/db/schema'
 import { listOrders, projection } from '@/lib/queries'
-import { day, n, tkK } from '@/lib/format'
+import { bn, day, n, tkK } from '@/lib/format'
 import { Chip, Empty, PageHeader, Section, StageRail } from '@/components/os/ui'
 
-export const metadata = { title: 'orders' }
+export const metadata = { title: 'অর্ডার' }
 
 export default async function OrdersPage() {
   const [rows, allSewing] = await Promise.all([listOrders(), db.select().from(sewing)])
   return (
     <>
       <PageHeader
-        eyebrow="one record per order"
-        title="Orders"
+        eyebrow="প্রতিটি অর্ডারের একটি রেকর্ড"
+        title="অর্ডার"
       />
-      <Section title={`${rows.length} orders`}>
+      <Section title={`${bn(rows.length)}টি অর্ডার`}>
         {rows.length === 0 ? (
-          <Empty>Win a quote to open an order.</Empty>
+          <Empty>অর্ডার খুলতে একটি কোটেশন জিতুন।</Empty>
         ) : (
           <ul className="flex flex-col">
             {rows.map((o) => {
@@ -31,12 +31,12 @@ export default async function OrdersPage() {
                     </span>
                     <span className="flex flex-col gap-2">
                       <span className="text-sm">
-                        {o.style} · {n(o.quantity)} pcs · {tkK(o.quantity * o.fob)}
+                        {o.style} · {n(o.quantity)} পিস · {tkK(o.quantity * o.fob)}
                       </span>
                       <StageRail stage={o.stage} />
                     </span>
                     <span className="flex items-center gap-2 text-sm text-muted md:justify-end">
-                      ships {day(o.shipDate)}
+                      শিপমেন্ট {day(o.shipDate)}
                       {o.closedAt ? <Chip status="closed" /> : p.late ? <Chip status="late" /> : null}
                     </span>
                   </Link>

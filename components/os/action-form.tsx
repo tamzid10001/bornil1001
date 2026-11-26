@@ -62,7 +62,7 @@ export function Submit({
       aria-busy={pending}
       className={`${quiet ? 'btn-quiet' : 'btn'} ${small ? 'btn-sm' : ''}`}
     >
-      {pending ? 'working…' : children}
+      {pending ? 'চলছে…' : children}
     </button>
   )
 }

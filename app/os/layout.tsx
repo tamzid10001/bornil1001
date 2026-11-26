@@ -5,7 +5,7 @@ import { getExceptions } from '@/lib/queries'
 import { ROLE_LABEL } from '@/lib/domain'
 import { AutoSubmitSelect, Nav } from '@/components/os/nav'
 import { BornilLogo } from '@/components/os/logo'
-import { loadExampleFactory, setActor, setLang } from './actions/shell'
+import { loadExampleFactory, setActor } from './actions/shell'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,14 +16,14 @@ export default async function OsLayout({ children }: { children: React.ReactNode
     return (
       <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-6 px-6 py-16">
         <BornilLogo className="h-10 w-auto self-start text-foreground" />
-        <h1 className="text-4xl leading-tight">The factory is empty.</h1>
+        <h1 className="text-4xl leading-tight">কারখানা এখনো খালি।</h1>
         <p className="leading-relaxed text-muted">
-          Load an example factory — ten staff, four orders at different stages, four sewing lines, letters of credit and a
-          payroll — so you can walk one order from buyer email to bank realisation.
+          একটি নমুনা কারখানা লোড করুন — দশজন কর্মী, ভিন্ন ভিন্ন ধাপে চারটি অর্ডার, চারটি সেলাই লাইন, ঋণপত্র ও একটি বেতন
+          তালিকা — যাতে বায়ারের ইমেইল থেকে ব্যাংকে টাকা আসা পর্যন্ত একটি অর্ডার পুরোটা দেখে নিতে পারেন।
         </p>
         <form action={loadExampleFactory}>
           <button type="submit" className="btn">
-            load the example factory
+            নমুনা কারখানা লোড করুন
           </button>
         </form>
       </main>
@@ -43,35 +43,21 @@ export default async function OsLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <aside className="flex flex-col gap-6 border-b border-rule px-4 py-5 lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
-        <Link href="/os" aria-label="বর্ণিল RMG, home" className="flex items-center gap-3 px-3 text-foreground">
+        <Link href="/os" aria-label="বর্ণিল আরএমজি, হোম" className="flex items-center gap-3 px-3 text-foreground">
           <BornilLogo className="h-7 w-auto" />
           <span aria-hidden="true" className="h-5 w-px bg-rule" />
-          <span className="font-heading text-sm font-semibold tracking-widest">RMG</span>
+          <span className="font-heading text-sm font-semibold tracking-widest">আরএমজি</span>
         </Link>
         <Nav groups={groups} />
         <div className="mt-auto flex flex-col gap-4 border-t border-rule px-3 pt-4">
           <form action={setActor}>
-            <AutoSubmitSelect name="actor" defaultValue={String(actor?.id ?? '')} label={lang === 'bn' ? 'যিনি কাজ করছেন' : 'acting as'}>
+            <AutoSubmitSelect name="actor" defaultValue={String(actor?.id ?? '')} label="যিনি কাজ করছেন">
               {staff.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name} · {ROLE_LABEL[p.role] ?? p.role}
                 </option>
               ))}
             </AutoSubmitSelect>
-          </form>
-          <form action={setLang} className="flex gap-1" aria-label="language">
-            {(['en', 'bn'] as const).map((l) => (
-              <button
-                key={l}
-                type="submit"
-                name="lang"
-                value={l}
-                aria-pressed={lang === l}
-                className={`h-8 flex-1 rounded-full text-sm ${lang === l ? 'bg-foreground text-background' : 'bg-key text-muted hover:text-foreground'}`}
-              >
-                {l === 'en' ? 'english' : 'বাংলা'}
-              </button>
-            ))}
           </form>
         </div>
       </aside>

@@ -9,7 +9,7 @@ import { ActionForm, Submit } from '@/components/os/action-form'
 import { PageHeader, Section, Stat } from '@/components/os/ui'
 import { addEmployee, updateAttendance } from '../actions/ops'
 
-export const metadata = { title: 'payroll' }
+export const metadata = { title: 'বেতন' }
 
 export default async function PayrollPage() {
   const [lang, actor, staff] = await Promise.all([getLang(), getActor(), db.select().from(employees).orderBy(asc(employees.code))])

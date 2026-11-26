@@ -6,15 +6,15 @@ import { db } from '@/lib/db'
 import { bl, bom, defects, lays, lcs, lots, orders, sewing, tna, ud, type Order } from '@/lib/db/schema'
 import { record, requireActor, requireGate } from '@/lib/actor'
 import { int, isoDate, num, run, str, type ActionState } from '@/lib/action'
-import { addDays, aqlPlan, DEFECT_CODES, STAGES, today, type Stage } from '@/lib/domain'
+import { addDays, aqlPlan, DEFECT_CODES, DEPT_LABEL, ROLE_LABEL, STAGES, TNA_LABEL, today, type Stage } from '@/lib/domain'
 import { blChecks } from '@/lib/queries'
 import { tk } from '@/lib/format'
 
 async function loadOrder(fd: FormData) {
   const id = int(fd, 'order_id')
   const [o] = await db.select().from(orders).where(eq(orders.id, id))
-  if (!o) throw new Error('Order not found.')
-  if (o.closedAt) throw new Error(`${o.code} is closed.`)
+  if (!o) throw new Error('অর্ডার পাওয়া যায়নি।')
+  if (o.closedAt) throw new Error(`${o.code} বন্ধ হয়ে গেছে।`)
   return o
 }
 
@@ -37,16 +37,16 @@ function done(o: Order) {
 }
 
 function requireRole(role: string, allowed: string[], what: string) {
-  if (role !== 'owner' && !allowed.includes(role)) throw new Error(`Only ${allowed.join(' or ')} can ${what}.`)
+  if (role !== 'owner' && !allowed.includes(role)) throw new Error(`শুধু ${allowed.map((r) => ROLE_LABEL[r] ?? r).join(' বা ')} ${what} পারেন।`)
 }
 
 export async function commitTna(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    requireRole(actor.role, ['planner', 'merchandiser'], 'commit a critical path')
+    requireRole(actor.role, ['planner', 'merchandiser'], 'ক্রিটিক্যাল পাথ নিশ্চিত করতে')
     const o = await loadOrder(fd)
     await db.update(orders).set({ tnaCommitted: true }).where(eq(orders.id, o.id))
-    await record(actor, 'committed the critical path', 'order', o.id, `${o.code} ships ${o.shipDate}`)
+    await record(actor, 'ক্রিটিক্যাল পাথ নিশ্চিত করেছেন', 'order', o.id, `${o.code} শিপমেন্ট ${o.shipDate}`)
     done(o)
     return 'critical path committed — every department now owns its dates'
   })
@@ -58,12 +58,12 @@ export async function toggleMilestone(_: ActionState, fd: FormData): Promise<Act
     const o = await loadOrder(fd)
     const id = int(fd, 'tna_id')
     const [m] = await db.select().from(tna).where(and(eq(tna.id, id), eq(tna.orderId, o.id)))
-    if (!m) throw new Error('Milestone not found.')
+    if (!m) throw new Error('মাইলস্টোন পাওয়া যায়নি।')
     if (actor.role !== 'owner' && actor.role !== 'planner' && actor.dept !== m.ownerDept) {
-      throw new Error(`${m.name} belongs to ${m.ownerDept}.`)
+      throw new Error(`${TNA_LABEL[m.name] ?? m.name} ${DEPT_LABEL[m.ownerDept] ?? m.ownerDept} বিভাগের দায়িত্ব।`)
     }
     await db.update(tna).set({ doneAt: m.doneAt ? null : today() }).where(eq(tna.id, id))
-    await record(actor, m.doneAt ? 'reopened a milestone' : 'closed a milestone', 'order', o.id, `${o.code} · ${m.name}`)
+    await record(actor, m.doneAt ? 'মাইলস্টোন আবার খুলেছেন' : 'মাইলস্টোন সম্পন্ন করেছেন', 'order', o.id, `${o.code} · ${TNA_LABEL[m.name] ?? m.name}`)
     done(o)
   })
 }
@@ -71,18 +71,18 @@ export async function toggleMilestone(_: ActionState, fd: FormData): Promise<Act
 export async function openMasterLc(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    requireRole(actor.role, ['commercial'], 'open a master lc')
+    requireRole(actor.role, ['commercial'], 'মাস্টার এলসি লিখতে')
     const o = await loadOrder(fd)
     const id = int(fd, 'lc_id')
     const bank = str(fd, 'bank')
     const discharge = str(fd, 'port_discharge')
-    if (!bank || !discharge) throw new Error('Bank and port of discharge are required.')
+    if (!bank || !discharge) throw new Error('ব্যাংক ও খালাস বন্দর দিতে হবে।')
     await db
       .update(lcs)
       .set({ status: 'opened', bank, portDischarge: discharge, latestShipment: isoDate(fd, 'latest_shipment'), openedAt: today() })
       .where(and(eq(lcs.id, id), eq(lcs.kind, 'master')))
     await tick(o.id, 'master lc received')
-    await record(actor, 'recorded the master lc', 'lc', id, `${o.code} via ${bank}`)
+    await record(actor, 'মাস্টার এলসি লিখেছেন', 'lc', id, `${o.code} · ${bank}`)
     done(o)
   })
 }
@@ -93,7 +93,7 @@ export async function requestBtb(_: ActionState, fd: FormData): Promise<ActionSt
     const o = await loadOrder(fd)
     const lines = await db.select().from(bom).where(and(eq(bom.orderId, o.id), eq(bom.source, 'import'), eq(bom.status, 'pending')))
     const unlinked = lines.filter((l) => !l.btbId)
-    if (!unlinked.length) throw new Error('Every imported material already has a btb lc.')
+    if (!unlinked.length) throw new Error('প্রতিটি আমদানি কাঁচামালের বিটুবি এলসি আগেই আছে।')
     const [master] = await db.select().from(lcs).where(and(eq(lcs.orderId, o.id), eq(lcs.kind, 'master')))
     const amount = unlinked.reduce((s, l) => s + l.qty * l.rate, 0)
     const number = `BTB-${o.code.replace('PO-', '')}-${String(Date.now()).slice(-3)}`
@@ -102,7 +102,7 @@ export async function requestBtb(_: ActionState, fd: FormData): Promise<ActionSt
       .values({ kind: 'btb', number, orderId: o.id, masterId: master?.id ?? null, amount, tenorDays: int(fd, 'tenor_days', { min: 30, max: 180 }), bank: str(fd, 'bank') || null })
       .returning({ id: lcs.id })
     await db.update(bom).set({ btbId: btb.id }).where(inArray(bom.id, unlinked.map((l) => l.id)))
-    await record(actor, 'requested a btb lc', 'lc', btb.id, `${number} · ${tk(amount)}`)
+    await record(actor, 'বিটুবি এলসি অনুরোধ করেছেন', 'lc', btb.id, `${number} · ${tk(amount)}`)
     done(o)
     return `${number} requested for ${tk(amount)}`
   })
@@ -114,17 +114,17 @@ export async function openBtb(_: ActionState, fd: FormData): Promise<ActionState
     const o = await loadOrder(fd)
     const id = int(fd, 'lc_id')
     const [btb] = await db.select().from(lcs).where(and(eq(lcs.id, id), eq(lcs.kind, 'btb')))
-    if (!btb || btb.status !== 'requested') throw new Error('This btb lc is not waiting to be opened.')
+    if (!btb || btb.status !== 'requested') throw new Error('এই বিটুবি এলসি খোলার অপেক্ষায় নেই।')
     const [master] = await db.select().from(lcs).where(and(eq(lcs.orderId, o.id), eq(lcs.kind, 'master')))
-    if (!master || master.status !== 'opened') throw new Error('Record the master lc first — a btb lc is opened against it.')
+    if (!master || master.status !== 'opened') throw new Error('আগে মাস্টার এলসি লিখুন — বিটুবি এলসি এর বিপরীতেই খোলা হয়।')
     const opened = await db.select().from(lcs).where(and(eq(lcs.masterId, master.id), eq(lcs.kind, 'btb'), eq(lcs.status, 'opened')))
     const used = opened.reduce((s, l) => s + l.amount, 0) + btb.amount
     if (used > master.amount * 0.75) {
-      throw new Error(`btb total ${tk(used)} would exceed 75% of the master lc (${tk(master.amount * 0.75)}).`)
+      throw new Error(`বিটুবি মোট ${tk(used)} মাস্টার এলসির ৭৫% (${tk(master.amount * 0.75)}) ছাড়িয়ে যাবে।`)
     }
     await db.update(lcs).set({ status: 'opened', openedAt: today(), maturity: addDays(today(), btb.tenorDays) }).where(eq(lcs.id, id))
     await tick(o.id, 'btb lc opened')
-    await record(actor, 'opened a btb lc', 'lc', id, `${btb.number} · ${tk(btb.amount)} · ${btb.tenorDays} days`)
+    await record(actor, 'বিটুবি এলসি খুলেছেন', 'lc', id, `${btb.number} · ${tk(btb.amount)} · ${btb.tenorDays} দিন`)
     done(o)
     return `${btb.number} opened — fabric can now be booked`
   })
@@ -133,12 +133,12 @@ export async function openBtb(_: ActionState, fd: FormData): Promise<ActionState
 export async function issueUd(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    requireRole(actor.role, ['commercial'], 'record a utilization declaration')
+    requireRole(actor.role, ['commercial'], 'ইউডি লিখতে')
     const o = await loadOrder(fd)
     const number = str(fd, 'number')
-    if (!number) throw new Error('UD number is required.')
+    if (!number) throw new Error('ইউডি নম্বর দিতে হবে।')
     await db.insert(ud).values({ number, orderId: o.id, yarnPermittedKg: num(fd, 'yarn_kg', { min: 1, max: 10_000_000 }) })
-    await record(actor, 'recorded a ud', 'order', o.id, `${o.code} · ${number}`)
+    await record(actor, 'ইউডি লিখেছেন', 'order', o.id, `${o.code} · ${number}`)
     done(o)
   })
 }
@@ -146,24 +146,24 @@ export async function issueUd(_: ActionState, fd: FormData): Promise<ActionState
 export async function bookMaterial(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    requireRole(actor.role, ['store', 'merchandiser'], 'book materials')
+    requireRole(actor.role, ['store', 'merchandiser'], 'কাঁচামাল বুক করতে')
     const o = await loadOrder(fd)
     const id = int(fd, 'bom_id')
     const [line] = await db.select().from(bom).where(and(eq(bom.id, id), eq(bom.orderId, o.id)))
-    if (!line || line.status !== 'pending') throw new Error('Nothing to book.')
+    if (!line || line.status !== 'pending') throw new Error('বুক করার কিছু নেই।')
     if (line.source === 'import') {
       const [btb] = line.btbId ? await db.select().from(lcs).where(eq(lcs.id, line.btbId)) : []
       if (!btb || btb.status !== 'opened') {
-        throw new Error(`btb gate closed: ${line.material} is imported and needs an opened btb lc before booking.`)
+        throw new Error(`বিটুবি গেট বন্ধ: ${line.material} আমদানি পণ্য, বুক করার আগে খোলা বিটুবি এলসি লাগবে।`)
       }
     }
     const supplier = str(fd, 'supplier')
-    if (!supplier) throw new Error('Supplier is required.')
+    if (!supplier) throw new Error('সরবরাহকারীর নাম দিতে হবে।')
     await db.update(bom).set({ status: 'booked', supplier, bookedBy: actor.id, bookedAt: new Date() }).where(eq(bom.id, id))
     const rest = await db.select().from(bom).where(and(eq(bom.orderId, o.id), eq(bom.status, 'pending')))
     await tick(o.id, line.unit === 'kg' ? 'fabric booking' : 'trims booking')
     await advance(o, 'materials')
-    await record(actor, 'booked material', 'order', o.id, `${o.code} · ${line.material} from ${supplier}`)
+    await record(actor, 'কাঁচামাল বুক করেছেন', 'order', o.id, `${o.code} · ${line.material} · ${supplier}`)
     done(o)
     return rest.length ? `${line.material} booked` : 'all materials booked'
   })
@@ -172,10 +172,10 @@ export async function bookMaterial(_: ActionState, fd: FormData): Promise<Action
 export async function addLay(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    requireRole(actor.role, ['cutting'], 'record a lay')
+    requireRole(actor.role, ['cutting'], 'লে লিখতে')
     const o = await loadOrder(fd)
     const pending = await db.select().from(bom).where(and(eq(bom.orderId, o.id), eq(bom.unit, 'kg'), eq(bom.status, 'pending')))
-    if (pending.length) throw new Error('Fabric is not booked yet — nothing to cut.')
+    if (pending.length) throw new Error('কাপড় এখনো বুক হয়নি — কাটার কিছু নেই।')
     const plies = int(fd, 'plies', { min: 1, max: 200 })
     const markerEff = num(fd, 'marker_eff', { min: 50, max: 99 })
     const totalSizes = Object.values(o.sizes).reduce((s, v) => s + v, 0) || 1
@@ -186,7 +186,7 @@ export async function addLay(_: ActionState, fd: FormData): Promise<ActionState>
     await db.insert(lays).values({ orderId: o.id, layNo: prev.length + 1, plies, markerEff, ratio, status: 'done', bundleFrom: last + 1, bundleTo: last + bundles })
     if (!prev.length) await tick(o.id, 'bulk cutting start')
     await advance(o, 'cut')
-    await record(actor, 'recorded a lay', 'order', o.id, `${o.code} lay ${prev.length + 1} · ${plies} plies · ${markerEff}% marker`)
+    await record(actor, 'লে লিখেছেন', 'order', o.id, `${o.code} লে ${prev.length + 1} · ${plies} প্লাই · ${markerEff}% মার্কার`)
     done(o)
     return `lay ${prev.length + 1}: ${plies * bundles} pcs, bundles ${last + 1}–${last + bundles}`
   })
@@ -196,12 +196,12 @@ export async function signPp(_: ActionState, fd: FormData): Promise<ActionState>
   return run(async () => {
     const actor = await requireGate('pp')
     const o = await loadOrder(fd)
-    if (o.ppSignedAt) throw new Error('Already signed.')
+    if (o.ppSignedAt) throw new Error('আগেই স্বাক্ষর হয়েছে।')
     const notes = str(fd, 'notes')
-    if (notes.length < 5) throw new Error('Write the pp meeting decisions — they go on the record.')
+    if (notes.length < 5) throw new Error('পিপি মিটিংয়ের সিদ্ধান্ত লিখুন — এগুলো রেকর্ডে থাকবে।')
     await db.update(orders).set({ ppSignedBy: actor.id, ppSignedAt: new Date() }).where(eq(orders.id, o.id))
     await tick(o.id, 'pp meeting')
-    await record(actor, 'signed the pp meeting', 'order', o.id, `${o.code}: ${notes}`)
+    await record(actor, 'পিপি মিটিং স্বাক্ষর করেছেন', 'order', o.id, `${o.code}: ${notes}`)
     done(o)
     return 'pp meeting signed — bulk sewing may start'
   })
@@ -210,9 +210,9 @@ export async function signPp(_: ActionState, fd: FormData): Promise<ActionState>
 export async function logSewing(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    requireRole(actor.role, ['sewing', 'planner'], 'log line output')
+    requireRole(actor.role, ['sewing', 'planner'], 'লাইনের আউটপুট লিখতে')
     const o = await loadOrder(fd)
-    if (!o.ppSignedAt) throw new Error('pp gate closed: quality has not signed the pp meeting. bulk output is refused.')
+    if (!o.ppSignedAt) throw new Error('পিপি গেট বন্ধ: মান নিয়ন্ত্রণ পিপি মিটিং স্বাক্ষর করেনি। বাল্ক আউটপুট নেওয়া হবে না।')
     const line = int(fd, 'line', { min: 1, max: 40 })
     const target = int(fd, 'target', { min: 1, max: 2000 })
     const actual = int(fd, 'actual', { min: 0, max: 2000 })
@@ -220,7 +220,7 @@ export async function logSewing(_: ActionState, fd: FormData): Promise<ActionSta
     await db.insert(sewing).values({ orderId: o.id, line, hourAt: new Date(), target, actual, downtimeMin: int(fd, 'downtime', { min: 0, max: 60 }), note: str(fd, 'note') || null })
     if (!existing.length) await tick(o.id, 'sewing start')
     await advance(o, 'sew')
-    await record(actor, 'logged an hour', 'order', o.id, `${o.code} line ${line}: ${actual}/${target}`)
+    await record(actor, 'এক ঘণ্টার হিসাব লিখেছেন', 'order', o.id, `${o.code} লাইন ${line}: ${actual}/${target}`)
     done(o)
     return `line ${line}: ${actual} of ${target} logged`
   })
@@ -232,11 +232,11 @@ export async function logDefect(_: ActionState, fd: FormData): Promise<ActionSta
     const o = await loadOrder(fd)
     const code = str(fd, 'code')
     const d = DEFECT_CODES.find((x) => x.code === code)
-    if (!d) throw new Error('Choose a defect.')
+    if (!d) throw new Error('একটি ত্রুটি বেছে নিন।')
     const count = int(fd, 'count', { min: 1, max: 500 })
     const line = int(fd, 'line', { min: 1, max: 40 })
     await db.insert(defects).values({ orderId: o.id, line, code, label: d.label, count })
-    await record(actor, 'logged defects', 'order', o.id, `${o.code} line ${line}: ${count} × ${d.label}`)
+    await record(actor, 'ত্রুটি লিখেছেন', 'order', o.id, `${o.code} লাইন ${line}: ${count} × ${d.bn}`)
     done(o)
     return `${count} × ${d.label} logged on line ${line}`
   })
@@ -245,7 +245,7 @@ export async function logDefect(_: ActionState, fd: FormData): Promise<ActionSta
 export async function inspectLot(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    requireRole(actor.role, ['qa'], 'decide a final inspection')
+    requireRole(actor.role, ['qa'], 'ফাইনাল ইন্সপেকশনের সিদ্ধান্ত দিতে')
     const o = await loadOrder(fd)
     const lotSize = int(fd, 'lot_size', { min: 2, max: 500_000 })
     const major = int(fd, 'major', { min: 0, max: 10_000 })
@@ -259,7 +259,7 @@ export async function inspectLot(_: ActionState, fd: FormData): Promise<ActionSt
     } else {
       await advance(o, 'qc')
     }
-    await record(actor, `${result} a lot`, 'order', o.id, `${o.code}: ${major} major in ${plan.sample} (accept ≤ ${plan.accept})`)
+    await record(actor, result === 'accepted' ? 'লট গ্রহণ করেছেন' : 'লট বাতিল করেছেন', 'order', o.id, `${o.code}: ${plan.sample}টি নমুনায় ${major}টি মেজর (গ্রহণযোগ্য ≤ ${plan.accept})`)
     done(o)
     return result === 'accepted' ? `accepted: ${major} ≤ ${plan.accept}` : `rejected: ${major} > ${plan.accept}. re-check and re-offer.`
   })
@@ -268,7 +268,7 @@ export async function inspectLot(_: ActionState, fd: FormData): Promise<ActionSt
 export async function saveBl(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    requireRole(actor.role, ['commercial'], 'draft a b/l')
+    requireRole(actor.role, ['commercial'], 'বি/এল খসড়া করতে')
     const o = await loadOrder(fd)
     const [master] = await db.select().from(lcs).where(and(eq(lcs.orderId, o.id), eq(lcs.kind, 'master')))
     const values = {
@@ -280,13 +280,13 @@ export async function saveBl(_: ActionState, fd: FormData): Promise<ActionState>
       description: str(fd, 'description'),
       onBoard: isoDate(fd, 'on_board'),
     }
-    if (!values.portLoading || !values.portDischarge || !values.description) throw new Error('All b/l fields are required.')
+    if (!values.portLoading || !values.portDischarge || !values.description) throw new Error('বি/এল-এর সব তথ্য দিতে হবে।')
     const failed = blChecks(values, master).filter((c) => !c.ok)
     const status = failed.length ? 'discrepant' : 'draft'
     const [existing] = await db.select().from(bl).where(and(eq(bl.orderId, o.id), inArray(bl.status, ['draft', 'discrepant'])))
     if (existing) await db.update(bl).set({ ...values, status }).where(eq(bl.id, existing.id))
     else await db.insert(bl).values({ ...values, status })
-    await record(actor, 'saved a b/l draft', 'order', o.id, `${o.code}: ${failed.length ? `${failed.length} discrepancies` : 'clean against the lc'}`)
+    await record(actor, 'বি/এল খসড়া সংরক্ষণ করেছেন', 'order', o.id, `${o.code}: ${failed.length ? `${failed.length}টি অমিল` : 'এলসির সঙ্গে মিলেছে'}`)
     done(o)
     return failed.length ? `${failed.length} discrepanc${failed.length > 1 ? 'ies' : 'y'} against the lc — fix before release` : 'b/l matches the lc'
   })
@@ -298,13 +298,13 @@ export async function releaseBl(_: ActionState, fd: FormData): Promise<ActionSta
     const o = await loadOrder(fd)
     const id = int(fd, 'bl_id')
     const [b] = await db.select().from(bl).where(and(eq(bl.id, id), eq(bl.orderId, o.id)))
-    if (!b) throw new Error('B/L not found.')
+    if (!b) throw new Error('বি/এল পাওয়া যায়নি।')
     const [master] = b.lcId ? await db.select().from(lcs).where(eq(lcs.id, b.lcId)) : []
     const failed = blChecks(b, master).filter((c) => !c.ok)
-    if (failed.length) throw new Error(`b/l gate closed: ${failed.map((f) => f.label).join(', ')} do not match the lc.`)
+    if (failed.length) throw new Error(`বি/এল গেট বন্ধ: ${failed.map((f) => f.label).join(', ')} এলসির সঙ্গে মেলেনি।`)
     await db.update(bl).set({ status: 'released', releasedBy: actor.id, releasedAt: new Date() }).where(eq(bl.id, id))
     await tick(o.id, 'ex-factory')
-    await record(actor, 'released documents to the bank', 'order', o.id, `${o.code} b/l`)
+    await record(actor, 'ডকুমেন্ট ব্যাংকে পাঠিয়েছেন', 'order', o.id, `${o.code} বি/এল`)
     done(o)
     return 'documents released to the bank'
   })
@@ -313,10 +313,10 @@ export async function releaseBl(_: ActionState, fd: FormData): Promise<ActionSta
 export async function realiseOrder(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    requireRole(actor.role, ['commercial'], 'record realisation')
+    requireRole(actor.role, ['commercial'], 'টাকা প্রাপ্তি লিখতে')
     const o = await loadOrder(fd)
     const [released] = await db.select().from(bl).where(and(eq(bl.orderId, o.id), eq(bl.status, 'released')))
-    if (!released) throw new Error('Release the b/l first — the bank pays against documents.')
+    if (!released) throw new Error('আগে বি/এল পাঠান — ব্যাংক ডকুমেন্টের বিপরীতেই টাকা দেয়।')
     const values = {
       realisedAmount: num(fd, 'realised', { min: 0, max: 100_000_000 }),
       btbSettled: num(fd, 'btb_settled', { min: 0, max: 100_000_000 }),
@@ -329,7 +329,7 @@ export async function realiseOrder(_: ActionState, fd: FormData): Promise<Action
     await db.update(orders).set(values).where(eq(orders.id, o.id))
     const btbs = await db.select().from(lcs).where(and(eq(lcs.orderId, o.id), eq(lcs.kind, 'btb'), eq(lcs.status, 'opened')))
     for (const b of btbs) await db.update(lcs).set({ settledAmount: b.amount }).where(eq(lcs.id, b.id))
-    await record(actor, 'recorded realisation and closed the order', 'order', o.id, `${o.code}: ${tk(values.realisedAmount)} realised`)
+    await record(actor, 'টাকা প্রাপ্তি লিখে অর্ডার বন্ধ করেছেন', 'order', o.id, `${o.code}: ${tk(values.realisedAmount)} প্রাপ্ত`)
     done(o)
     return 'order closed'
   })

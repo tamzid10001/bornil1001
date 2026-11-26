@@ -7,7 +7,7 @@ import { DEFECT_CODES } from '@/lib/domain'
 import { n, pct, stamp } from '@/lib/format'
 import { Chip, Empty, PageHeader, Section, Stat } from '@/components/os/ui'
 
-export const metadata = { title: 'quality' }
+export const metadata = { title: 'মান' }
 
 export default async function QualityPage() {
   const [lang, allDefects, allLots, allOrders, allSewing, staff] = await Promise.all([
@@ -31,20 +31,20 @@ export default async function QualityPage() {
   return (
     <>
       <PageHeader
-        eyebrow="quality"
-        title="Defects and final inspections"
+        eyebrow="মান নিয়ন্ত্রণ"
+        title="ত্রুটি ও ফাইনাল ইন্সপেকশন"
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={n(total)} label="defects logged" />
-        <Stat value={sewn ? pct((total / sewn) * 100) : '—'} label="defects per hundred units" tone={sewn && total / sewn > 0.05 ? 'alert' : undefined} />
-        <Stat value={allLots.filter((l) => l.result === 'accepted').length} label="lots accepted" tone="ok" />
-        <Stat value={allLots.filter((l) => l.result === 'rejected').length} label="lots rejected" tone={allLots.some((l) => l.result === 'rejected') ? 'alert' : undefined} />
+        <Stat value={n(total)} label="লেখা ত্রুটি" />
+        <Stat value={sewn ? pct((total / sewn) * 100) : '—'} label="প্রতি একশ পিসে ত্রুটি" tone={sewn && total / sewn > 0.05 ? 'alert' : undefined} />
+        <Stat value={allLots.filter((l) => l.result === 'accepted').length} label="গৃহীত লট" tone="ok" />
+        <Stat value={allLots.filter((l) => l.result === 'rejected').length} label="বাতিল লট" tone={allLots.some((l) => l.result === 'rejected') ? 'alert' : undefined} />
       </div>
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <Section title="pareto · what to fix first">
+        <Section title="প্যারেটো · আগে কী ঠিক করবেন">
           {pareto.length === 0 ? (
-            <Empty>No defects logged.</Empty>
+            <Empty>কোনো ত্রুটি লেখা হয়নি।</Empty>
           ) : (
             <ul className="flex flex-col gap-2.5">
               {pareto.map((d) => {
@@ -64,15 +64,15 @@ export default async function QualityPage() {
             </ul>
           )}
         </Section>
-        <Section title="by line">
+        <Section title="লাইন অনুযায়ী">
           <table className="tbl">
             <thead>
               <tr>
-                <th>line</th>
-                <th className="text-right">defects</th>
-                <th className="text-right">sewn</th>
-                <th className="text-right">dhu</th>
-                <th>top defect</th>
+                <th>লাইন</th>
+                <th className="text-right">ত্রুটি</th>
+                <th className="text-right">সেলাই</th>
+                <th className="text-right">ডিএইচইউ</th>
+                <th>প্রধান ত্রুটি</th>
               </tr>
             </thead>
             <tbody>
@@ -97,20 +97,20 @@ export default async function QualityPage() {
         </Section>
       </div>
 
-      <Section title="final inspections">
+      <Section title="ফাইনাল ইন্সপেকশন">
         {allLots.length === 0 ? (
-          <Empty>No lots offered yet. Inspect from the order page.</Empty>
+          <Empty>এখনো কোনো লট দেওয়া হয়নি। অর্ডার পাতা থেকে ইন্সপেকশন করুন।</Empty>
         ) : (
           <table className="tbl">
             <thead>
               <tr>
-                <th>order</th>
-                <th className="text-right">lot</th>
-                <th className="text-right">sample</th>
-                <th className="text-right">major</th>
-                <th className="text-right">accept ≤</th>
-                <th>result</th>
-                <th>decided</th>
+                <th>অর্ডার</th>
+                <th className="text-right">লট</th>
+                <th className="text-right">নমুনা</th>
+                <th className="text-right">মেজর</th>
+                <th className="text-right">গ্রহণযোগ্য ≤</th>
+                <th>ফলাফল</th>
+                <th>সিদ্ধান্ত</th>
               </tr>
             </thead>
             <tbody>

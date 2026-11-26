@@ -1,10 +1,9 @@
 import 'server-only'
-import { cookies } from 'next/headers'
 
 export type Lang = 'en' | 'bn'
 
 export async function getLang(): Promise<Lang> {
-  return (await cookies()).get('bornil_lang')?.value === 'bn' ? 'bn' : 'en'
+  return 'bn'
 }
 
 export const NAV = [

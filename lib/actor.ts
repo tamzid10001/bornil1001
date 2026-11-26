@@ -3,7 +3,7 @@ import { asc, eq } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { db } from './db'
 import { audit, people, type Person } from './db/schema'
-import { canPass, type Gate } from './domain'
+import { canPass, GATE_LABEL, ROLE_LABEL, type Gate } from './domain'
 
 export const ACTOR_COOKIE = 'bornil_actor'
 
@@ -21,14 +21,14 @@ export async function getActor(): Promise<Person | null> {
 
 export async function requireActor() {
   const actor = await getActor()
-  if (!actor) throw new Error('Load the example factory or add staff first.')
+  if (!actor) throw new Error('আগে উদাহরণ কারখানা লোড করুন বা কর্মী যোগ করুন।')
   return actor
 }
 
 export async function requireGate(gate: Gate) {
   const actor = await requireActor()
   if (!canPass(gate, actor.role)) {
-    throw new Error(`${actor.name} (${actor.role}) cannot open the ${gate} gate.`)
+    throw new Error(`${actor.name} (${ROLE_LABEL[actor.role] ?? actor.role}) ${GATE_LABEL[gate] ?? gate} গেট খুলতে পারেন না।`)
   }
   return actor
 }
@@ -46,7 +46,7 @@ export async function record(
 ) {
   await db.insert(audit).values({
     actorId: actor.id,
-    actor: `${actor.name} · ${actor.role}`,
+    actor: `${actor.name} · ${ROLE_LABEL[actor.role] ?? actor.role}`,
     action,
     entity,
     entityId,

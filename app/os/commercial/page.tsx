@@ -3,10 +3,10 @@ import { asc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { bom, lcs, orders, ud } from '@/lib/db/schema'
 import { daysBetween, today } from '@/lib/domain'
-import { day, n, tk, tkK } from '@/lib/format'
+import { bn, day, n, tk, tkK } from '@/lib/format'
 import { Chip, Empty, PageHeader, Section, Stat } from '@/components/os/ui'
 
-export const metadata = { title: 'lc, btb & ud' }
+export const metadata = { title: 'এলসি, বিটুবি ও ইউডি' }
 
 export default async function CommercialPage() {
   const [allLcs, allOrders, allUd, allBom] = await Promise.all([
@@ -25,31 +25,31 @@ export default async function CommercialPage() {
   return (
     <>
       <PageHeader
-        eyebrow="commercial"
-        title="Letters of credit, back-to-back and UD"
+        eyebrow="কমার্শিয়াল"
+        title="ঋণপত্র, ব্যাক-টু-ব্যাক ও ইউডি"
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={tkK(masters.filter((m) => m.status === 'opened').reduce((s, m) => s + m.amount, 0))} label="master lcs opened" />
-        <Stat value={tkK(liability.reduce((s, b) => s + b.amount, 0))} label="btb liability outstanding" />
-        <Stat value={due30.length} label="btb maturing in 30 days" tone={due30.length ? 'alert' : undefined} />
-        <Stat value={masters.filter((m) => m.status === 'requested').length} label="master lcs awaited" />
+        <Stat value={tkK(masters.filter((m) => m.status === 'opened').reduce((s, m) => s + m.amount, 0))} label="খোলা মাস্টার এলসি" />
+        <Stat value={tkK(liability.reduce((s, b) => s + b.amount, 0))} label="বকেয়া বিটুবি দায়" />
+        <Stat value={due30.length} label="৩০ দিনে মেয়াদপূর্ণ বিটুবি" tone={due30.length ? 'alert' : undefined} />
+        <Stat value={masters.filter((m) => m.status === 'requested').length} label="অপেক্ষমাণ মাস্টার এলসি" />
       </div>
 
-      <Section title="master lcs">
+      <Section title="মাস্টার এলসি">
         {masters.length === 0 ? (
-          <Empty>None.</Empty>
+          <Empty>নেই।</Empty>
         ) : (
           <div className="overflow-x-auto">
             <table className="tbl">
               <thead>
                 <tr>
-                  <th>lc</th>
-                  <th>order</th>
-                  <th className="text-right">value</th>
-                  <th className="text-right">btb used</th>
-                  <th>bank</th>
-                  <th>latest shipment</th>
-                  <th>status</th>
+                  <th>এলসি</th>
+                  <th>অর্ডার</th>
+                  <th className="text-right">মূল্য</th>
+                  <th className="text-right">বিটুবি ব্যবহার</th>
+                  <th>ব্যাংক</th>
+                  <th>সর্বশেষ শিপমেন্ট</th>
+                  <th>অবস্থা</th>
                 </tr>
               </thead>
               <tbody>
@@ -65,7 +65,7 @@ export default async function CommercialPage() {
                         </Link>
                       </td>
                       <td className="num text-right">{tk(m.amount)}</td>
-                      <td className={`num text-right ${share > 75 ? 'text-alert' : ''}`}>{share.toFixed(0)}%</td>
+                      <td className={`num text-right ${share > 75 ? 'text-alert' : ''}`}>{bn(share.toFixed(0))}%</td>
                       <td>{m.bank ?? '—'}</td>
                       <td>{day(m.latestShipment)}</td>
                       <td>
@@ -80,17 +80,17 @@ export default async function CommercialPage() {
         )}
       </Section>
 
-      <Section title="back-to-back lcs by maturity">
+      <Section title="মেয়াদ অনুযায়ী ব্যাক-টু-ব্যাক এলসি">
         <div className="overflow-x-auto">
           <table className="tbl">
             <thead>
               <tr>
-                <th>btb</th>
-                <th>order</th>
-                <th className="text-right">amount</th>
-                <th>tenor</th>
-                <th>matures</th>
-                <th>status</th>
+                <th>বিটুবি</th>
+                <th>অর্ডার</th>
+                <th className="text-right">পরিমাণ</th>
+                <th>মেয়াদ</th>
+                <th>মেয়াদপূর্তি</th>
+                <th>অবস্থা</th>
               </tr>
             </thead>
             <tbody>
@@ -101,12 +101,12 @@ export default async function CommercialPage() {
                     <td className="font-medium">{b.number}</td>
                     <td>{code(b.orderId)}</td>
                     <td className="num text-right">{tk(b.amount)}</td>
-                    <td>{b.tenorDays} days</td>
+                    <td>{bn(b.tenorDays)} দিন</td>
                     <td className={left != null && left <= 30 && b.settledAmount == null ? 'text-alert' : ''}>
                       {day(b.maturity)}
-                      {left != null && b.settledAmount == null ? <span className="text-xs text-subtle"> · {left}d</span> : null}
+                      {left != null && b.settledAmount == null ? <span className="text-xs text-subtle"> · {bn(left)} দিন</span> : null}
                     </td>
-                    <td>{b.settledAmount != null ? <Chip status="closed">settled</Chip> : <Chip status={b.status} />}</td>
+                    <td>{b.settledAmount != null ? <Chip status="closed">পরিশোধিত</Chip> : <Chip status={b.status} />}</td>
                   </tr>
                 )
               })}
@@ -115,18 +115,18 @@ export default async function CommercialPage() {
         </div>
       </Section>
 
-      <Section title="utilization declarations">
+      <Section title="ইউটিলাইজেশন ডিক্লারেশন">
         {allUd.length === 0 ? (
-          <Empty>No UD recorded.</Empty>
+          <Empty>কোনো ইউডি লেখা হয়নি।</Empty>
         ) : (
           <table className="tbl">
             <thead>
               <tr>
-                <th>ud</th>
-                <th>order</th>
-                <th className="text-right">yarn permitted</th>
-                <th className="text-right">booked</th>
-                <th className="text-right">headroom</th>
+                <th>ইউডি</th>
+                <th>অর্ডার</th>
+                <th className="text-right">অনুমোদিত সুতা</th>
+                <th className="text-right">বুক করা</th>
+                <th className="text-right">বাকি সীমা</th>
               </tr>
             </thead>
             <tbody>
@@ -136,9 +136,9 @@ export default async function CommercialPage() {
                   <tr key={u.id}>
                     <td className="font-medium">{u.number}</td>
                     <td>{code(u.orderId)}</td>
-                    <td className="num text-right">{n(u.yarnPermittedKg)} kg</td>
-                    <td className="num text-right">{n(used)} kg</td>
-                    <td className={`num text-right ${used > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}`}>{n(u.yarnPermittedKg - used)} kg</td>
+                    <td className="num text-right">{n(u.yarnPermittedKg)} কেজি</td>
+                    <td className="num text-right">{n(used)} কেজি</td>
+                    <td className={`num text-right ${used > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}`}>{n(u.yarnPermittedKg - used)} কেজি</td>
                   </tr>
                 )
               })}

@@ -4,19 +4,19 @@ import { db } from '@/lib/db'
 import { orders, people, quotes } from '@/lib/db/schema'
 import { getActor } from '@/lib/actor'
 import { canPass, quoteCost, quoteMargin } from '@/lib/domain'
-import { n, pct, stamp, tk, tkK, input } from '@/lib/format'
+import { bn, n, pct, stamp, tk, tkK, input } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, GateNote, PageHeader, Section, Stat, TextLink } from '@/components/os/ui'
 import { ownerDecision, saveQuote, sendQuote, submitQuote, winQuote } from '../../actions/sales'
 
 const INPUTS = [
-  { name: 'fabric_kg', key: 'fabricKg', label: 'fabric consumption', unit: 'kg / pc', step: '0.01', money: false },
-  { name: 'fabric_rate', key: 'fabricRate', label: 'fabric rate', unit: '৳ / kg', step: '0.01', money: true },
-  { name: 'cm_minutes', key: 'cmMinutes', label: 'standard minutes (smv)', unit: 'min / pc', step: '0.1', money: false },
-  { name: 'cm_rate', key: 'cmRate', label: 'cm cost per minute', unit: '৳ / min', step: '0.01', money: true },
-  { name: 'trims', key: 'trims', label: 'trims & accessories', unit: '৳ / pc', step: '0.01', money: true },
-  { name: 'overhead', key: 'overhead', label: 'overhead, wash, test, freight', unit: '৳ / pc', step: '0.01', money: true },
-  { name: 'fob', key: 'fob', label: 'fob price to buyer', unit: '৳ / pc', step: '0.01', money: true },
+  { name: 'fabric_kg', key: 'fabricKg', label: 'কাপড়ের খরচ', unit: 'কেজি / পিস', step: '0.01', money: false },
+  { name: 'fabric_rate', key: 'fabricRate', label: 'কাপড়ের দর', unit: '৳ / কেজি', step: '0.01', money: true },
+  { name: 'cm_minutes', key: 'cmMinutes', label: 'স্ট্যান্ডার্ড মিনিট (এসএমভি)', unit: 'মিনিট / পিস', step: '0.1', money: false },
+  { name: 'cm_rate', key: 'cmRate', label: 'প্রতি মিনিটে সিএম খরচ', unit: '৳ / মিনিট', step: '0.01', money: true },
+  { name: 'trims', key: 'trims', label: 'ট্রিমস ও এক্সেসরিজ', unit: '৳ / পিস', step: '0.01', money: true },
+  { name: 'overhead', key: 'overhead', label: 'ওভারহেড, ওয়াশ, টেস্ট, ফ্রেইট', unit: '৳ / পিস', step: '0.01', money: true },
+  { name: 'fob', key: 'fob', label: 'বায়ারকে এফওবি দর', unit: '৳ / পিস', step: '0.01', money: true },
 ] as const
 
 export default async function QuotePage({ params }: { params: Promise<{ id: string }> }) {
@@ -34,30 +34,30 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
   const editable = q.status === 'draft' || q.status === 'held' || q.status === 'released'
   const ownerCan = canPass('costing', actor?.role)
   const parts = [
-    { label: 'fabric', v: c.fabric },
-    { label: 'cut & make', v: c.cm },
-    { label: 'trims', v: c.trims },
-    { label: 'overhead', v: c.overhead },
+    { label: 'কাপড়', v: c.fabric },
+    { label: 'কাটিং ও মেকিং', v: c.cm },
+    { label: 'ট্রিমস', v: c.trims },
+    { label: 'ওভারহেড', v: c.overhead },
   ]
 
   return (
     <>
       <PageHeader
-        eyebrow={`${q.code} · rev ${q.rev}`}
-        title={`${q.style} for ${q.buyer}`}
-        lede={`${n(q.quantity)} pcs · order value ${tkK(q.quantity * q.fob)}`}
+        eyebrow={`${q.code} · সংশোধন ${bn(q.rev)}`}
+        title={`${q.buyer}-এর জন্য ${q.style}`}
+        lede={`${n(q.quantity)} পিস · অর্ডার মূল্য ${tkK(q.quantity * q.fob)}`}
         actions={<Chip status={q.status} />}
       />
 
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={tk(m.cost)} label="cost per piece" />
-        <Stat value={tk(q.fob)} label="fob per piece" />
-        <Stat value={pct(m.pct)} label={`margin · floor ${pct(q.floorMargin, 0)}`} tone={under ? 'alert' : 'ok'} />
-        <Stat value={tkK(m.margin * q.quantity)} label="margin on the order" tone={m.margin < 0 ? 'alert' : undefined} />
+        <Stat value={tk(m.cost)} label="প্রতি পিস খরচ" />
+        <Stat value={tk(q.fob)} label="প্রতি পিস এফওবি" />
+        <Stat value={pct(m.pct)} label={`মার্জিন · ন্যূনতম ${pct(q.floorMargin, 0)}`} tone={under ? 'alert' : 'ok'} />
+        <Stat value={tkK(m.margin * q.quantity)} label="অর্ডারে মোট মার্জিন" tone={m.margin < 0 ? 'alert' : undefined} />
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
-        <Section title="cost sheet">
+        <Section title="কস্ট শিট">
           <ActionForm action={saveQuote} className="flex flex-col gap-4">
             <input type="hidden" name="id" value={q.id} />
             <div className="grid gap-4 sm:grid-cols-2">
@@ -73,7 +73,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
             </div>
             {editable ? (
               <div className="flex flex-wrap gap-3">
-                <Submit quiet>save{q.status !== 'draft' ? ' as new revision' : ''}</Submit>
+                <Submit quiet>{q.status !== 'draft' ? 'নতুন সংশোধন হিসেবে সংরক্ষণ' : 'সংরক্ষণ'}</Submit>
               </div>
             ) : null}
           </ActionForm>
@@ -91,23 +91,23 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
                 </li>
               ))}
               <li>
-                margin <span className={`num ${under ? 'text-alert' : 'text-foreground'}`}>{tk(m.margin)}</span>
+                মার্জিন <span className={`num ${under ? 'text-alert' : 'text-foreground'}`}>{tk(m.margin)}</span>
               </li>
             </ul>
           </div>
         </Section>
 
-        <Section title="the gate">
+        <Section title="গেট">
           <GateNote gate="costing" open={!under || q.status === 'released' || q.status === 'sent' || q.status === 'won'}>
             {under
-              ? `${pct(m.pct)} is under the ${pct(q.floorMargin, 0)} floor. only the owner can release it, with a written reason.`
-              : `margin clears the ${pct(q.floorMargin, 0)} floor.`}
+              ? `${pct(m.pct)}, যা ন্যূনতম ${pct(q.floorMargin, 0)}-এর নিচে। শুধু মালিক লিখিত কারণসহ এটি ছাড় দিতে পারেন।`
+              : `মার্জিন ন্যূনতম ${pct(q.floorMargin, 0)} পার করেছে।`}
           </GateNote>
 
           {q.status === 'draft' ? (
             <ActionForm action={submitQuote}>
               <input type="hidden" name="id" value={q.id} />
-              <Submit>submit for release</Submit>
+              <Submit>ছাড়ের জন্য জমা দিন</Submit>
             </ActionForm>
           ) : null}
 
@@ -116,50 +116,50 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
               <ActionForm action={ownerDecision} className="flex flex-col gap-3 rounded-xl border border-rule p-4">
                 <input type="hidden" name="id" value={q.id} />
                 <label className="flex flex-col gap-1.5">
-                  <span className="label">why this margin is acceptable</span>
-                  <textarea name="reason" rows={3} className="field" placeholder="strategic buyer, fills line 3 in a slow month" />
+                  <span className="label">কেন এই মার্জিন গ্রহণযোগ্য</span>
+                  <textarea name="reason" rows={3} className="field" placeholder="গুরুত্বপূর্ণ বায়ার, মন্দা মাসে লাইন ৩ চালু রাখবে" />
                 </label>
                 <div className="flex flex-wrap gap-2">
                   <Submit name="decision" value="release">
-                    release below floor
+                    ন্যূনতমের নিচে ছাড় দিন
                   </Submit>
                   <Submit quiet name="decision" value="return">
-                    send back
+                    ফেরত পাঠান
                   </Submit>
                 </div>
               </ActionForm>
             ) : (
-              <p className="text-sm text-muted">Waiting for the owner. Switch “acting as” to the owner to decide.</p>
+              <p className="text-sm text-muted">মালিকের অপেক্ষায়। সিদ্ধান্ত নিতে “যিনি কাজ করছেন” থেকে মালিক বেছে নিন।</p>
             )
           ) : null}
 
           {q.status === 'released' ? (
             <div className="flex flex-col gap-3">
               <p className="text-sm text-muted">
-                Released by {releaser?.name ?? '—'} · {stamp(q.releasedAt)}
+                ছাড় দিয়েছেন {releaser?.name ?? '—'} · {stamp(q.releasedAt)}
               </p>
               <ActionForm action={sendQuote}>
                 <input type="hidden" name="id" value={q.id} />
-                <Submit>send to buyer</Submit>
+                <Submit>বায়ারকে পাঠান</Submit>
               </ActionForm>
             </div>
           ) : null}
 
           {q.status === 'sent' ? (
             <ActionForm action={winQuote} className="flex flex-col gap-3 rounded-xl border border-rule p-4">
-              <p className="text-sm text-muted">Sent {stamp(q.sentAt)}. When the buyer confirms, open the order.</p>
+              <p className="text-sm text-muted">পাঠানো হয়েছে {stamp(q.sentAt)}। বায়ার নিশ্চিত করলে অর্ডার খুলুন।</p>
               <input type="hidden" name="id" value={q.id} />
               <label className="flex flex-col gap-1.5">
-                <span className="label">master lc / buyer po number</span>
+                <span className="label">মাস্টার এলসি / বায়ার পিও নম্বর</span>
                 <input name="lc_number" required className="field" placeholder="LC-NHA-26-0412" />
               </label>
-              <Submit>buyer confirmed — open the order</Submit>
+              <Submit>বায়ার নিশ্চিত করেছে — অর্ডার খুলুন</Submit>
             </ActionForm>
           ) : null}
 
           {order ? (
             <p className="text-sm text-muted">
-              Won. Running as <TextLink href={`/os/orders/${order.id}`}>{order.code}</TextLink>.
+              অর্ডার পাওয়া গেছে। চলছে <TextLink href={`/os/orders/${order.id}`}>{order.code}</TextLink> হিসেবে।
             </p>
           ) : null}
         </Section>

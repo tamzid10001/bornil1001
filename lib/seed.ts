@@ -187,7 +187,7 @@ export async function seedExampleFactory() {
         const at = new Date()
         at.setUTCDate(at.getUTCDate() - d)
         at.setUTCHours(8 - 6 + h, 0, 0, 0)
-        sewingRows.push({ orderId: o2044.id, line, hourAt: at, target, actual, downtimeMin: down, note: down ? 'overlock M4-03 down' : null })
+        sewingRows.push({ orderId: o2044.id, line, hourAt: at, target, actual, downtimeMin: down, note: down ? 'ওভারলক M4-03 বন্ধ' : null })
       }
     }
   }
@@ -228,8 +228,8 @@ export async function seedExampleFactory() {
   const ms = await db.insert(machines).values(machineRows).returning()
   const downMachine = ms.find((m) => m.status === 'down')!
   await db.insert(tickets).values([
-    { machineId: downMachine.id, issue: 'looper timing slipped, skipping stitches', mechanic: 'Jasim Mia', openedAt: hoursAgo(1.5) },
-    { machineId: ms[1].id, issue: 'needle bar oil leak', mechanic: 'Jasim Mia', openedAt: hoursAgo(28), closedAt: hoursAgo(27), downtimeMin: 55 },
+    { machineId: downMachine.id, issue: 'লুপারের টাইমিং সরে গেছে, সেলাই ফসকাচ্ছে', mechanic: 'Jasim Mia', openedAt: hoursAgo(1.5) },
+    { machineId: ms[1].id, issue: 'নিডল বার থেকে তেল পড়ছে', mechanic: 'Jasim Mia', openedAt: hoursAgo(28), closedAt: hoursAgo(27), downtimeMin: 55 },
   ])
 
   const names = ['Shirin Akter', 'Rokeya Begum', 'Mousumi Khatun', 'Parvin Sultana', 'Jesmin Nahar', 'Halima Khatun', 'Rina Das', 'Laboni Akter', 'Selina Parvin', 'Asma Begum', 'Morjina Khatun', 'Taslima Akter', 'Nasrin Sultana', 'Ruma Akter', 'Sabina Yasmin', 'Kulsum Begum']
@@ -246,9 +246,9 @@ export async function seedExampleFactory() {
   )
 
   await db.insert(audit).values([
-    { actorId: by('owner'), actor: 'Rahima Akter · owner', action: 'released costing gate', entity: 'quote', entityId: qs[0].id, detail: 'QT-3172 rev 2 · margin 18.9%' },
-    { actorId: by('qa'), actor: 'Farhana Rahman · qa', action: 'signed pp meeting', entity: 'order', entityId: o2044.id, detail: 'PO-2044 · pp sample approved' },
-    { actorId: by('commercial'), actor: 'Arif Chowdhury · commercial', action: 'released b/l', entity: 'order', entityId: o2027.id, detail: 'PO-2027 · all 5 checks matched LC-0544' },
-    { actorId: by('owner'), actor: 'Rahima Akter · owner', action: 'closed order', entity: 'order', entityId: o2027.id, detail: 'PO-2027 · realised $150,480' },
+    { actorId: by('owner'), actor: 'Rahima Akter · মালিক', action: 'কস্টিং গেট ছাড় দিয়েছেন', entity: 'quote', entityId: qs[0].id, detail: 'QT-3172 সংশোধন ২ · মার্জিন ১৮.৯%' },
+    { actorId: by('qa'), actor: 'Farhana Rahman · মান নিয়ন্ত্রণ', action: 'পিপি মিটিং স্বাক্ষর করেছেন', entity: 'order', entityId: o2044.id, detail: 'PO-2044 · পিপি স্যাম্পল অনুমোদিত' },
+    { actorId: by('commercial'), actor: 'Arif Chowdhury · কমার্শিয়াল', action: 'বি/এল ছাড় দিয়েছেন', entity: 'order', entityId: o2027.id, detail: 'PO-2027 · ৫টি যাচাইয়ের সবগুলো LC-0544-এর সঙ্গে মিলেছে' },
+    { actorId: by('owner'), actor: 'Rahima Akter · মালিক', action: 'অর্ডার বন্ধ করেছেন', entity: 'order', entityId: o2027.id, detail: 'PO-2027 · প্রাপ্ত ৳১,৫০,৪৮০' },
   ])
 }

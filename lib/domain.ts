@@ -2,17 +2,88 @@ export const STAGES = ['order', 'materials', 'cut', 'sew', 'qc', 'ship', 'paid']
 export type Stage = (typeof STAGES)[number]
 
 export const ROLE_LABEL: Record<string, string> = {
-  owner: 'owner',
-  merchandiser: 'merchandiser',
-  planner: 'planner',
-  store: 'store',
-  cutting: 'cutting master',
-  sewing: 'line chief',
-  qa: 'quality',
-  commercial: 'commercial',
-  mechanic: 'maintenance',
-  hr: 'hr & payroll',
+  owner: 'মালিক',
+  merchandiser: 'মার্চেন্ডাইজার',
+  planner: 'প্ল্যানার',
+  store: 'স্টোর',
+  cutting: 'কাটিং মাস্টার',
+  sewing: 'লাইন চিফ',
+  qa: 'মান নিয়ন্ত্রণ',
+  commercial: 'কমার্শিয়াল',
+  mechanic: 'রক্ষণাবেক্ষণ',
+  hr: 'এইচআর ও বেতন',
 }
+
+export const STAGE_LABEL: Record<string, string> = {
+  order: 'অর্ডার',
+  materials: 'কাঁচামাল',
+  cut: 'কাটিং',
+  sew: 'সেলাই',
+  qc: 'মান যাচাই',
+  ship: 'শিপমেন্ট',
+  paid: 'টাকা প্রাপ্ত',
+}
+
+export const STATUS_LABEL: Record<string, string> = {
+  new: 'নতুন',
+  draft: 'খসড়া',
+  pending: 'অপেক্ষমাণ',
+  requested: 'অনুরোধ করা হয়েছে',
+  running: 'চলছে',
+  held: 'আটকে আছে',
+  discrepant: 'অমিল',
+  down: 'বন্ধ',
+  rejected: 'বাতিল',
+  late: 'দেরি',
+  released: 'ছাড় দেওয়া হয়েছে',
+  opened: 'খোলা হয়েছে',
+  booked: 'বুক করা হয়েছে',
+  accepted: 'গৃহীত',
+  confirmed: 'নিশ্চিত',
+  sent: 'পাঠানো হয়েছে',
+  closed: 'বন্ধ হয়েছে',
+  done: 'সম্পন্ন',
+  quoted: 'কোট করা হয়েছে',
+  won: 'অর্ডার পাওয়া গেছে',
+  lost: 'হাতছাড়া',
+  received: 'পাওয়া গেছে',
+  amended: 'সংশোধিত',
+  matured: 'মেয়াদপূর্ণ',
+  settled: 'নিষ্পন্ন',
+  pass: 'পাস',
+  fail: 'ফেল',
+  passed: 'পাস',
+  failed: 'ফেল',
+  open: 'খোলা',
+  approved: 'অনুমোদিত',
+  submitted: 'জমা দেওয়া হয়েছে',
+  realised: 'টাকা এসেছে',
+}
+
+export const DEPT_LABEL: Record<string, string> = {
+  merchandising: 'মার্চেন্ডাইজিং',
+  commercial: 'কমার্শিয়াল',
+  store: 'স্টোর',
+  quality: 'মান নিয়ন্ত্রণ',
+  cutting: 'কাটিং',
+  sewing: 'সেলাই',
+  planning: 'প্ল্যানিং',
+  maintenance: 'রক্ষণাবেক্ষণ',
+  hr: 'এইচআর',
+  management: 'ব্যবস্থাপনা',
+  finishing: 'ফিনিশিং',
+}
+
+export const GATE_LABEL: Record<string, string> = {
+  costing: 'কস্টিং',
+  btb: 'বিটুবি',
+  pp: 'পিপি',
+  bl: 'বি/এল',
+  'b/l': 'বি/এল',
+}
+
+/** Display label for any stored English key; falls back to the key itself. */
+export const label = (map: Record<string, string>, key: string | null | undefined) => (key ? (map[key] ?? key) : '—')
 
 /** Which roles may pass each gate. The owner may pass every gate. */
 export const GATE_ROLES = {
@@ -66,6 +137,22 @@ export const TNA_TEMPLATE: { name: string; dept: string; offset: number }[] = [
   { name: 'final inspection', dept: 'quality', offset: 5 },
   { name: 'ex-factory', dept: 'commercial', offset: 2 },
 ]
+
+export const TNA_LABEL: Record<string, string> = {
+  'lab dip approval': 'ল্যাব ডিপ অনুমোদন',
+  'master lc received': 'মাস্টার এলসি প্রাপ্তি',
+  'btb lc opened': 'বিটুবি এলসি খোলা',
+  'fabric booking': 'কাপড় বুকিং',
+  'trims booking': 'ট্রিমস বুকিং',
+  'fabric in-house': 'কাপড় কারখানায় পৌঁছানো',
+  'pp sample approval': 'পিপি স্যাম্পল অনুমোদন',
+  'pp meeting': 'পিপি মিটিং',
+  'bulk cutting start': 'বাল্ক কাটিং শুরু',
+  'sewing start': 'সেলাই শুরু',
+  'sewing complete': 'সেলাই সম্পন্ন',
+  'final inspection': 'ফাইনাল ইন্সপেকশন',
+  'ex-factory': 'এক্স-ফ্যাক্টরি',
+}
 
 export const DEFECT_CODES: { code: string; label: string; bn: string }[] = [
   { code: 'D01', label: 'open seam', bn: 'সেলাই খোলা' },

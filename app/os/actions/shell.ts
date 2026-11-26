@@ -14,12 +14,6 @@ export async function setActor(formData: FormData) {
   revalidatePath('/os', 'layout')
 }
 
-export async function setLang(formData: FormData) {
-  const lang = formData.get('lang') === 'bn' ? 'bn' : 'en'
-  ;(await cookies()).set('bornil_lang', lang, cookieOpts)
-  revalidatePath('/os', 'layout')
-}
-
 export async function loadExampleFactory() {
   await seedExampleFactory()
   revalidatePath('/os', 'layout')

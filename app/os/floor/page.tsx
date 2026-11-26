@@ -8,7 +8,7 @@ import { ActionForm, Submit } from '@/components/os/action-form'
 import { Empty, PageHeader, Section } from '@/components/os/ui'
 import { logSewing } from '../actions/orders'
 
-export const metadata = { title: 'sewing lines' }
+export const metadata = { title: 'সেলাই লাইন' }
 
 const dhakaDay = (d: Date) => new Date(d.getTime() + 6 * 3600_000).toISOString().slice(0, 10)
 const dhakaHour = (d: Date) => new Date(d.getTime() + 6 * 3600_000).toISOString().slice(11, 13)

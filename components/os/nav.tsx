@@ -34,7 +34,7 @@ type Group = { label: string; items: { href: string; label: string; icon: string
 export function Nav({ groups }: { groups: Group[] }) {
   const path = usePathname()
   return (
-    <nav aria-label="departments" className="flex flex-col gap-6">
+    <nav aria-label="বিভাগসমূহ" className="flex flex-col gap-6">
       {groups.map((g) => (
         <div key={g.label} className="flex flex-col gap-1">
           <p className="label px-3 pb-1">{g.label}</p>

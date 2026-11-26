@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { STAGES } from '@/lib/domain'
+import { GATE_LABEL, STAGE_LABEL, STAGES, STATUS_LABEL } from '@/lib/domain'
 import { acronyms } from '@/lib/acronyms'
 
 export function PageHeader({
@@ -48,7 +48,7 @@ const CHIP: Record<string, string> = {
 export function Chip({ status, children }: { status: string; children?: React.ReactNode }) {
   return (
     <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-xs font-medium ${CHIP[status] ?? 'bg-key text-muted'}`}>
-      {children ?? status}
+      {children ?? STATUS_LABEL[status] ?? status}
     </span>
   )
 }
@@ -83,15 +83,15 @@ export function Empty({ children }: { children: React.ReactNode }) {
 export function StageRail({ stage }: { stage: string }) {
   const idx = STAGES.indexOf(stage as (typeof STAGES)[number])
   return (
-    <ol className="flex items-center gap-1" aria-label={`stage: ${stage}`}>
+    <ol className="flex items-center gap-1" aria-label={`ধাপ: ${STAGE_LABEL[stage] ?? stage}`}>
       {STAGES.map((s, i) => (
-        <li key={s} className="flex items-center gap-1" title={s}>
+        <li key={s} className="flex items-center gap-1" title={STAGE_LABEL[s]}>
           <span
             className={`block h-1.5 w-5 rounded-full ${i < idx ? 'bg-foreground' : i === idx ? 'bg-ink-fill' : 'bg-rule'}`}
           />
           <span className="sr-only">
-            {s}
-            {i === idx ? ' (current)' : i < idx ? ' (done)' : ''}
+            {STAGE_LABEL[s]}
+            {i === idx ? ' (চলমান)' : i < idx ? ' (সম্পন্ন)' : ''}
           </span>
         </li>
       ))}
@@ -107,7 +107,7 @@ export function GateNote({ gate, open, children }: { gate: string; open: boolean
       }`}
     >
       <span className={`shrink-0 font-medium ${open ? 'text-ok' : ''}`}>
-        {acronyms(gate)} gate · {open ? 'open' : 'closed'}
+        {GATE_LABEL[gate] ?? acronyms(gate)} গেট · {open ? 'খোলা' : 'বন্ধ'}
       </span>
       <span className="leading-relaxed">{children}</span>
     </div>

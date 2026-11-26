@@ -13,9 +13,9 @@ const anek = Anek_Bangla({
 })
 
 export const metadata: Metadata = {
-  title: { default: 'বর্ণিল | RMG', template: '%s · বর্ণিল | RMG' },
+  title: { default: 'বর্ণিল | আরএমজি', template: '%s · বর্ণিল | আরএমজি' },
   description:
-    'The operating system for garment factories — buyer email to bank realisation in one thread.',
+    'পোশাক কারখানার অপারেটিং সিস্টেম — বায়ারের ইমেইল থেকে ব্যাংকে টাকা আসা পর্যন্ত এক সুতোয়।',
   icons: { icon: '/favicon.svg', apple: '/apple-touch-icon.png' },
 }
 
@@ -28,7 +28,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`bg-background ${plex.variable} ${anek.variable}`}>
+    <html lang="bn" className={`bg-background ${plex.variable} ${anek.variable}`}>
       <body className="bg-background font-sans text-foreground">{children}</body>
     </html>
   )
