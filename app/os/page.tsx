@@ -8,7 +8,7 @@ import { bn, day, n, pct, stamp, tkK } from '@/lib/format'
 import { PageHeader, Section, StageRail, Stat } from '@/components/os/ui'
 import { acronyms } from '@/lib/acronyms'
 
-export const metadata = { title: 'আজ রাতে' }
+export const metadata = { title: 'আজ রাতের সারাংশ' }
 
 export default async function TonightPage() {
   const t = today()
@@ -34,13 +34,14 @@ export default async function TonightPage() {
     <>
       <PageHeader
         eyebrow={new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Dhaka' })}
-        title="আজ রাত"
-  hideTitle
+        title="আজ রাতের সারাংশ"
+        hideTitle
+        divider={false}
       />
 
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={gates.length} label="গেটে আটকে আছে" tone={gates.length ? 'alert' : 'ok'} />
-        <Stat value={risks.length} label="পিছিয়ে আছে বা বন্ধ" tone={risks.length ? 'alert' : undefined} />
+        <Stat value={bn(gates.length)} label="গেটে আটকে আছে" tone={gates.length ? 'alert' : 'ok'} />
+        <Stat value={bn(risks.length)} label="পিছিয়ে আছে বা বন্ধ" tone={risks.length ? 'alert' : undefined} />
         <Stat value={target ? pct((actual / target) * 100, 0) : '—'} label={`ফ্লোর দক্ষতা · আজ ${bn(lines)}টি লাইন`} />
         <Stat value={tkK(book)} label={`চলমান অর্ডার বুক · ${bn(openOrders.length)}টি অর্ডার`} />
       </div>
@@ -48,7 +49,7 @@ export default async function TonightPage() {
       <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
         <Section title="ব্যতিক্রম" aside={<span className="num text-sm text-muted">{bn(exceptions.length)}টি খোলা</span>}>
           {exceptions.length === 0 ? (
-            <p className="text-muted">কিছুই আপনার নজর চাইছে না। বাড়ি যান।</p>
+            <p className="text-muted">এখন আপনার মনোযোগ দেওয়ার মতো কিছু নেই। নিশ্চিন্তে বাড়ি যান।</p>
           ) : (
             <ul className="flex flex-col">
               {[...gates, ...risks, ...info].map((e, i) => (
@@ -87,7 +88,7 @@ export default async function TonightPage() {
                       </span>
                       <span className="truncate text-sm text-muted">
                         {o.buyer} · {n(o.quantity)} পিস
-                        {p.sewn ? ` · ${n(p.sewn)} সেলাই হয়েছে` : ''}
+                        {p.sewn ? ` · ${n(p.sewn)} পিস সেলাই হয়েছে` : ''}
                       </span>
                       <StageRail stage={o.stage} />
                     </Link>
@@ -95,10 +96,10 @@ export default async function TonightPage() {
                 )
               })}
             </ul>
-            {shippingSoon ? <p className="text-sm text-muted">{bn(shippingSoon)}টি বি/এল খসড়া অবস্থায়।</p> : null}
+            {shippingSoon ? <p className="text-sm text-muted">{bn(shippingSoon)}টি বি/এল এখনো খসড়া অবস্থায় আছে।</p> : null}
           </Section>
 
-          <Section title="আজকের স্বাক্ষর">
+          <Section title="সাম্প্রতিক কার্যক্রম">
             <ul className="flex flex-col gap-3 text-sm">
               {recent.map((a) => (
                 <li key={a.id} className="flex flex-col">
@@ -112,7 +113,7 @@ export default async function TonightPage() {
               ))}
             </ul>
             <Link href="/os/approvals" className="text-sm text-ink underline underline-offset-4">
-              পূর্ণ অডিট ট্রেইল
+              পুরো অডিট ট্রেইল দেখুন
             </Link>
           </Section>
         </div>

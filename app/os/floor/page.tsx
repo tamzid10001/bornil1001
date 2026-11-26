@@ -36,7 +36,7 @@ export default async function FloorPage() {
       <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
         <Section title={L ? 'লাইন' : 'lines'}>
           {lines.length === 0 ? (
-            <Empty>{L ? 'আজ এখনও কোনো এন্ট্রি নেই।' : 'No entries yet today.'}</Empty>
+            <Empty>{L ? 'আজ এখনো কোনো হিসাব লেখা হয়নি।' : 'No entries yet today.'}</Empty>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2">
               {lines.map((line) => {
@@ -81,7 +81,7 @@ export default async function FloorPage() {
                 {open.map((o) => (
                   <option key={o.id} value={o.id}>
                     {o.code} · {o.style}
-                    {o.ppSignedAt ? '' : L ? ' (পিপি সই হয়নি)' : ' (pp not signed)'}
+                    {o.ppSignedAt ? '' : L ? ' (পিপি স্বাক্ষর হয়নি)' : ' (pp not signed)'}
                   </option>
                 ))}
               </select>
@@ -106,11 +106,11 @@ export default async function FloorPage() {
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="label">{L ? 'কারণ' : 'reason'}</span>
-              <input name="note" className="field" placeholder={L ? 'মেশিন নষ্ট, কাপড় দেরি…' : 'machine down, fabric late…'} />
+              <input name="note" className="field" placeholder={L ? 'যেমন মেশিন নষ্ট, কাপড় আসতে দেরি…' : 'machine down, fabric late…'} />
             </label>
             <Submit>{L ? 'জমা দিন' : 'submit hour'}</Submit>
             {sewable.length < open.length ? (
-              <p className="text-xs text-subtle">{L ? 'পিপি সই না হওয়া অর্ডার প্রত্যাখ্যাত হবে।' : 'orders without a signed pp meeting will be refused.'}</p>
+              <p className="text-xs text-subtle">{L ? 'পিপি মিটিংয়ে স্বাক্ষর না হওয়া অর্ডারের হিসাব গ্রহণ করা হবে না।' : 'orders without a signed pp meeting will be refused.'}</p>
             ) : null}
           </ActionForm>
         </Section>

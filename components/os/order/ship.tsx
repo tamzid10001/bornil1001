@@ -40,13 +40,13 @@ export function ShipSection({
   const canEdit = !order.closedAt && !released && (role === 'commercial' || role === 'owner')
 
   return (
-    <Section title="শিপিং ডকুমেন্ট">
+    <Section title="শিপিংয়ের কাগজপত্র">
       <GateNote gate="b/l" open={released || clean}>
         {released
           ? `ব্যাংকে পাঠিয়েছেন ${nameOf(current!.releasedBy)} · ${stamp(current!.releasedAt)}`
-          : 'বি/এল-এর প্রতিটি তথ্য মাস্টার এলসির সঙ্গে মিললে তবেই ডকুমেন্ট কারখানা থেকে যাবে। অমিল হলে ব্যাংক ফি লাগে, টাকাও দেরিতে আসে।'}
+          : 'বি/এল-এর প্রতিটি তথ্য মাস্টার এলসির সঙ্গে মিললে তবেই কাগজপত্র কারখানা থেকে পাঠানো হবে। অমিল হলে ব্যাংক ফি লাগে, টাকাও দেরিতে আসে।'}
       </GateNote>
-      {!quantityAccepted && !current ? <p className="text-sm text-muted">গৃহীত ফাইনাল ইন্সপেকশনের অপেক্ষায়।</p> : null}
+      {!quantityAccepted && !current ? <p className="text-sm text-muted">চূড়ান্ত পরিদর্শনে লট গৃহীত হওয়ার অপেক্ষায়।</p> : null}
 
       {quantityAccepted || current ? (
         <div className="grid gap-8 lg:grid-cols-2">
@@ -106,7 +106,7 @@ export function ShipSection({
                   <input type="hidden" name="order_id" value={order.id} />
                   <input type="hidden" name="bl_id" value={current.id} />
                   <Submit small disabled={!canPass('bl', role)}>
-                    ডকুমেন্ট ব্যাংকে পাঠান
+                    কাগজপত্র ব্যাংকে পাঠান
                   </Submit>
                 </ActionForm>
               ) : null}

@@ -10,13 +10,13 @@ import { Chip, GateNote, PageHeader, Section, Stat, TextLink } from '@/component
 import { ownerDecision, saveQuote, sendQuote, submitQuote, winQuote } from '../../actions/sales'
 
 const INPUTS = [
-  { name: 'fabric_kg', key: 'fabricKg', label: 'কাপড়ের খরচ', unit: 'কেজি / পিস', step: '0.01', money: false },
+  { name: 'fabric_kg', key: 'fabricKg', label: 'কাপড়ের ব্যবহার', unit: 'কেজি / পিস', step: '0.01', money: false },
   { name: 'fabric_rate', key: 'fabricRate', label: 'কাপড়ের দর', unit: '৳ / কেজি', step: '0.01', money: true },
   { name: 'cm_minutes', key: 'cmMinutes', label: 'স্ট্যান্ডার্ড মিনিট (এসএমভি)', unit: 'মিনিট / পিস', step: '0.1', money: false },
   { name: 'cm_rate', key: 'cmRate', label: 'প্রতি মিনিটে সিএম খরচ', unit: '৳ / মিনিট', step: '0.01', money: true },
-  { name: 'trims', key: 'trims', label: 'ট্রিমস ও এক্সেসরিজ', unit: '৳ / পিস', step: '0.01', money: true },
-  { name: 'overhead', key: 'overhead', label: 'ওভারহেড, ওয়াশ, টেস্ট, ফ্রেইট', unit: '৳ / পিস', step: '0.01', money: true },
-  { name: 'fob', key: 'fob', label: 'বায়ারকে এফওবি দর', unit: '৳ / পিস', step: '0.01', money: true },
+  { name: 'trims', key: 'trims', label: 'ট্রিমস ও অ্যাকসেসরিজ', unit: '৳ / পিস', step: '0.01', money: true },
+  { name: 'overhead', key: 'overhead', label: 'ওভারহেড, ওয়াশ, পরীক্ষা ও পরিবহন', unit: '৳ / পিস', step: '0.01', money: true },
+  { name: 'fob', key: 'fob', label: 'ক্রেতার জন্য এফওবি দর', unit: '৳ / পিস', step: '0.01', money: true },
 ] as const
 
 export default async function QuotePage({ params }: { params: Promise<{ id: string }> }) {
@@ -43,15 +43,15 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <PageHeader
-        eyebrow={`${q.code} · সংশোধন ${bn(q.rev)}`}
+        eyebrow={`${q.code} · সংস্করণ ${bn(q.rev)}`}
         title={`${q.buyer}-এর জন্য ${q.style}`}
         lede={`${n(q.quantity)} পিস · অর্ডার মূল্য ${tkK(q.quantity * q.fob)}`}
         actions={<Chip status={q.status} />}
       />
 
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={tk(m.cost)} label="প্রতি পিস খরচ" />
-        <Stat value={tk(q.fob)} label="প্রতি পিস এফওবি" />
+        <Stat value={tk(m.cost)} label="পিসপ্রতি খরচ" />
+        <Stat value={tk(q.fob)} label="পিসপ্রতি এফওবি" />
         <Stat value={pct(m.pct)} label={`মার্জিন · ন্যূনতম ${pct(q.floorMargin, 0)}`} tone={under ? 'alert' : 'ok'} />
         <Stat value={tkK(m.margin * q.quantity)} label="অর্ডারে মোট মার্জিন" tone={m.margin < 0 ? 'alert' : undefined} />
       </div>
@@ -73,7 +73,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
             </div>
             {editable ? (
               <div className="flex flex-wrap gap-3">
-                <Submit quiet>{q.status !== 'draft' ? 'নতুন সংশোধন হিসেবে সংরক্ষণ' : 'সংরক্ষণ'}</Submit>
+                <Submit quiet>{q.status !== 'draft' ? 'নতুন সংস্করণ হিসেবে সংরক্ষণ করুন' : 'সংরক্ষণ করুন'}</Submit>
               </div>
             ) : null}
           </ActionForm>
@@ -100,7 +100,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
         <Section title="গেট">
           <GateNote gate="costing" open={!under || q.status === 'released' || q.status === 'sent' || q.status === 'won'}>
             {under
-              ? `${pct(m.pct)}, যা ন্যূনতম ${pct(q.floorMargin, 0)}-এর নিচে। শুধু মালিক লিখিত কারণসহ এটি ছাড় দিতে পারেন।`
+              ? `মার্জিন ${pct(m.pct)}, যা ন্যূনতম ${pct(q.floorMargin, 0)}-এর নিচে। শুধু মালিক লিখিত কারণসহ এটি ছাড় দিতে পারেন।`
               : `মার্জিন ন্যূনতম ${pct(q.floorMargin, 0)} পার করেছে।`}
           </GateNote>
 
@@ -117,11 +117,11 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
                 <input type="hidden" name="id" value={q.id} />
                 <label className="flex flex-col gap-1.5">
                   <span className="label">কেন এই মার্জিন গ্রহণযোগ্য</span>
-                  <textarea name="reason" rows={3} className="field" placeholder="গুরুত্বপূর্ণ বায়ার, মন্দা মাসে লাইন ৩ চালু রাখবে" />
+                  <textarea name="reason" rows={3} className="field" placeholder="যেমন গুরুত্বপূর্ণ ক্রেতা; মন্দার মাসে লাইন ৩ চালু রাখবে" />
                 </label>
                 <div className="flex flex-wrap gap-2">
                   <Submit name="decision" value="release">
-                    ন্যূনতমের নিচে ছাড় দিন
+                    ন্যূনতমের নিচে হলেও ছাড় দিন
                   </Submit>
                   <Submit quiet name="decision" value="return">
                     ফেরত পাঠান
@@ -129,7 +129,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
                 </div>
               </ActionForm>
             ) : (
-              <p className="text-sm text-muted">মালিকের অপেক্ষায়। সিদ্ধান্ত নিতে “যিনি কাজ করছেন” থেকে মালিক বেছে নিন।</p>
+              <p className="text-sm text-muted">মালিকের সিদ্ধান্তের অপেক্ষায়। সিদ্ধান্ত নিতে “বর্তমান ব্যবহারকারী” থেকে মালিককে বেছে নিন।</p>
             )
           ) : null}
 
@@ -140,26 +140,26 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
               </p>
               <ActionForm action={sendQuote}>
                 <input type="hidden" name="id" value={q.id} />
-                <Submit>বায়ারকে পাঠান</Submit>
+                <Submit>ক্রেতাকে পাঠান</Submit>
               </ActionForm>
             </div>
           ) : null}
 
           {q.status === 'sent' ? (
             <ActionForm action={winQuote} className="flex flex-col gap-3 rounded-xl border border-rule p-4">
-              <p className="text-sm text-muted">পাঠানো হয়েছে {stamp(q.sentAt)}। বায়ার নিশ্চিত করলে অর্ডার খুলুন।</p>
+              <p className="text-sm text-muted">পাঠানো হয়েছে: {stamp(q.sentAt)}। ক্রেতা নিশ্চিত করলে অর্ডার খুলুন।</p>
               <input type="hidden" name="id" value={q.id} />
               <label className="flex flex-col gap-1.5">
-                <span className="label">মাস্টার এলসি / বায়ার পিও নম্বর</span>
+                <span className="label">মাস্টার এলসি / ক্রেতার পিও নম্বর</span>
                 <input name="lc_number" required className="field" placeholder="LC-NHA-26-0412" />
               </label>
-              <Submit>বায়ার নিশ্চিত করেছে — অর্ডার খুলুন</Submit>
+              <Submit>ক্রেতা নিশ্চিত করেছে — অর্ডার খুলুন</Submit>
             </ActionForm>
           ) : null}
 
           {order ? (
             <p className="text-sm text-muted">
-              অর্ডার পাওয়া গেছে। চলছে <TextLink href={`/os/orders/${order.id}`}>{order.code}</TextLink> হিসেবে।
+              অর্ডার পাওয়া গেছে — <TextLink href={`/os/orders/${order.id}`}>{order.code}</TextLink> নামে চলছে।
             </p>
           ) : null}
         </Section>

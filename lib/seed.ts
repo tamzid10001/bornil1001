@@ -228,7 +228,7 @@ export async function seedExampleFactory() {
   const ms = await db.insert(machines).values(machineRows).returning()
   const downMachine = ms.find((m) => m.status === 'down')!
   await db.insert(tickets).values([
-    { machineId: downMachine.id, issue: 'লুপারের টাইমিং সরে গেছে, সেলাই ফসকাচ্ছে', mechanic: 'Jasim Mia', openedAt: hoursAgo(1.5) },
+    { machineId: downMachine.id, issue: 'লুপারের টাইমিং সরে গেছে, ফোঁড় বাদ পড়ছে', mechanic: 'Jasim Mia', openedAt: hoursAgo(1.5) },
     { machineId: ms[1].id, issue: 'নিডল বার থেকে তেল পড়ছে', mechanic: 'Jasim Mia', openedAt: hoursAgo(28), closedAt: hoursAgo(27), downtimeMin: 55 },
   ])
 
@@ -246,9 +246,9 @@ export async function seedExampleFactory() {
   )
 
   await db.insert(audit).values([
-    { actorId: by('owner'), actor: 'Rahima Akter · মালিক', action: 'কস্টিং গেট ছাড় দিয়েছেন', entity: 'quote', entityId: qs[0].id, detail: 'QT-3172 সংশোধন ২ · মার্জিন ১৮.৯%' },
-    { actorId: by('qa'), actor: 'Farhana Rahman · মান নিয়ন্ত্রণ', action: 'পিপি মিটিং স্বাক্ষর করেছেন', entity: 'order', entityId: o2044.id, detail: 'PO-2044 · পিপি স্যাম্পল অনুমোদিত' },
-    { actorId: by('commercial'), actor: 'Arif Chowdhury · কমার্শিয়াল', action: 'বি/এল ছাড় দিয়েছেন', entity: 'order', entityId: o2027.id, detail: 'PO-2027 · ৫টি যাচাইয়ের সবগুলো LC-0544-এর সঙ্গে মিলেছে' },
+    { actorId: by('owner'), actor: 'Rahima Akter · মালিক', action: 'কস্টিং গেট ছাড় দিয়েছেন', entity: 'quote', entityId: qs[0].id, detail: 'QT-3172 সংস্করণ ২ · মার্জিন ১৮.৯%' },
+    { actorId: by('qa'), actor: 'Farhana Rahman · মান নিয়ন্ত্রণ কর্মকর্তা', action: 'পিপি মিটিংয়ে স্বাক্ষর করেছেন', entity: 'order', entityId: o2044.id, detail: 'PO-2044 · পিপি স্যাম্পল অনুমোদিত' },
+    { actorId: by('commercial'), actor: 'Arif Chowdhury · কমার্শিয়াল কর্মকর্তা', action: 'বি/এল ছাড় দিয়েছেন', entity: 'order', entityId: o2027.id, detail: 'PO-2027 · ৫টি যাচাইয়ের সবগুলো LC-0544-এর সঙ্গে মিলেছে' },
     { actorId: by('owner'), actor: 'Rahima Akter · মালিক', action: 'অর্ডার বন্ধ করেছেন', entity: 'order', entityId: o2027.id, detail: 'PO-2027 · প্রাপ্ত ৳১,৫০,৪৮০' },
   ])
 }

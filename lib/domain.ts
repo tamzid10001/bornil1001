@@ -5,13 +5,13 @@ export const ROLE_LABEL: Record<string, string> = {
   owner: 'মালিক',
   merchandiser: 'মার্চেন্ডাইজার',
   planner: 'প্ল্যানার',
-  store: 'স্টোর',
+  store: 'স্টোর কিপার',
   cutting: 'কাটিং মাস্টার',
   sewing: 'লাইন চিফ',
-  qa: 'মান নিয়ন্ত্রণ',
-  commercial: 'কমার্শিয়াল',
-  mechanic: 'রক্ষণাবেক্ষণ',
-  hr: 'এইচআর ও বেতন',
+  qa: 'মান নিয়ন্ত্রণ কর্মকর্তা',
+  commercial: 'কমার্শিয়াল কর্মকর্তা',
+  mechanic: 'মেকানিক',
+  hr: 'এইচআর কর্মকর্তা',
 }
 
 export const STAGE_LABEL: Record<string, string> = {
@@ -21,7 +21,7 @@ export const STAGE_LABEL: Record<string, string> = {
   sew: 'সেলাই',
   qc: 'মান যাচাই',
   ship: 'শিপমেন্ট',
-  paid: 'টাকা প্রাপ্ত',
+  paid: 'টাকা প্রাপ্তি',
 }
 
 export const STATUS_LABEL: Record<string, string> = {
@@ -33,8 +33,8 @@ export const STATUS_LABEL: Record<string, string> = {
   held: 'আটকে আছে',
   discrepant: 'অমিল',
   down: 'বন্ধ',
-  rejected: 'বাতিল',
-  late: 'দেরি',
+  rejected: 'প্রত্যাখ্যাত',
+  late: 'বিলম্বিত',
   released: 'ছাড় দেওয়া হয়েছে',
   issued: 'ইস্যু হয়েছে',
   opened: 'খোলা হয়েছে',
@@ -44,13 +44,13 @@ export const STATUS_LABEL: Record<string, string> = {
   sent: 'পাঠানো হয়েছে',
   closed: 'বন্ধ হয়েছে',
   done: 'সম্পন্ন',
-  quoted: 'কোট করা হয়েছে',
+  quoted: 'দর দেওয়া হয়েছে',
   won: 'অর্ডার পাওয়া গেছে',
   lost: 'হাতছাড়া',
   received: 'পাওয়া গেছে',
   amended: 'সংশোধিত',
   matured: 'মেয়াদপূর্ণ',
-  settled: 'নিষ্পন্ন',
+  settled: 'পরিশোধিত',
   pass: 'পাস',
   fail: 'ফেল',
   passed: 'পাস',
@@ -63,6 +63,7 @@ export const STATUS_LABEL: Record<string, string> = {
 
 export const DEPT_LABEL: Record<string, string> = {
   merchandising: 'মার্চেন্ডাইজিং',
+  costing: 'কস্টিং',
   commercial: 'কমার্শিয়াল',
   store: 'স্টোর',
   quality: 'মান নিয়ন্ত্রণ',
@@ -73,6 +74,15 @@ export const DEPT_LABEL: Record<string, string> = {
   hr: 'এইচআর',
   management: 'ব্যবস্থাপনা',
   finishing: 'ফিনিশিং',
+}
+
+export const MACHINE_LABEL: Record<string, string> = {
+  'single needle': 'সিঙ্গেল নিডল',
+  overlock: 'ওভারলক',
+  flatlock: 'ফ্ল্যাটলক',
+  bartack: 'বারট্যাক',
+  buttonhole: 'বাটনহোল',
+  'button attach': 'বাটন অ্যাটাচ',
 }
 
 export const GATE_LABEL: Record<string, string> = {
@@ -184,13 +194,13 @@ export const TNA_LABEL: Record<string, string> = {
   'bulk cutting start': 'বাল্ক কাটিং শুরু',
   'sewing start': 'সেলাই শুরু',
   'sewing complete': 'সেলাই সম্পন্ন',
-  'final inspection': 'ফাইনাল ইন্সপেকশন',
+  'final inspection': 'চূড়ান্ত পরিদর্শন',
   'ex-factory': 'এক্স-ফ্যাক্টরি',
 }
 
 export const DEFECT_CODES: { code: string; label: string; bn: string }[] = [
   { code: 'D01', label: 'open seam', bn: 'সেলাই খোলা' },
-  { code: 'D02', label: 'skip stitch', bn: 'স্টিচ বাদ' },
+  { code: 'D02', label: 'skip stitch', bn: 'ফোঁড় বাদ পড়া' },
   { code: 'D03', label: 'broken stitch', bn: 'সেলাই ছেঁড়া' },
   { code: 'D04', label: 'uneven hem', bn: 'হেম অসমান' },
   { code: 'D05', label: 'oil stain', bn: 'তেলের দাগ' },

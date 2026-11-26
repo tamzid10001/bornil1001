@@ -38,7 +38,7 @@ export function BondSection({
             <Figure label="ফ্লোরে দেওয়া" value={`${n(issued)} কেজি`} />
             <Figure label="গুদামে আছে" value={`${n(received - issued)} কেজি`} />
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-key" role="img" aria-label={`অনুমোদনের ${Math.round((received / ud.yarnPermittedKg) * 100)}% গ্রহণ করা হয়েছে`}>
+          <div className="h-1.5 overflow-hidden rounded-full bg-key" role="img" aria-label={`অনুমোদিত পরিমাণের ${n((received / ud.yarnPermittedKg) * 100)}% গ্রহণ করা হয়েছে`}>
             <div className="h-full bg-foreground" style={{ width: `${Math.min(100, (received / ud.yarnPermittedKg) * 100)}%` }} />
           </div>
 
@@ -49,10 +49,10 @@ export function BondSection({
                   <tr className="border-b border-rule text-left text-muted">
                     <th className="py-2 pr-3 font-normal">তারিখ</th>
                     <th className="py-2 pr-3 font-normal">কাঁচামাল</th>
-                    <th className="py-2 pr-3 font-normal">রেফারেন্স</th>
+                    <th className="py-2 pr-3 font-normal">সূত্র</th>
                     <th className="py-2 pr-3 text-right font-normal">গ্রহণ</th>
                     <th className="py-2 pr-3 text-right font-normal">ইস্যু</th>
-                    <th className="py-2 text-right font-normal">ব্যালান্স</th>
+                    <th className="py-2 text-right font-normal">স্থিতি</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -96,7 +96,7 @@ export function BondSection({
                 <input name="qty" type="number" step="0.1" min={0.1} required className="field num" placeholder="কেজি" aria-label="পরিমাণ (কেজি)" />
                 <input name="on" type="date" required defaultValue={today()} max={today()} className="field" aria-label="তারিখ" />
               </div>
-              <input name="ref" required className="field" placeholder="বিল অব এন্ট্রি / চালান / ইস্যু স্লিপ নং" aria-label="রেফারেন্স" />
+              <input name="ref" required className="field" placeholder="বিল অব এন্ট্রি / চালান / ইস্যু স্লিপ নং" aria-label="সূত্র" />
               <div>
                 <Submit small>হিসাব লিখুন</Submit>
               </div>

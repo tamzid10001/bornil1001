@@ -21,14 +21,14 @@ export async function getActor(): Promise<Person | null> {
 
 export async function requireActor() {
   const actor = await getActor()
-  if (!actor) throw new Error('আগে উদাহরণ কারখানা লোড করুন বা কর্মী যোগ করুন।')
+  if (!actor) throw new Error('আগে নমুনা কারখানা লোড করুন বা কর্মী যোগ করুন।')
   return actor
 }
 
 export async function requireGate(gate: Gate) {
   const actor = await requireActor()
   if (!canPass(gate, actor.role)) {
-    throw new Error(`${actor.name} (${ROLE_LABEL[actor.role] ?? actor.role}) ${GATE_LABEL[gate] ?? gate} গেট খুলতে পারেন না।`)
+    throw new Error(`${actor.name} (${ROLE_LABEL[actor.role] ?? actor.role}) ${GATE_LABEL[gate] ?? gate} গেট ছাড় দিতে পারেন না।`)
   }
   return actor
 }

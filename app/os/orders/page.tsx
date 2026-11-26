@@ -12,12 +12,12 @@ export default async function OrdersPage() {
   return (
     <>
       <PageHeader
-        eyebrow="প্রতিটি অর্ডারের একটি রেকর্ড"
+        eyebrow="প্রতিটি অর্ডারের পূর্ণ বিবরণ"
         title="অর্ডার"
       />
       <Section title={`${bn(rows.length)}টি অর্ডার`}>
         {rows.length === 0 ? (
-          <Empty>অর্ডার খুলতে একটি কোটেশন জিতুন।</Empty>
+          <Empty>ক্রেতা কোনো কোটেশন নিশ্চিত করলে অর্ডার এখানে দেখা যাবে।</Empty>
         ) : (
           <ul className="flex flex-col">
             {rows.map((o) => {

@@ -57,8 +57,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
         <Stat value={tkK(o.quantity * o.fob)} label={`অর্ডার মূল্য · ${n(o.quantity)} পিস`} />
         <Stat value={n(cut)} label="কাটিং হয়েছে" />
-        <Stat value={n(p.sewn)} label={`সেলাই হয়েছে · দিনে ${n(p.pace)} গতি`} />
-        <Stat value={day(p.finish)} label={`সম্ভাব্য সেলাই শেষ · শেষ সময় ${day(p.sewingDeadline)}`} tone={p.late ? 'alert' : p.finish ? 'ok' : undefined} />
+        <Stat value={n(p.sewn)} label={`সেলাই হয়েছে · দৈনিক গতি ${n(p.pace)} পিস`} />
+        <Stat value={day(p.finish)} label={`সম্ভাব্য সেলাই সমাপ্তি · সময়সীমা ${day(p.sewingDeadline)}`} tone={p.late ? 'alert' : p.finish ? 'ok' : undefined} />
       </div>
 
       <PlanSection order={o} milestones={milestones} role={role} />

@@ -10,7 +10,7 @@ import { int, isoDate, num, run, str, type ActionState } from '@/lib/action'
 import { extractInquiry } from '@/lib/extract'
 import { nextCode } from '@/lib/codes'
 import { addDays, backSchedule, PLAN_DEFAULTS, quoteMargin, today } from '@/lib/domain'
-import { pct, tk } from '@/lib/format'
+import { bn, pct, tk } from '@/lib/format'
 
 export async function createInquiry(_: ActionState, fd: FormData): Promise<ActionState> {
   let id = 0
@@ -18,8 +18,8 @@ export async function createInquiry(_: ActionState, fd: FormData): Promise<Actio
     const actor = await requireActor()
     const buyer = str(fd, 'buyer')
     const body = str(fd, 'body')
-    if (!buyer) throw new Error('বায়ারের নাম দিতে হবে।')
-    if (body.length < 20) throw new Error('বায়ারের পুরো ইমেইল পেস্ট করুন।')
+    if (!buyer) throw new Error('ক্রেতার নাম দিতে হবে।')
+    if (body.length < 20) throw new Error('ক্রেতার পুরো ইমেইল পেস্ট করুন।')
     const fields = await extractInquiry(body)
     const v = (k: string) => fields.find((f) => f.key === k)?.value ?? null
     const code = await nextCode(inquiries, 'INQ', 300)
@@ -58,7 +58,7 @@ export async function confirmInquiry(_: ActionState, fd: FormData): Promise<Acti
     const targetPrice = num(fd, 'target_price', { min: 0, max: 1000 })
     const [inq] = await db.select().from(inquiries).where(eq(inquiries.id, id))
     if (!inq) throw new Error('ইনকোয়ারি পাওয়া যায়নি।')
-    if (inq.status !== 'draft') throw new Error('আগেই নিশ্চিত হয়েছে।')
+    if (inq.status !== 'draft') throw new Error('আগেই নিশ্চিত করা হয়েছে।')
     await db
       .update(inquiries)
       .set({ style, fabric: str(fd, 'fabric') || null, quantity, shipDate, targetPrice, status: 'confirmed', confirmedBy: actor.id, confirmedAt: new Date() })
@@ -69,7 +69,7 @@ export async function confirmInquiry(_: ActionState, fd: FormData): Promise<Acti
       .values({ code, inquiryId: id, buyer: inq.buyer, style, quantity, fob: targetPrice, overhead: 0.35, cmRate: 0.065, fabricRate: 4.2 })
       .returning({ id: quotes.id })
     quoteId = q.id
-    await record(actor, 'পড়া তথ্য নিশ্চিত করেছেন', 'inquiry', id, `${inq.code} → ${code}`)
+    await record(actor, 'ইমেইলের তথ্য নিশ্চিত করেছেন', 'inquiry', id, `${inq.code} → ${code}`)
   })
   if (result?.error) return result
   redirect(`/os/costing/${quoteId}`)
@@ -81,7 +81,7 @@ export async function saveQuote(_: ActionState, fd: FormData): Promise<ActionSta
     const id = int(fd, 'id')
     const [q] = await db.select().from(quotes).where(eq(quotes.id, id))
     if (!q) throw new Error('কোটেশন পাওয়া যায়নি।')
-    if (q.status === 'sent' || q.status === 'won') throw new Error('পাঠানো কোটেশন লক থাকে। নতুন সংশোধন শুরু করুন।')
+    if (q.status === 'sent' || q.status === 'won') throw new Error('পাঠানো কোটেশন আর বদলানো যায় না। নতুন সংস্করণ শুরু করুন।')
     const values = {
       fabricKg: num(fd, 'fabric_kg', { min: 0, max: 5 }),
       fabricRate: num(fd, 'fabric_rate', { min: 0, max: 50 }),
@@ -96,9 +96,9 @@ export async function saveQuote(_: ActionState, fd: FormData): Promise<ActionSta
       .update(quotes)
       .set({ ...values, status: 'draft', rev: changed ? q.rev + 1 : q.rev, releasedBy: null, releasedAt: null })
       .where(eq(quotes.id, id))
-    await record(actor, 'কস্ট শিট সংরক্ষণ করেছেন', 'quote', id, `${q.code} সংশোধন ${changed ? q.rev + 1 : q.rev} · এফওবি ${tk(values.fob)}`)
+    await record(actor, 'কস্ট শিট সংরক্ষণ করেছেন', 'quote', id, `${q.code} সংস্করণ ${bn(changed ? q.rev + 1 : q.rev)} · এফওবি ${tk(values.fob)}`)
     revalidatePath('/os', 'layout')
-    return 'কস্ট শিট সংরক্ষিত হয়েছে'
+    return 'কস্ট শিট সংরক্ষণ করা হয়েছে'
   })
 }
 
@@ -111,7 +111,7 @@ export async function submitQuote(_: ActionState, fd: FormData): Promise<ActionS
     const m = quoteMargin(q)
     const passes = m.pct >= q.floorMargin
     await db.update(quotes).set(passes ? { status: 'released', releasedBy: actor.id, releasedAt: new Date() } : { status: 'held' }).where(eq(quotes.id, id))
-    await record(actor, passes ? 'কোটেশন ছাড় দিয়েছেন' : 'ন্যূনতমের নিচের কোটেশন জমা দিয়েছেন', 'quote', id, `${q.code} মার্জিন ${pct(m.pct)}`)
+    await record(actor, passes ? 'কোটেশন ছাড় দিয়েছেন' : 'ন্যূনতম মার্জিনের নিচের কোটেশন জমা দিয়েছেন', 'quote', id, `${q.code} মার্জিন ${pct(m.pct)}`)
     revalidatePath('/os', 'layout')
     return passes ? 'margin clears the floor — released' : `held: ${pct(m.pct)} is under the ${pct(q.floorMargin, 0)} floor. the owner has been asked.`
   })
@@ -128,7 +128,7 @@ export async function ownerDecision(_: ActionState, fd: FormData): Promise<Actio
       const reason = str(fd, 'reason')
       if (reason.length < 5) throw new Error('কেন এই মার্জিন গ্রহণযোগ্য তা লিখুন — এটি অডিট ট্রেইলে থাকবে।')
       await db.update(quotes).set({ status: 'released', releasedBy: actor.id, releasedAt: new Date() }).where(eq(quotes.id, id))
-      await record(actor, 'ন্যূনতমের নিচে ছাড় দিয়েছেন', 'quote', id, `${q.code}: ${reason}`)
+      await record(actor, 'ন্যূনতম মার্জিনের নিচে ছাড় দিয়েছেন', 'quote', id, `${q.code}: ${reason}`)
     } else {
       await db.update(quotes).set({ status: 'draft' }).where(eq(quotes.id, id))
       await record(actor, 'আবার কস্টিংয়ের জন্য ফেরত পাঠিয়েছেন', 'quote', id, q.code)
@@ -143,11 +143,11 @@ export async function sendQuote(_: ActionState, fd: FormData): Promise<ActionSta
     const actor = await requireActor()
     const id = int(fd, 'id')
     const [q] = await db.select().from(quotes).where(eq(quotes.id, id))
-    if (!q || q.status !== 'released') throw new Error('শুধু ছাড় পাওয়া কোটেশন বায়ারের কাছে যেতে পারে।')
+    if (!q || q.status !== 'released') throw new Error('শুধু ছাড়প্রাপ্ত কোটেশন ক্রেতার কাছে পাঠানো যায়।')
     await db.update(quotes).set({ status: 'sent', sentAt: new Date() }).where(eq(quotes.id, id))
-    await record(actor, 'বায়ারকে কোটেশন পাঠিয়েছেন', 'quote', id, `${q.code} · ${tk(q.fob)}`)
+    await record(actor, 'ক্রেতাকে কোটেশন পাঠিয়েছেন', 'quote', id, `${q.code} · ${tk(q.fob)}`)
     revalidatePath('/os', 'layout')
-    return 'বায়ারকে পাঠানো হয়েছে'
+    return 'ক্রেতাকে পাঠানো হয়েছে'
   })
 }
 
@@ -157,7 +157,7 @@ export async function winQuote(_: ActionState, fd: FormData): Promise<ActionStat
     const actor = await requireActor()
     const id = int(fd, 'id')
     const lcNumber = str(fd, 'lc_number')
-    if (!lcNumber) throw new Error('বায়ার পিও বা মাস্টার এলসি নম্বর দিন।')
+    if (!lcNumber) throw new Error('ক্রেতার পিও বা মাস্টার এলসি নম্বর দিন।')
     const [q] = await db.select().from(quotes).where(eq(quotes.id, id))
     if (!q || q.status !== 'sent') throw new Error('শুধু পাঠানো কোটেশন থেকেই অর্ডার নেওয়া যায়।')
     const [inq] = q.inquiryId ? await db.select().from(inquiries).where(eq(inquiries.id, q.inquiryId)) : []

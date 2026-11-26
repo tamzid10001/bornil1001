@@ -15,7 +15,7 @@ const anek = Anek_Bangla({
 export const metadata: Metadata = {
   title: { default: 'বর্ণিল | RMG', template: '%s · বর্ণিল | RMG' },
   description:
-    'পোশাক কারখানার অপারেটিং সিস্টেম — বায়ারের ইমেইল থেকে ব্যাংকে টাকা আসা পর্যন্ত এক সুতোয়।',
+    'পোশাক কারখানার অপারেটিং সিস্টেম — ক্রেতার ইমেইল থেকে ব্যাংকে টাকা আসা পর্যন্ত সবকিছু এক সুতায় গাঁথা।',
   icons: { icon: '/favicon.svg', apple: '/apple-touch-icon.png' },
 }
 

@@ -18,8 +18,8 @@ export default async function OsLayout({ children }: { children: React.ReactNode
         <BornilLogo className="h-10 w-auto self-start text-foreground" />
         <h1 className="text-4xl leading-tight">কারখানা এখনো খালি।</h1>
         <p className="leading-relaxed text-muted">
-          একটি নমুনা কারখানা লোড করুন — দশজন কর্মী, ভিন্ন ভিন্ন ধাপে চারটি অর্ডার, চারটি সেলাই লাইন, ঋণপত্র ও একটি বেতন
-          তালিকা — যাতে বায়ারের ইমেইল থেকে ব্যাংকে টাকা আসা পর্যন্ত একটি অর্ডার পুরোটা দেখে নিতে পারেন।
+          একটি নমুনা কারখানা লোড করুন — দশজন কর্মী, ভিন্ন ভিন্ন ধাপে চারটি অর্ডার, চারটি সেলাই লাইন, এলসি ও একটি বেতন
+          তালিকা — যাতে ক্রেতার ইমেইল থেকে ব্যাংকে টাকা আসা পর্যন্ত একটি অর্ডারের পুরো যাত্রা দেখে নিতে পারেন।
         </p>
         <form action={loadExampleFactory}>
           <button type="submit" className="btn">
@@ -43,7 +43,7 @@ export default async function OsLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <aside className="flex flex-col gap-6 border-b border-rule px-4 py-5 lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
-        <Link href="/os" aria-label="বর্ণিল RMG, হোম" className="flex items-center gap-3 px-3 text-foreground">
+        <Link href="/os" aria-label="বর্ণিল RMG, মূল পাতা" className="flex items-center gap-3 px-3 text-foreground">
           <BornilLogo className="h-7 w-auto" />
           <span aria-hidden="true" className="h-5 w-px bg-rule" />
           <span className="font-heading text-sm font-semibold tracking-widest">RMG</span>
@@ -51,7 +51,7 @@ export default async function OsLayout({ children }: { children: React.ReactNode
         <Nav groups={groups} />
         <div className="mt-auto flex flex-col gap-4 border-t border-rule px-3 pt-4">
           <form action={setActor}>
-            <AutoSubmitSelect name="actor" defaultValue={String(actor?.id ?? '')} label="যিনি কাজ করছেন">
+            <AutoSubmitSelect name="actor" defaultValue={String(actor?.id ?? '')} label="বর্তমান ব্যবহারকারী">
               {staff.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name} · {ROLE_LABEL[p.role] ?? p.role}

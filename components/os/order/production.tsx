@@ -42,7 +42,7 @@ export function ProductionSection({
   const plan = aqlPlan(order.quantity)
 
   return (
-    <Section title="কাটিং, সেলাই ও মান">
+    <Section title="কাটিং, সেলাই ও মান নিয়ন্ত্রণ">
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="flex flex-col gap-3">
           <span className="label">কাটিং</span>
@@ -96,17 +96,17 @@ export function ProductionSection({
         <div className="flex flex-col gap-3">
           <span className="label">পিপি মিটিং</span>
           <GateNote gate="pp" open={!!order.ppSignedAt}>
-            {order.ppSignedAt ? `স্বাক্ষর করেছেন ${nameOf(order.ppSignedBy)} · ${stamp(order.ppSignedAt)}` : 'মান নিয়ন্ত্রণ পিপি মিটিং স্বাক্ষর না করা পর্যন্ত বাল্ক সেলাইয়ের আউটপুট নেওয়া হবে না।'}
+            {order.ppSignedAt ? `স্বাক্ষর করেছেন ${nameOf(order.ppSignedBy)} · ${stamp(order.ppSignedAt)}` : 'মান নিয়ন্ত্রণ বিভাগ পিপি মিটিংয়ে স্বাক্ষর না করা পর্যন্ত বাল্ক সেলাইয়ের আউটপুট নেওয়া হবে না।'}
           </GateNote>
           {!order.ppSignedAt && !closed ? (
             canPass('pp', role) ? (
               <ActionForm action={signPp} className="flex flex-col gap-3">
                 <input type="hidden" name="order_id" value={order.id} />
-                <textarea name="notes" rows={2} className="field" placeholder="সিদ্ধান্ত: ৩% সংকোচন অনুমোদিত, কলারের টেনশন ঠিক করা হয়েছে…" aria-label="পিপি মিটিংয়ের সিদ্ধান্ত" />
-                <Submit small>পিপি মিটিং স্বাক্ষর করুন</Submit>
+                <textarea name="notes" rows={2} className="field" placeholder="সিদ্ধান্ত: ৩% সংকোচন অনুমোদিত, কলারের টান ঠিক করা হয়েছে…" aria-label="পিপি মিটিংয়ের সিদ্ধান্ত" />
+                <Submit small>পিপি মিটিংয়ে স্বাক্ষর করুন</Submit>
               </ActionForm>
             ) : (
-              <p className="text-sm text-muted">স্বাক্ষর করতে “যিনি কাজ করছেন” থেকে মান নিয়ন্ত্রণ বা মার্চেন্ডাইজিং বেছে নিন।</p>
+              <p className="text-sm text-muted">স্বাক্ষর করতে “বর্তমান ব্যবহারকারী” থেকে মান নিয়ন্ত্রণ কর্মকর্তা বা মার্চেন্ডাইজারকে বেছে নিন।</p>
             )
           ) : null}
         </div>
@@ -182,12 +182,12 @@ export function ProductionSection({
       </div>
 
       <div className="flex flex-col gap-3">
-        <span className="label">ফাইনাল ইন্সপেকশন · একিউএল ২.৫, লেভেল II</span>
+        <span className="label">চূড়ান্ত পরিদর্শন · একিউএল ২.৫, লেভেল II</span>
         {lots.map((l) => (
           <p key={l.id} className="flex flex-wrap items-center gap-3 text-sm">
             <Chip status={l.result} />
             <span className="num">
-              লট {n(l.lotSize)} · নমুনা {n(l.sample)} · {n(l.major)}টি মেজর (গ্রহণযোগ্য ≤ {n(l.acceptMax)})
+              লট {n(l.lotSize)} · নমুনা {n(l.sample)} · {n(l.major)}টি মেজর ত্রুটি (গ্রহণযোগ্য ≤ {n(l.acceptMax)})
             </span>
             <span className="text-subtle">
               {nameOf(l.decidedBy)} · {stamp(l.createdAt)}

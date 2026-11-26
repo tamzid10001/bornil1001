@@ -17,13 +17,13 @@ export function PlanSection({ order, milestones, role }: { order: Order; milesto
   return (
     <Section
       title="ক্রিটিক্যাল পাথ"
-      aside={<span className="text-sm text-muted">{order.tnaCommitted ? (overdue ? `${bn(overdue)}টি সময় পেরিয়েছে` : 'পরিকল্পনা অনুযায়ী') : 'নিশ্চিত হয়নি'}</span>}
+      aside={<span className="text-sm text-muted">{order.tnaCommitted ? (overdue ? `${bn(overdue)}টি ধাপের সময় পেরিয়েছে` : 'পরিকল্পনা অনুযায়ী') : 'নিশ্চিত হয়নি'}</span>}
     >
       <p className="text-sm text-muted">
-        শিপমেন্ট {day(order.shipDate)} থেকে পেছনে হিসাব · {bn(order.planLines)} লাইন × দিনে {n(order.planPerLineDay)} পিস = সেলাই {bn(schedule.sewingDays)} দিন · কাপড়ের লিড টাইম{' '}
+        শিপমেন্ট {day(order.shipDate)} থেকে পিছিয়ে হিসাব · {bn(order.planLines)}টি লাইন × দৈনিক {n(order.planPerLineDay)} পিস = সেলাই {bn(schedule.sewingDays)} দিন · কাপড়ের লিড টাইম{' '}
         {bn(order.planFabricLeadDays)} দিন ·{' '}
         <span className={schedule.slack < 0 ? 'font-medium text-alert' : 'text-ok'}>
-          {schedule.slack < 0 ? `শুরু করতে ${bn(-schedule.slack)} দিন দেরি` : `হাতে ${bn(schedule.slack)} দিন`}
+          {schedule.slack < 0 ? `শুরু করতে ${bn(-schedule.slack)} দিন দেরি` : `হাতে ${bn(schedule.slack)} দিন সময়`}
         </span>
       </p>
       {!order.tnaCommitted && !order.closedAt ? (
@@ -46,12 +46,12 @@ export function PlanSection({ order, milestones, role }: { order: Order; milesto
             </div>
             <div>
               <Submit quiet small disabled={!canPlan}>
-                শিপমেন্ট থেকে পেছনে হিসাব করুন
+                শিপমেন্টের তারিখ থেকে পিছিয়ে হিসাব করুন
               </Submit>
             </div>
           </ActionForm>
           <ActionForm action={commitTna} className="flex flex-col gap-3 border-t border-rule pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm leading-relaxed text-muted">নিশ্চিত করলে প্রতিটি বিভাগ নিজের তারিখের দায়িত্ব নেবে, তারপর আর তারিখ বদলানো যাবে না।</p>
+            <p className="text-sm leading-relaxed text-muted">নিশ্চিত করলে প্রতিটি বিভাগ নিজ নিজ তারিখের দায়িত্ব নেবে; এরপর আর তারিখ বদলানো যাবে না।</p>
             <input type="hidden" name="order_id" value={order.id} />
             <Submit small disabled={!canPlan}>
               পরিকল্পনা নিশ্চিত করুন

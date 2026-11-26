@@ -26,18 +26,18 @@ export default async function CommercialPage() {
     <>
       <PageHeader
         eyebrow="কমার্শিয়াল"
-        title="ঋণপত্র, ব্যাক-টু-ব্যাক ও ইউডি"
+        title="মাস্টার এলসি, ব্যাক-টু-ব্যাক এলসি ও ইউডি"
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
         <Stat value={tkK(masters.filter((m) => m.status === 'opened').reduce((s, m) => s + m.amount, 0))} label="খোলা মাস্টার এলসি" />
         <Stat value={tkK(liability.reduce((s, b) => s + b.amount, 0))} label="বকেয়া বিটুবি দায়" />
-        <Stat value={due30.length} label="৩০ দিনে মেয়াদপূর্ণ বিটুবি" tone={due30.length ? 'alert' : undefined} />
-        <Stat value={masters.filter((m) => m.status === 'requested').length} label="অপেক্ষমাণ মাস্টার এলসি" />
+        <Stat value={bn(due30.length)} label="আগামী ৩০ দিনে মেয়াদপূর্ণ বিটুবি" tone={due30.length ? 'alert' : undefined} />
+        <Stat value={bn(masters.filter((m) => m.status === 'requested').length)} label="অপেক্ষমাণ মাস্টার এলসি" />
       </div>
 
       <Section title="মাস্টার এলসি">
         {masters.length === 0 ? (
-          <Empty>নেই।</Empty>
+          <Empty>কোনো মাস্টার এলসি নেই।</Empty>
         ) : (
           <div className="overflow-x-auto">
             <table className="tbl">
@@ -87,7 +87,7 @@ export default async function CommercialPage() {
               <tr>
                 <th>বিটুবি</th>
                 <th>অর্ডার</th>
-                <th className="text-right">পরিমাণ</th>
+                <th className="text-right">মূল্য</th>
                 <th>মেয়াদ</th>
                 <th>মেয়াদপূর্তি</th>
                 <th>অবস্থা</th>
@@ -104,7 +104,7 @@ export default async function CommercialPage() {
                     <td>{bn(b.tenorDays)} দিন</td>
                     <td className={left != null && left <= 30 && b.settledAmount == null ? 'text-alert' : ''}>
                       {day(b.maturity)}
-                      {left != null && b.settledAmount == null ? <span className="text-xs text-subtle"> · {bn(left)} দিন</span> : null}
+                      {left != null && b.settledAmount == null ? <span className="text-xs text-subtle"> · {bn(left)} দিন বাকি</span> : null}
                     </td>
                     <td>{b.settledAmount != null ? <Chip status="closed">পরিশোধিত</Chip> : <Chip status={b.status} />}</td>
                   </tr>
@@ -115,7 +115,7 @@ export default async function CommercialPage() {
         </div>
       </Section>
 
-      <Section title="ইউটিলাইজেশন ডিক্লারেশন">
+      <Section title="ইউটিলাইজেশন ডিক্লারেশন (ইউডি)">
         {allUd.length === 0 ? (
           <Empty>কোনো ইউডি লেখা হয়নি।</Empty>
         ) : (

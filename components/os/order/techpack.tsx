@@ -16,7 +16,7 @@ export function TechPackSection({ order, pack, nameOf, role }: { order: Order; p
   return (
     <Section
       title="টেক প্যাক"
-      aside={pack ? <span className="text-sm text-muted">{pack.reader === 'ai' ? 'এআই পড়েছে' : 'প্যাটার্নে পড়া'} · {nameOf(pack.createdBy)} · {day(localDay(pack.createdAt))}</span> : null}
+      aside={pack ? <span className="text-sm text-muted">{pack.reader === 'ai' ? 'এআই বিশ্লেষণ করেছে' : 'নিয়মভিত্তিক বিশ্লেষণ'} · {nameOf(pack.createdBy)} · {day(localDay(pack.createdAt))}</span> : null}
     >
       {d ? (
         <div className="flex flex-col gap-6">
@@ -39,7 +39,7 @@ export function TechPackSection({ order, pack, nameOf, role }: { order: Order; p
                 <table className="w-full min-w-[480px] text-sm">
                   <thead>
                     <tr className="border-b border-rule text-left text-muted">
-                      <th className="py-2 pr-3 font-normal">মাপের স্থান</th>
+                      <th className="py-2 pr-3 font-normal">পরিমাপের স্থান</th>
                       {sizeCols.map((s) => (
                         <th key={s} className="py-2 pr-3 text-right font-normal">
                           {s}
@@ -118,7 +118,7 @@ export function TechPackSection({ order, pack, nameOf, role }: { order: Order; p
 
       {canRead ? (
         <details open={!pack}>
-          <summary className="cursor-pointer text-sm font-medium underline-offset-4 hover:underline">{pack ? 'নতুন সংস্করণ পড়ান' : 'ক্রেতার টেক প্যাক পেস্ট করুন'}</summary>
+          <summary className="cursor-pointer text-sm font-medium underline-offset-4 hover:underline">{pack ? 'নতুন সংস্করণ যোগ করুন' : 'ক্রেতার টেক প্যাক পেস্ট করুন'}</summary>
           <ActionForm action={readPack} resetOnSuccess className="mt-3 flex flex-col gap-3">
             <input type="hidden" name="order_id" value={order.id} />
             <textarea
@@ -130,9 +130,9 @@ export function TechPackSection({ order, pack, nameOf, role }: { order: Order; p
               aria-label="টেক প্যাকের লেখা"
               placeholder={'Style: NV-TS-2201\nFabric: Single jersey, 180 GSM, 100% cotton\nSizes: S M L XL\nChest width 1/2   50 52 54 56  tol ±1\nCare label 1 pc\nAttach collar 0.85'}
             />
-            <p className="text-xs leading-relaxed text-muted">পিডিএফ থেকে লেখা কপি করে পেস্ট করুন। এআই মাপ, ট্রিম আর অপারেশন আলাদা করবে — কম নিশ্চিত তথ্য লাল দেখাবে।</p>
+            <p className="text-xs leading-relaxed text-muted">পিডিএফ থেকে লেখা কপি করে পেস্ট করুন। এআই মাপ, ট্রিম ও অপারেশন আলাদা করবে — কম নিশ্চিত তথ্য লাল রঙে দেখানো হবে।</p>
             <div>
-              <Submit small>টেক প্যাক পড়ান</Submit>
+              <Submit small>টেক প্যাক বিশ্লেষণ করুন</Submit>
             </div>
           </ActionForm>
         </details>

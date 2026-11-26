@@ -27,7 +27,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ id: st
         <Section title="ইমেইল">
           <pre className="whitespace-pre-wrap rounded-xl bg-key p-5 font-mono text-sm leading-relaxed">{inq.body}</pre>
         </Section>
-        <Section title={locked ? 'নিশ্চিত করা তথ্য' : 'যা পড়া হয়েছে তা যাচাই করুন'}>
+        <Section title={locked ? 'নিশ্চিত করা তথ্য' : 'ইমেইল থেকে পাওয়া তথ্য যাচাই করুন'}>
           <ul className="flex flex-col">
             {inq.fields.map((f) => (
               <li key={f.key} className="flex items-baseline gap-3 border-t border-rule py-2.5 first:border-t-0">
@@ -46,12 +46,12 @@ export default async function InquiryPage({ params }: { params: Promise<{ id: st
           {locked ? (
             quote ? (
               <p className="text-sm text-muted">
-                নিশ্চিত হয়েছে। কস্টিং চলছে <TextLink href={`/os/costing/${quote.id}`}>{quote.code}</TextLink> হিসেবে।
+                নিশ্চিত করা হয়েছে — কস্টিং চলছে <TextLink href={`/os/costing/${quote.id}`}>{quote.code}</TextLink> নামে।
               </p>
             ) : null
           ) : (
             <ActionForm action={confirmInquiry} className="flex flex-col gap-4 rounded-xl border border-rule p-5">
-              <p className="text-sm leading-relaxed text-muted">কস্ট শিটে যাওয়ার আগে ৭০%-এর নিচের যেকোনো তথ্য ঠিক করে নিন।</p>
+              <p className="text-sm leading-relaxed text-muted">কস্ট শিটে যাওয়ার আগে ৭০%-এর কম নিশ্চয়তার তথ্যগুলো ঠিক করে নিন।</p>
               <input type="hidden" name="id" value={inq.id} />
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5">

@@ -25,7 +25,7 @@ export default async function CostingPage() {
               <thead>
                 <tr>
                   <th>কোটেশন</th>
-                  <th>বায়ার · স্টাইল</th>
+                  <th>ক্রেতা · স্টাইল</th>
                   <th className="text-right">পরিমাণ</th>
                   <th className="text-right">এফওবি</th>
                   <th className="text-right">মার্জিন</th>
@@ -42,7 +42,7 @@ export default async function CostingPage() {
                         <Link href={`/os/costing/${q.id}`} className="font-medium text-ink underline-offset-4 hover:underline">
                           {q.code}
                         </Link>
-                        <span className="ml-1 text-xs text-subtle">সংশোধন {bn(q.rev)}</span>
+                        <span className="ml-1 text-xs text-subtle">সংস্করণ {bn(q.rev)}</span>
                       </td>
                       <td>
                         {q.buyer}

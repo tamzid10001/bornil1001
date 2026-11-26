@@ -16,11 +16,11 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
       { label: 'এফওবি অনুযায়ী প্রত্যাশিত', v: expected },
       { label: 'ব্যাংক থেকে প্রাপ্ত', v: realised },
       { label: 'বিটুবি এলসি পরিশোধ', v: -(order.btbSettled ?? 0) },
-      { label: 'এয়ার ফ্রেইট', v: -(order.airFreight ?? 0) },
-      { label: 'বায়ারের ছাড় / ক্লেইম', v: -(order.discount ?? 0) },
+    { label: 'আকাশপথে পরিবহন খরচ', v: -(order.airFreight ?? 0) },
+    { label: 'ক্রেতার ছাড় / দাবি', v: -(order.discount ?? 0) },
     ]
     return (
-      <Section title="অর্ডারে আসলে কত লাভ হলো">
+      <Section title="অর্ডারে প্রকৃত লাভ কত হলো">
         <dl className="flex max-w-md flex-col">
           {rows.map((r) => (
             <div key={r.label} className="flex justify-between border-t border-rule py-2 text-sm first:border-t-0">
@@ -49,8 +49,8 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
           {[
             { name: 'realised', label: 'প্রাপ্ত (৳)', v: expected },
             { name: 'btb_settled', label: 'বিটুবি পরিশোধ (৳)', v: btb },
-            { name: 'air_freight', label: 'এয়ার ফ্রেইট (৳)', v: 0 },
-            { name: 'discount', label: 'ছাড় / ক্লেইম (৳)', v: 0 },
+            { name: 'air_freight', label: 'আকাশপথে পরিবহন খরচ (৳)', v: 0 },
+            { name: 'discount', label: 'ছাড় / দাবি (৳)', v: 0 },
           ].map((f) => (
             <label key={f.name} className="flex flex-col gap-1.5">
               <span className="label">{f.label}</span>
@@ -58,7 +58,7 @@ export async function MoneyIn({ order, lcs }: { order: Order; lcs: Lc[] }) {
             </label>
           ))}
         </div>
-        <Submit>লিখে রেখে অর্ডার বন্ধ করুন</Submit>
+        <Submit>হিসাব লিখে অর্ডার বন্ধ করুন</Submit>
       </ActionForm>
     </Section>
   )

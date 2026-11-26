@@ -36,7 +36,7 @@ export async function MaterialsSection({
   const yarnUsed = materials.filter((m) => m.unit === 'kg').reduce((s, m) => s + m.qty, 0)
 
   return (
-    <Section title="ঋণপত্র ও কাঁচামাল">
+    <Section title="এলসি ও কাঁচামাল">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-3 rounded-xl border border-rule p-4">
           <div className="flex items-center justify-between">
@@ -66,7 +66,7 @@ export async function MaterialsSection({
               ) : null}
             </>
           ) : (
-            <p className="text-sm text-muted">নেই</p>
+            <p className="text-sm text-muted">এখনো কোনো মাস্টার এলসি আসেনি</p>
           )}
         </div>
 
@@ -76,7 +76,7 @@ export async function MaterialsSection({
             ud.map((u) => (
               <p key={u.id} className="text-sm">
                 <span className="font-medium">{u.number}</span> · অনুমোদিত সুতা {n(u.yarnPermittedKg)} কেজি · বুক করা {n(yarnUsed)} কেজি{' '}
-                <span className={yarnUsed > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}>{yarnUsed > u.yarnPermittedKg ? '· ইউডির বেশি' : '· সীমার মধ্যে'}</span>
+                <span className={yarnUsed > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}>{yarnUsed > u.yarnPermittedKg ? '· ইউডির সীমা ছাড়িয়েছে' : '· সীমার মধ্যে'}</span>
               </p>
             ))
           ) : isCommercial && !closed ? (
@@ -97,7 +97,7 @@ export async function MaterialsSection({
           <span className="label">ব্যাক-টু-ব্যাক এলসি</span>
           {master ? (
             <span className={`num text-sm ${btbUsed > master.amount * 0.75 ? 'text-alert' : 'text-muted'}`}>
-              অনুমোদিত {tk(master.amount * 0.75)}-এর মধ্যে {tk(btbUsed)} (৭৫%)
+              সীমা {tk(master.amount * 0.75)} (মাস্টার এলসির ৭৫%) · ব্যবহৃত {tk(btbUsed)}
             </span>
           ) : null}
         </div>
@@ -132,14 +132,14 @@ export async function MaterialsSection({
               </select>
             </label>
             <Submit small quiet>
-              আমদানি পণ্যের জন্য বিটুবি অনুরোধ করুন
+              আমদানি পণ্যের জন্য বিটুবি এলসির আবেদন করুন
             </Submit>
           </ActionForm>
         ) : null}
       </div>
 
       <div className="flex flex-col gap-3">
-        <span className="label">বিল অব ম্যাটেরিয়ালস</span>
+        <span className="label">কাঁচামালের তালিকা (বিওএম)</span>
         <GateNote gate="btb" open={!materials.some((m) => m.source === 'import' && m.status === 'pending')}>
           বিটুবি এলসি না খোলা পর্যন্ত আমদানি করা কাঁচামাল বুক করা যাবে না। দেশীয় পণ্য সরাসরি বুক করা যায়।
         </GateNote>

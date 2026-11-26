@@ -8,19 +8,19 @@ export async function getLang(): Promise<Lang> {
 
 export const NAV = [
   {
-    group: { en: 'the thread', bn: 'অর্ডারের সুতো' },
+    group: { en: 'the thread', bn: 'অর্ডার প্রবাহ' },
     items: [
-      { href: '/os', en: 'tonight', bn: 'আজ রাতে', icon: 'moon' },
+      { href: '/os', en: 'tonight', bn: 'আজ রাতের সারাংশ', icon: 'moon' },
       { href: '/os/inquiries', en: 'inquiries', bn: 'ইনকোয়ারি', icon: 'mail' },
       { href: '/os/costing', en: 'costing', bn: 'কস্টিং', icon: 'calculator' },
       { href: '/os/orders', en: 'orders', bn: 'অর্ডার', icon: 'package' },
     ],
   },
   {
-    group: { en: 'the floor', bn: 'ফ্লোর' },
+    group: { en: 'the floor', bn: 'উৎপাদন' },
     items: [
       { href: '/os/floor', en: 'sewing lines', bn: 'সেলাই লাইন', icon: 'activity' },
-      { href: '/os/quality', en: 'quality', bn: 'মান', icon: 'shield' },
+      { href: '/os/quality', en: 'quality', bn: 'মান নিয়ন্ত্রণ', icon: 'shield' },
       { href: '/os/maintenance', en: 'maintenance', bn: 'রক্ষণাবেক্ষণ', icon: 'wrench' },
     ],
   },

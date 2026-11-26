@@ -2,7 +2,7 @@ import 'server-only'
 import { desc, eq, isNull } from 'drizzle-orm'
 import { db } from './db'
 import { bl, bom, inquiries, lcs, orders, quotes, sewing, tickets, machines, tna, type Lc, type Order } from './db/schema'
-import { daysBetween, quoteMargin, STAGES, today, addDays, TNA_LABEL } from './domain'
+import { daysBetween, quoteMargin, STAGES, today, addDays, label, MACHINE_LABEL, TNA_LABEL } from './domain'
 import { bn, day, n, pct, tkK } from './format'
 
 export type Exception = {
@@ -24,7 +24,7 @@ export function blChecks(
     { label: 'খালাস বন্দর', ok: b.portDischarge.toLowerCase() === (lc.portDischarge ?? '').toLowerCase(), expected: lc.portDischarge ?? '—', found: b.portDischarge },
     { label: 'পরিমাণ ৫%-এর মধ্যে', ok: Math.abs(b.quantity - (lc.quantity ?? 0)) <= tolerance, expected: `${n(lc.quantity)} ± ${n(tolerance)}`, found: n(b.quantity) },
     { label: 'পণ্যের বিবরণ', ok: b.description.toLowerCase() === (lc.description ?? '').toLowerCase(), expected: lc.description ?? '—', found: b.description },
-    { label: 'সর্বশেষ শিপমেন্ট তারিখের মধ্যে জাহাজে', ok: !!lc.latestShipment && b.onBoard <= lc.latestShipment, expected: `≤ ${day(lc.latestShipment)}`, found: day(b.onBoard) },
+    { label: 'সর্বশেষ শিপমেন্টের তারিখের মধ্যে জাহাজীকরণ', ok: !!lc.latestShipment && b.onBoard <= lc.latestShipment, expected: `≤ ${day(lc.latestShipment)}`, found: day(b.onBoard) },
   ]
 }
 
@@ -78,13 +78,13 @@ export async function getExceptions(): Promise<Exception[]> {
 
     const stageIdx = STAGES.indexOf(o.stage as (typeof STAGES)[number])
     if (!o.ppSignedAt && stageIdx >= STAGES.indexOf('cut')) {
-      out.push({ kind: 'gate', dept: 'quality', title: `${o.code} পিপি মিটিং স্বাক্ষর হয়নি`, detail: 'মান নিয়ন্ত্রণ পিপি মিটিং স্বাক্ষর না করা পর্যন্ত বাল্ক সেলাইয়ের আউটপুট নেওয়া হবে না।', href: `/os/orders/${o.id}/sewing` })
+      out.push({ kind: 'gate', dept: 'quality', title: `${o.code} পিপি মিটিংয়ে স্বাক্ষর হয়নি`, detail: 'মান নিয়ন্ত্রণ বিভাগ পিপি মিটিংয়ে স্বাক্ষর না করা পর্যন্ত বাল্ক সেলাইয়ের আউটপুট নেওয়া হবে না।', href: `/os/orders/${o.id}/sewing` })
     }
 
     for (const b of allBl.filter((b) => b.orderId === o.id && b.status !== 'released')) {
       const failed = blChecks(b, allLcs.find((l) => l.id === b.lcId)).filter((c) => !c.ok)
       if (failed.length) {
-        out.push({ kind: 'gate', dept: 'commercial', title: `${o.code} বি/এল এলসির সঙ্গে মিলছে না`, detail: `${failed.map((f) => f.label).join(', ')} — ডকুমেন্ট আটকে রাখা হয়েছে।`, href: `/os/orders/${o.id}/shipping` })
+        out.push({ kind: 'gate', dept: 'commercial', title: `${o.code} বি/এল এলসির সঙ্গে মিলছে না`, detail: `${failed.map((f) => f.label).join(', ')} — কাগজপত্র আটকে রাখা হয়েছে।`, href: `/os/orders/${o.id}/shipping` })
       }
     }
 
@@ -97,7 +97,7 @@ export async function getExceptions(): Promise<Exception[]> {
     if (o.stage === 'sew') {
       const p = projection(o, allSewing.filter((s) => s.orderId === o.id))
       if (p.late && p.finish) {
-        out.push({ kind: 'risk', dept: 'sewing', title: `${o.code} সেলাই শেষ হবে ${day(p.finish)}`, detail: `শিপমেন্ট ${day(o.shipDate)}-এর জন্য ${day(p.sewingDeadline)}-এর মধ্যে দরকার। গতি দিনে ${n(p.pace)} পিস, বাকি ${n(p.remaining)}।`, href: `/os/orders/${o.id}/sewing` })
+        out.push({ kind: 'risk', dept: 'sewing', title: `${o.code} সেলাই শেষ হবে ${day(p.finish)}`, detail: `শিপমেন্ট ${day(o.shipDate)}-এর জন্য ${day(p.sewingDeadline)}-এর মধ্যে সেলাই শেষ করা দরকার। দৈনিক গতি ${n(p.pace)} পিস, বাকি ${n(p.remaining)} পিস।`, href: `/os/orders/${o.id}/sewing` })
       }
     }
   }
@@ -108,19 +108,19 @@ export async function getExceptions(): Promise<Exception[]> {
     const rows = todayRows.filter((r) => r.line === line)
     const eff = (rows.reduce((s, r) => s + r.actual, 0) / Math.max(1, rows.reduce((s, r) => s + r.target, 0))) * 100
     if (eff < 85) {
-      out.push({ kind: 'risk', dept: 'sewing', title: `লাইন ${line} আজ লক্ষ্যের ${pct(eff, 0)}-এ`, detail: `${n(rows.reduce((s, r) => s + r.downtimeMin, 0))} মিনিট ডাউনটাইম লেখা হয়েছে।`, href: `/os/floor/${line}` })
+      out.push({ kind: 'risk', dept: 'sewing', title: `লাইন ${bn(line)} আজ লক্ষ্যের ${pct(eff, 0)}-এ`, detail: `${n(rows.reduce((s, r) => s + r.downtimeMin, 0))} মিনিট ডাউনটাইম লেখা হয়েছে।`, href: `/os/floor/${line}` })
     }
   }
 
   for (const { t: tk, m } of openTickets) {
     const mins = Math.round((Date.now() - tk.openedAt.getTime()) / 60000)
-    out.push({ kind: 'risk', dept: 'maintenance', title: `${m.code} ${n(mins)} মিনিট ধরে বন্ধ`, detail: `লাইন ${m.line}-এর ${m.kind}: ${tk.issue}।`, href: '/os/maintenance' })
+    out.push({ kind: 'risk', dept: 'maintenance', title: `${m.code} ${n(mins)} মিনিট ধরে বন্ধ`, detail: `লাইন ${bn(m.line)}-এর ${label(MACHINE_LABEL, m.kind)}: ${tk.issue}।`, href: '/os/maintenance' })
   }
 
   for (const l of allLcs.filter((l) => l.kind === 'btb' && l.status === 'opened' && l.maturity && !l.settledAmount)) {
     const left = daysBetween(t, l.maturity!)
     if (left <= 21) {
-      out.push({ kind: 'risk', dept: 'commercial', title: `${l.number}-এর মেয়াদ ${bn(left)} দিনে পূর্ণ হবে`, detail: `${tkK(l.amount)} পরিশোধ করতে হবে — রপ্তানি আয় দেখে নিন।`, href: '/os/commercial' })
+      out.push({ kind: 'risk', dept: 'commercial', title: `${l.number}-এর মেয়াদপূর্তিতে ${bn(left)} দিন বাকি`, detail: `${tkK(l.amount)} পরিশোধ করতে হবে — রপ্তানি আয় দেখে নিন।`, href: '/os/commercial' })
     }
   }
 

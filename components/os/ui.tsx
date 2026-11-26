@@ -8,15 +8,19 @@ export function PageHeader({
   lede,
   actions,
   hideTitle,
+  divider = true,
 }: {
   eyebrow?: string
   title: string
   lede?: React.ReactNode
   actions?: React.ReactNode
   hideTitle?: boolean
+  divider?: boolean
 }) {
   return (
-    <header className="flex flex-col gap-4 border-b border-rule pb-6 md:flex-row md:items-end md:justify-between">
+    <header
+      className={`flex flex-col gap-4 md:flex-row md:items-end md:justify-between ${divider ? 'border-b border-rule pb-6' : ''}`}
+    >
       <div className="flex max-w-2xl flex-col gap-2">
         {eyebrow ? <p className="label">{eyebrow}</p> : null}
         <h1 className={hideTitle ? 'sr-only' : 'text-3xl leading-tight md:text-4xl'}>{title}</h1>

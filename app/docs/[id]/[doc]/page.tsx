@@ -9,7 +9,7 @@ import { today } from '@/lib/domain'
 import { BornilLogo } from '@/components/os/logo'
 import { PrintButton } from './print-button'
 
-export const metadata: Metadata = { title: 'রপ্তানি ডকুমেন্ট', robots: { index: false } }
+export const metadata: Metadata = { title: 'রপ্তানির কাগজপত্র', robots: { index: false } }
 
 export default async function DocPage({ params }: { params: Promise<{ id: string; doc: string }> }) {
   const { id, doc } = await params
@@ -56,7 +56,7 @@ export default async function DocPage({ params }: { params: Promise<{ id: string
               <th className="py-2 pr-2 text-right font-medium">কার্টন</th>
               <th className="py-2 pr-2 text-right font-medium">পিস/কার্টন</th>
               <th className="py-2 pr-2 text-right font-medium">মোট পিস</th>
-              <th className="py-2 pr-2 text-right font-medium">নেট কেজি</th>
+              <th className="py-2 pr-2 text-right font-medium">নিট কেজি</th>
               <th className="py-2 text-right font-medium">গ্রস কেজি</th>
             </tr>
           </thead>
@@ -119,7 +119,7 @@ export default async function DocPage({ params }: { params: Promise<{ id: string
           <tfoot>
             <tr className="border-t border-foreground font-semibold">
               <td className="py-2 pr-2" colSpan={3}>
-                সর্বমোট · {bn(t.cartons)} কার্টন · নেট {n(Math.round(t.net))} কেজি · গ্রস {n(Math.round(t.gross))} কেজি
+                সর্বমোট · {bn(t.cartons)} কার্টন · নিট {n(Math.round(t.net))} কেজি · গ্রস {n(Math.round(t.gross))} কেজি
               </td>
               <td className="num py-2 text-right">{tk(inv.amount)}</td>
             </tr>
@@ -131,7 +131,7 @@ export default async function DocPage({ params }: { params: Promise<{ id: string
         <p className="text-muted">{inv?.status === 'issued' || doc === 'packing' ? '' : 'খসড়া — ইস্যু করা হয়নি'}</p>
         <div className="flex flex-col items-center gap-1">
           <span className="h-px w-48 bg-foreground" aria-hidden />
-          <span className="text-xs text-muted">অনুমোদিত স্বাক্ষর</span>
+          <span className="text-xs text-muted">অনুমোদিত স্বাক্ষরকারী</span>
         </div>
       </footer>
       <PrintButton />

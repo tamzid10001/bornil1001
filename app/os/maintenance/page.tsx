@@ -2,14 +2,13 @@ import { asc, desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { machines, tickets } from '@/lib/db/schema'
 import { getActor } from '@/lib/actor'
+import { MACHINE_LABEL } from '@/lib/domain'
 import { bn, n, stamp } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, PageHeader, Section, Stat } from '@/components/os/ui'
 import { closeTicket, openTicket } from '../actions/ops'
 
 export const metadata = { title: 'রক্ষণাবেক্ষণ' }
-
-const KIND_LABEL: Record<string, string> = { 'single needle': 'সিঙ্গেল নিডল', overlock: 'ওভারলক', flatlock: 'ফ্ল্যাটলক', bartack: 'বারট্যাক', buttonhole: 'বাটনহোল', 'button attach': 'বাটন অ্যাটাচ' }
 
 export default async function MaintenancePage() {
   const [actor, allMachines, allTickets] = await Promise.all([
@@ -31,9 +30,9 @@ export default async function MaintenancePage() {
         title="মেশিন ও ব্রেকডাউন"
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={allMachines.filter((m) => m.status === 'down').length} label="এখন বন্ধ মেশিন" tone={open.length ? 'alert' : 'ok'} />
-        <Stat value={allMachines.length} label="ফ্লোরে মোট মেশিন" />
-        <Stat value={closed.length} label="সমাধান হওয়া ব্রেকডাউন" />
+        <Stat value={bn(allMachines.filter((m) => m.status === 'down').length)} label="এখন বন্ধ মেশিন" tone={open.length ? 'alert' : 'ok'} />
+        <Stat value={bn(allMachines.length)} label="ফ্লোরে মোট মেশিন" />
+        <Stat value={bn(closed.length)} label="সমাধান হওয়া ব্রেকডাউন" />
         <Stat value={`${n(mttr)} মিনিট`} label="মেরামতের গড় সময়" />
       </div>
 
@@ -53,7 +52,7 @@ export default async function MaintenancePage() {
                       >
                         <span className="font-medium">{m.code}</span>
                         <span className={m.status === 'down' ? '' : 'text-subtle'}>
-                          {KIND_LABEL[m.kind] ?? m.kind}
+                          {MACHINE_LABEL[m.kind] ?? m.kind}
                           <span className="sr-only"> · {m.status === 'down' ? 'বন্ধ' : 'চলছে'}</span>
                         </span>
                       </li>
@@ -72,11 +71,11 @@ export default async function MaintenancePage() {
                   .filter((m) => m.status !== 'down')
                   .map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.code} · লাইন {bn(m.line)} · {KIND_LABEL[m.kind] ?? m.kind}
+                      {m.code} · লাইন {bn(m.line)} · {MACHINE_LABEL[m.kind] ?? m.kind}
                     </option>
                   ))}
               </select>
-              <input name="issue" required placeholder="সুই ভাঙছে, সুতার টেনশন…" className="field" aria-label="সমস্যা" />
+              <input name="issue" required placeholder="যেমন সুই ভেঙে যাচ্ছে, সুতার টান ঠিক নেই…" className="field" aria-label="সমস্যা" />
               <Submit>বন্ধ হিসেবে চিহ্নিত করুন</Submit>
             </ActionForm>
           </Section>
@@ -87,7 +86,7 @@ export default async function MaintenancePage() {
                 <p className="text-sm">
                   <span className="font-medium">{machineOf(t.machineId)?.code}</span> · {t.issue}
                 </p>
-                <p className="text-xs text-alert">বন্ধ {stamp(t.openedAt)} থেকে</p>
+                <p className="text-xs text-alert">{stamp(t.openedAt)} থেকে বন্ধ</p>
                 {canFix ? (
                   <ActionForm action={closeTicket} className="flex gap-2">
                     <input type="hidden" name="ticket_id" value={t.id} />
@@ -97,7 +96,7 @@ export default async function MaintenancePage() {
                 ) : null}
               </div>
             ))}
-            {!canFix && open.length ? <p className="text-xs text-subtle">টিকিট বন্ধ করতে রক্ষণাবেক্ষণ বেছে নিন।</p> : null}
+            {!canFix && open.length ? <p className="text-xs text-subtle">টিকিট বন্ধ করতে “বর্তমান ব্যবহারকারী” থেকে মেকানিককে বেছে নিন।</p> : null}
           </Section>
         </div>
       </div>

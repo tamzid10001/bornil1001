@@ -7,7 +7,7 @@ import { DEFECT_CODES } from '@/lib/domain'
 import { n, pct, stamp } from '@/lib/format'
 import { Chip, Empty, PageHeader, Section, Stat } from '@/components/os/ui'
 
-export const metadata = { title: 'মান' }
+export const metadata = { title: 'মান নিয়ন্ত্রণ' }
 
 export default async function QualityPage() {
   const [lang, allDefects, allLots, allOrders, allSewing, staff] = await Promise.all([
@@ -32,13 +32,13 @@ export default async function QualityPage() {
     <>
       <PageHeader
         eyebrow="মান নিয়ন্ত্রণ"
-        title="ত্রুটি ও ফাইনাল ইন্সপেকশন"
+        title="ত্রুটি ও চূড়ান্ত পরিদর্শন"
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={n(total)} label="লেখা ত্রুটি" />
-        <Stat value={sewn ? pct((total / sewn) * 100) : '—'} label="প্রতি একশ পিসে ত্রুটি" tone={sewn && total / sewn > 0.05 ? 'alert' : undefined} />
-        <Stat value={allLots.filter((l) => l.result === 'accepted').length} label="গৃহীত লট" tone="ok" />
-        <Stat value={allLots.filter((l) => l.result === 'rejected').length} label="বাতিল লট" tone={allLots.some((l) => l.result === 'rejected') ? 'alert' : undefined} />
+        <Stat value={n(total)} label="লিপিবদ্ধ ত্রুটি" />
+        <Stat value={sewn ? pct((total / sewn) * 100) : '—'} label="প্রতি ১০০ পিসে ত্রুটি" tone={sewn && total / sewn > 0.05 ? 'alert' : undefined} />
+        <Stat value={n(allLots.filter((l) => l.result === 'accepted').length)} label="গৃহীত লট" tone="ok" />
+        <Stat value={n(allLots.filter((l) => l.result === 'rejected').length)} label="প্রত্যাখ্যাত লট" tone={allLots.some((l) => l.result === 'rejected') ? 'alert' : undefined} />
       </div>
 
       <div className="grid gap-10 lg:grid-cols-2">
@@ -97,9 +97,9 @@ export default async function QualityPage() {
         </Section>
       </div>
 
-      <Section title="ফাইনাল ইন্সপেকশন">
+      <Section title="চূড়ান্ত পরিদর্শন">
         {allLots.length === 0 ? (
-          <Empty>এখনো কোনো লট দেওয়া হয়নি। অর্ডার পাতা থেকে ইন্সপেকশন করুন।</Empty>
+          <Empty>এখনো কোনো লট পরিদর্শন করা হয়নি। অর্ডারের পাতা থেকে পরিদর্শন করুন।</Empty>
         ) : (
           <table className="tbl">
             <thead>

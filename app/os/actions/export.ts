@@ -31,9 +31,9 @@ export async function replanTna(_: ActionState, fd: FormData): Promise<ActionSta
       await tx.delete(tna).where(eq(tna.orderId, o.id))
       await tx.insert(tna).values(s.rows.map((m) => ({ orderId: o.id, name: m.name, ownerDept: m.dept, dueDate: m.due, sort: m.sort })))
     })
-    await record(actor, 'ক্রিটিক্যাল পাথ নতুন করে হিসাব করেছেন', 'order', o.id, `${o.code}: ${bn(plan.lines)} লাইন, সেলাই ${bn(s.sewingDays)} দিন`)
+    await record(actor, 'ক্রিটিক্যাল পাথ নতুন করে হিসাব করেছেন', 'order', o.id, `${o.code}: ${bn(plan.lines)}টি লাইন, সেলাই ${bn(s.sewingDays)} দিন`)
     refreshOrder(o)
-    return s.slack < 0 ? `সময় কম: শুরু করতে ${bn(-s.slack)} দিন দেরি হয়ে গেছে। লাইন বা লিড টাইম বদলান।` : `পরিকল্পনা হালনাগাদ — হাতে ${bn(s.slack)} দিন বাড়তি সময়`
+    return s.slack < 0 ? `সময় কম: শুরু করতে ${bn(-s.slack)} দিন দেরি হয়ে গেছে। লাইন বা লিড টাইম বদলান।` : `পরিকল্পনা হালনাগাদ হয়েছে — হাতে ${bn(s.slack)} দিন বাড়তি সময় আছে`
   })
 }
 
@@ -50,19 +50,19 @@ const AMENDABLE: Record<string, { label: string; kind: 'money' | 'date' | 'int' 
 export async function amendLc(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    allowRoles(actor.role, ['commercial'], 'এলসি সংশোধন লিখতে')
+    allowRoles(actor.role, ['commercial'], 'এলসি সংশোধনী লিখতে')
     const o = await loadOpenOrder(fd)
     const lcId = int(fd, 'lc_id')
     const field = str(fd, 'field')
     const spec = AMENDABLE[field]
     if (!spec) throw new Error('কোন তথ্য সংশোধন হচ্ছে তা বেছে নিন।')
     const reason = str(fd, 'reason')
-    if (reason.length < 3) throw new Error('সংশোধনের কারণ লিখুন।')
+    if (reason.length < 3) throw new Error('সংশোধনীর কারণ লিখুন।')
     const [lc] = await db.select().from(lcs).where(and(eq(lcs.id, lcId), eq(lcs.orderId, o.id), eq(lcs.kind, 'master')))
     if (!lc) throw new Error('মাস্টার এলসি পাওয়া যায়নি।')
-    if (lc.status !== 'opened') throw new Error('এলসি খোলার পরেই সংশোধন করা যায়।')
+    if (lc.status !== 'opened') throw new Error('এলসি খোলার পরই সংশোধনী লেখা যায়।')
     const [sent] = await db.select({ id: bl.id }).from(bl).where(and(eq(bl.orderId, o.id), eq(bl.status, 'released')))
-    if (sent) throw new Error('ডকুমেন্ট ব্যাংকে চলে গেছে — এখন এলসি সংশোধন অর্থহীন।')
+    if (sent) throw new Error('কাগজপত্র ব্যাংকে চলে গেছে — এখন আর এলসি সংশোধনী লেখা যাবে না।')
 
     let value: string | number
     if (spec.kind === 'money') value = num(fd, 'value', { min: 1, max: 10_000_000_000, label: spec.label })
@@ -73,7 +73,7 @@ export async function amendLc(_: ActionState, fd: FormData): Promise<ActionState
       if (!value) throw new Error(`নতুন ${spec.label} লিখুন।`)
     }
     const old = (lc as Record<string, unknown>)[field]
-    if (String(old ?? '') === String(value)) throw new Error('নতুন মান আগের মতোই।')
+    if (String(old ?? '') === String(value)) throw new Error('নতুন মান আগের মানের মতোই।')
 
     const [{ c }] = await db.select({ c: sql<number>`count(*)::int` }).from(lcAmendments).where(eq(lcAmendments.lcId, lc.id))
     await db.update(lcs).set({ [field]: value }).where(eq(lcs.id, lc.id))
@@ -85,9 +85,9 @@ export async function amendLc(_: ActionState, fd: FormData): Promise<ActionState
       const status = blChecks(b, updated).every((x) => x.ok) ? 'draft' : 'discrepant'
       if (status !== b.status) await db.update(bl).set({ status }).where(eq(bl.id, b.id))
     }
-    await record(actor, `এলসি সংশোধন #${bn(c + 1)} লিখেছেন`, 'order', o.id, `${lc.number}: ${spec.label} — ${reason}`)
+    await record(actor, `এলসি সংশোধনী #${bn(c + 1)} লিখেছেন`, 'order', o.id, `${lc.number}: ${spec.label} — ${reason}`)
     refreshOrder(o)
-    return `সংশোধন #${bn(c + 1)} লেখা হয়েছে। বি/এল আবার মিলিয়ে দেখা হয়েছে।`
+    return `সংশোধনী #${bn(c + 1)} লেখা হয়েছে। বি/এল আবার মিলিয়ে দেখা হয়েছে।`
   })
 }
 
@@ -99,7 +99,7 @@ export async function bondEntry(_: ActionState, fd: FormData): Promise<ActionSta
     allowRoles(actor.role, ['store', 'commercial'], 'বন্ডেড গুদামের হিসাব লিখতে')
     const o = await loadOpenOrder(fd)
     const kind = str(fd, 'kind')
-    if (kind !== 'in' && kind !== 'out') throw new Error('গ্রহণ না ব্যবহার, তা বেছে নিন।')
+    if (kind !== 'in' && kind !== 'out') throw new Error('গ্রহণ নাকি ব্যবহার, তা বেছে নিন।')
     const material = str(fd, 'material')
     const ref = str(fd, 'ref')
     if (!material) throw new Error('কাঁচামালের নাম লিখুন।')
@@ -118,7 +118,7 @@ export async function bondEntry(_: ActionState, fd: FormData): Promise<ActionSta
       .from(bondLedger)
       .where(eq(bondLedger.orderId, o.id))
     if (kind === 'in' && received + qty > u.yarnPermittedKg)
-      throw new Error(`ইউডিতে অনুমোদিত ${n(u.yarnPermittedKg)} কেজি। ইতিমধ্যে ${n(received)} কেজি এসেছে — আর ${n(Math.max(0, u.yarnPermittedKg - received))} কেজি আনা যাবে।`)
+      throw new Error(`ইউডিতে অনুমোদিত ${n(u.yarnPermittedKg)} কেজি। ইতোমধ্যে ${n(received)} কেজি এসেছে — আর ${n(Math.max(0, u.yarnPermittedKg - received))} কেজি আনা যাবে।`)
     if (kind === 'out' && qty > received - issued) throw new Error(`বন্ডে আছে মাত্র ${n(received - issued)} কেজি।`)
 
     await db.insert(bondLedger).values({ orderId: o.id, udId: u.id, kind, material, qtyKg: qty, ref, on, createdBy: actor.id })
@@ -144,9 +144,9 @@ export async function addCartons(_: ActionState, fd: FormData): Promise<ActionSt
     const size = str(fd, 'size')
     if (!(size in (o.sizes ?? {}))) throw new Error('অর্ডারের একটি সাইজ বেছে নিন।')
     const pcsPerCarton = int(fd, 'pcs', { min: 1, max: 500, label: 'কার্টনপ্রতি পিস' })
-    const netKg = num(fd, 'net', { min: 0.1, max: 100, label: 'নেট ওজন' })
+    const netKg = num(fd, 'net', { min: 0.1, max: 100, label: 'নিট ওজন' })
     const grossKg = num(fd, 'gross', { min: 0.1, max: 120, label: 'গ্রস ওজন' })
-    if (grossKg <= netKg) throw new Error('গ্রস ওজন নেট ওজনের চেয়ে বেশি হতে হবে।')
+    if (grossKg <= netKg) throw new Error('গ্রস ওজন নিট ওজনের চেয়ে বেশি হতে হবে।')
     const cbm = num(fd, 'cbm', { min: 0.001, max: 1, label: 'সিবিএম' })
 
     const rows = await db.select().from(cartons).where(eq(cartons.orderId, o.id))
@@ -221,7 +221,7 @@ export async function saveInvoice(_: ActionState, fd: FormData): Promise<ActionS
       const [{ c }] = await db.select({ c: sql<number>`count(*)::int` }).from(invoices)
       await db.insert(invoices).values({ ...values, number: `INV-${new Date().getFullYear()}-${String(c + 1).padStart(4, '0')}`, status })
     }
-    await record(actor, 'কমার্শিয়াল ইনভয়েসের খসড়া করেছেন', 'order', o.id, `${o.code}: ${tk(values.amount)}${failed.length ? ` · ${bn(failed.length)}টি অমিল` : ''}`)
+    await record(actor, 'কমার্শিয়াল ইনভয়েসের খসড়া তৈরি করেছেন', 'order', o.id, `${o.code}: ${tk(values.amount)}${failed.length ? ` · ${bn(failed.length)}টি অমিল` : ''}`)
     refreshOrder(o)
     return failed.length ? `${bn(failed.length)}টি অমিল — ইস্যুর আগে ঠিক করুন` : 'ইনভয়েস এলসি, প্যাকিং লিস্ট ও বি/এল-এর সঙ্গে মিলেছে'
   })
@@ -251,16 +251,16 @@ export async function issueInvoice(_: ActionState, fd: FormData): Promise<Action
 export async function readPack(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
     const actor = await requireActor()
-    allowRoles(actor.role, ['merchandiser'], 'টেক প্যাক পড়াতে')
+    allowRoles(actor.role, ['merchandiser'], 'টেক প্যাক যোগ করতে')
     const o = await loadOpenOrder(fd)
     const body = str(fd, 'body')
     if (body.length < 40) throw new Error('টেক প্যাকের লেখা পেস্ট করুন — অন্তত কয়েক লাইন।')
     if (body.length > 40_000) throw new Error('টেক প্যাক অনেক বড় — মূল অংশটুকু পেস্ট করুন।')
     const { data, reader } = await readTechPack(body)
     await db.insert(techPacks).values({ orderId: o.id, body, data, reader, createdBy: actor.id })
-    await record(actor, 'টেক প্যাক পড়িয়েছেন', 'order', o.id, `${o.code}: ${bn(data.measurements.length)}টি মাপ, ${bn(data.trims.length)}টি ট্রিম, ${bn(data.operations.length)}টি অপারেশন`)
+    await record(actor, 'টেক প্যাক যোগ করেছেন', 'order', o.id, `${o.code}: ${bn(data.measurements.length)}টি মাপ, ${bn(data.trims.length)}টি ট্রিম, ${bn(data.operations.length)}টি অপারেশন`)
     refreshOrder(o)
-    return reader === 'ai' ? 'এআই টেক প্যাক পড়েছে — যাচাই করে নিন' : 'এআই পাওয়া যায়নি, প্যাটার্ন দিয়ে পড়া হয়েছে — ভালো করে যাচাই করুন'
+    return reader === 'ai' ? 'এআই টেক প্যাক বিশ্লেষণ করেছে — যাচাই করে নিন' : 'এআই সাড়া দেয়নি, নিয়মভিত্তিক পদ্ধতিতে বিশ্লেষণ করা হয়েছে — ভালো করে যাচাই করুন'
   })
 }
 
