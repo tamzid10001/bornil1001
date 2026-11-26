@@ -4,19 +4,19 @@ import { db } from '@/lib/db'
 import { orders, people, quotes } from '@/lib/db/schema'
 import { getActor } from '@/lib/actor'
 import { canPass, quoteCost, quoteMargin } from '@/lib/domain'
-import { n, pct, stamp, usd, usdK } from '@/lib/format'
+import { n, pct, stamp, tk, tkK, input } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, GateNote, PageHeader, Section, Stat, TextLink } from '@/components/os/ui'
 import { ownerDecision, saveQuote, sendQuote, submitQuote, winQuote } from '../../actions/sales'
 
 const INPUTS = [
-  { name: 'fabric_kg', key: 'fabricKg', label: 'fabric consumption', unit: 'kg / pc', step: '0.001' },
-  { name: 'fabric_rate', key: 'fabricRate', label: 'fabric rate', unit: 'usd / kg', step: '0.01' },
-  { name: 'cm_minutes', key: 'cmMinutes', label: 'standard minutes (smv)', unit: 'min / pc', step: '0.1' },
-  { name: 'cm_rate', key: 'cmRate', label: 'cm cost per minute', unit: 'usd / min', step: '0.001' },
-  { name: 'trims', key: 'trims', label: 'trims & accessories', unit: 'usd / pc', step: '0.01' },
-  { name: 'overhead', key: 'overhead', label: 'overhead, wash, test, freight', unit: 'usd / pc', step: '0.01' },
-  { name: 'fob', key: 'fob', label: 'fob price to buyer', unit: 'usd / pc', step: '0.01' },
+  { name: 'fabric_kg', key: 'fabricKg', label: 'fabric consumption', unit: 'kg / pc', step: '0.01', money: false },
+  { name: 'fabric_rate', key: 'fabricRate', label: 'fabric rate', unit: '৳ / kg', step: '0.01', money: true },
+  { name: 'cm_minutes', key: 'cmMinutes', label: 'standard minutes (smv)', unit: 'min / pc', step: '0.1', money: false },
+  { name: 'cm_rate', key: 'cmRate', label: 'cm cost per minute', unit: '৳ / min', step: '0.01', money: true },
+  { name: 'trims', key: 'trims', label: 'trims & accessories', unit: '৳ / pc', step: '0.01', money: true },
+  { name: 'overhead', key: 'overhead', label: 'overhead, wash, test, freight', unit: '৳ / pc', step: '0.01', money: true },
+  { name: 'fob', key: 'fob', label: 'fob price to buyer', unit: '৳ / pc', step: '0.01', money: true },
 ] as const
 
 export default async function QuotePage({ params }: { params: Promise<{ id: string }> }) {
@@ -45,15 +45,15 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
       <PageHeader
         eyebrow={`${q.code} · rev ${q.rev}`}
         title={`${q.style} for ${q.buyer}`}
-        lede={`${n(q.quantity)} pcs · order value ${usdK(q.quantity * q.fob)}`}
+        lede={`${n(q.quantity)} pcs · order value ${tkK(q.quantity * q.fob)}`}
         actions={<Chip status={q.status} />}
       />
 
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={usd(m.cost)} label="cost per piece" />
-        <Stat value={usd(q.fob)} label="fob per piece" />
+        <Stat value={tk(m.cost)} label="cost per piece" />
+        <Stat value={tk(q.fob)} label="fob per piece" />
         <Stat value={pct(m.pct)} label={`margin · floor ${pct(q.floorMargin, 0)}`} tone={under ? 'alert' : 'ok'} />
-        <Stat value={usdK(m.margin * q.quantity)} label="margin on the order" tone={m.margin < 0 ? 'alert' : undefined} />
+        <Stat value={tkK(m.margin * q.quantity)} label="margin on the order" tone={m.margin < 0 ? 'alert' : undefined} />
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
@@ -65,7 +65,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
                 <label key={i.name} className="flex flex-col gap-1.5">
                   <span className="label">{i.label}</span>
                   <span className="flex items-center gap-2">
-                    <input name={i.name} type="number" step={i.step} min="0" defaultValue={q[i.key]} disabled={!editable} required className="field num" />
+                    <input name={i.name} type="number" step={i.step} min="0" defaultValue={i.money ? input(q[i.key]) : q[i.key]} disabled={!editable} required className="field num" />
                     <span className="shrink-0 text-xs text-subtle">{i.unit}</span>
                   </span>
                 </label>
@@ -87,11 +87,11 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
             <ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted">
               {parts.map((p) => (
                 <li key={p.label}>
-                  {p.label} <span className="num text-foreground">{usd(p.v)}</span>
+                  {p.label} <span className="num text-foreground">{tk(p.v)}</span>
                 </li>
               ))}
               <li>
-                margin <span className={`num ${under ? 'text-alert' : 'text-foreground'}`}>{usd(m.margin)}</span>
+                margin <span className={`num ${under ? 'text-alert' : 'text-foreground'}`}>{tk(m.margin)}</span>
               </li>
             </ul>
           </div>

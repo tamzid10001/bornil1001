@@ -4,6 +4,7 @@ import { getLang, NAV } from '@/lib/i18n'
 import { getExceptions } from '@/lib/queries'
 import { ROLE_LABEL } from '@/lib/domain'
 import { AutoSubmitSelect, Nav } from '@/components/os/nav'
+import { BornilLogo } from '@/components/os/logo'
 import { loadExampleFactory, setActor, setLang } from './actions/shell'
 
 export const dynamic = 'force-dynamic'
@@ -14,7 +15,7 @@ export default async function OsLayout({ children }: { children: React.ReactNode
   if (!staff.length) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-6 px-6 py-16">
-        <p className="font-heading text-2xl font-semibold">বর্ণিল | RMG</p>
+        <BornilLogo className="h-10 w-auto self-start text-foreground" />
         <h1 className="text-4xl leading-tight">The factory is empty.</h1>
         <p className="leading-relaxed text-muted">
           Load an example factory — ten staff, four orders at different stages, four sewing lines, letters of credit and a
@@ -42,8 +43,10 @@ export default async function OsLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <aside className="flex flex-col gap-6 border-b border-rule px-4 py-5 lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
-        <Link href="/os" className="px-3 font-heading text-xl font-semibold">
-          বর্ণিল <span className="font-normal text-subtle">|</span> RMG
+        <Link href="/os" aria-label="বর্ণিল RMG, home" className="flex items-center gap-3 px-3 text-foreground">
+          <BornilLogo className="h-7 w-auto" />
+          <span aria-hidden="true" className="h-5 w-px bg-rule" />
+          <span className="font-heading text-sm font-semibold tracking-widest">RMG</span>
         </Link>
         <Nav groups={groups} />
         <div className="mt-auto flex flex-col gap-4 border-t border-rule px-3 pt-4">

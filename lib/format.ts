@@ -1,17 +1,21 @@
 const intFmt = new Intl.NumberFormat('en-US')
-const usdFmt = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
+
+const tkFmt = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const bdtFmt = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 })
 
+const sign = (v: number) => (v < 0 ? '-' : '')
+
 export const n = (v: number | null | undefined) => (v == null ? '—' : intFmt.format(Math.round(v)))
-export const usd = (v: number | null | undefined) => (v == null ? '—' : usdFmt.format(v))
-export const usdK = (v: number) =>
-  v >= 1000 ? `$${(v / 1000).toFixed(v >= 100000 ? 0 : 1)}k` : usdFmt.format(v)
-export const bdt = (v: number) => `৳${bdtFmt.format(Math.round(v))}`
+export const tk = (v: number | null | undefined) => (v == null ? '—' : `${sign(v)}৳${tkFmt.format(Math.abs(v))}`)
+export function tkK(v: number) {
+  const a = Math.abs(v)
+  if (a >= 1e7) return `${sign(v)}৳${(a / 1e7).toFixed(2)} Cr`
+  if (a >= 1e5) return `${sign(v)}৳${(a / 1e5).toFixed(1)} Lakh`
+  return `${sign(v)}৳${bdtFmt.format(Math.round(a))}`
+}
+export const bdt = (v: number) => `${sign(v)}৳${bdtFmt.format(Math.round(Math.abs(v)))}`
+/** A stored taka amount as an input default value. */
+export const input = (v: number | null | undefined) => (v == null ? '' : Math.round(v * 100) / 100)
 export const pct = (v: number, digits = 1) => `${v.toFixed(digits)}%`
 
 export function day(iso: string | null | undefined) {

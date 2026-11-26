@@ -1,6 +1,6 @@
 import type { Lc, Order } from '@/lib/db/schema'
 import { canPass } from '@/lib/domain'
-import { day, n, usd } from '@/lib/format'
+import { day, n, tk } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, GateNote, Section } from '@/components/os/ui'
 import { bookMaterial, issueUd, openBtb, openMasterLc, requestBtb } from '@/app/os/actions/orders'
@@ -8,7 +8,7 @@ import { bookMaterial, issueUd, openBtb, openMasterLc, requestBtb } from '@/app/
 type Bom = { id: number; material: string; qty: number; unit: string; rate: number; supplier: string | null; source: string; status: string; btbId: number | null; bookedBy: number | null }
 type Ud = { id: number; number: string; yarnPermittedKg: number }
 
-export function MaterialsSection({
+export async function MaterialsSection({
   order,
   master,
   lcs,
@@ -37,14 +37,14 @@ export function MaterialsSection({
       <div className="grid gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-3 rounded-xl border border-rule p-4">
           <div className="flex items-center justify-between">
-            <span className="label">master lc</span>
+            <span className="label">master LC</span>
             {master ? <Chip status={master.status} /> : null}
           </div>
           {master ? (
             <>
               <p className="font-medium">{master.number}</p>
               <p className="text-sm text-muted">
-                {usd(master.amount)} · {master.bank ?? 'bank tbc'} · {master.portLoading} → {master.portDischarge ?? '—'} · latest shipment {day(master.latestShipment)}
+                {tk(master.amount)} · {master.bank ?? 'bank tbc'} · {master.portLoading} → {master.portDischarge ?? '—'} · latest shipment {day(master.latestShipment)}
               </p>
               {master.status === 'requested' && isCommercial && !closed ? (
                 <ActionForm action={openMasterLc} className="flex flex-col gap-3">
@@ -55,7 +55,7 @@ export function MaterialsSection({
                     <input name="port_discharge" placeholder="port of discharge" required className="field" />
                     <input name="latest_shipment" type="date" defaultValue={master.latestShipment ?? ''} required className="field" aria-label="latest shipment" />
                   </div>
-                  <Submit small>record received lc</Submit>
+                  <Submit small>record received LC</Submit>
                 </ActionForm>
               ) : null}
             </>
@@ -65,12 +65,12 @@ export function MaterialsSection({
         </div>
 
         <div className="flex flex-col gap-3 rounded-xl border border-rule p-4">
-          <span className="label">utilization declaration (ud)</span>
+          <span className="label">utilization declaration (UD)</span>
           {ud.length ? (
             ud.map((u) => (
               <p key={u.id} className="text-sm">
                 <span className="font-medium">{u.number}</span> · yarn permitted {n(u.yarnPermittedKg)} kg · booked {n(yarnUsed)} kg{' '}
-                <span className={yarnUsed > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}>{yarnUsed > u.yarnPermittedKg ? '· over the ud' : '· within'}</span>
+                <span className={yarnUsed > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}>{yarnUsed > u.yarnPermittedKg ? '· over the UD' : '· within'}</span>
               </p>
             ))
           ) : isCommercial && !closed ? (
@@ -88,17 +88,17 @@ export function MaterialsSection({
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <span className="label">back-to-back lcs</span>
+          <span className="label">back-to-back LCs</span>
           {master ? (
             <span className={`num text-sm ${btbUsed > master.amount * 0.75 ? 'text-alert' : 'text-muted'}`}>
-              {usd(btbUsed)} of {usd(master.amount * 0.75)} allowed (75%)
+              {tk(btbUsed)} of {tk(master.amount * 0.75)} allowed (75%)
             </span>
           ) : null}
         </div>
         {btbs.map((b) => (
           <div key={b.id} className="flex flex-wrap items-center gap-3 border-t border-rule pt-3 text-sm">
             <span className="font-medium">{b.number}</span>
-            <span className="num text-muted">{usd(b.amount)}</span>
+            <span className="num text-muted">{tk(b.amount)}</span>
             <span className="text-muted">{b.tenorDays} days</span>
             {b.maturity ? <span className="text-muted">matures {day(b.maturity)}</span> : null}
             <Chip status={b.status} />
@@ -164,7 +164,7 @@ export function MaterialsSection({
                     <td className="num text-right">
                       {n(m.qty)} {m.unit}
                     </td>
-                    <td className="num text-right">{usd(m.qty * m.rate)}</td>
+                    <td className="num text-right">{tk(m.qty * m.rate)}</td>
                     <td>{m.source}</td>
                     <td>
                       <Chip status={m.status} />

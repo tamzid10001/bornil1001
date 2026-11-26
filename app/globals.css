@@ -60,8 +60,17 @@
     -webkit-font-smoothing: antialiased;
   }
   body {
-    font-size: 15px;
-    line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.55;
+  text-transform: capitalize;
+  }
+  button,
+  select {
+  text-transform: inherit;
+  }
+  input,
+  textarea {
+  text-transform: none;
   }
   h1,
   h2,

@@ -16,7 +16,6 @@ export default async function InquiriesPage() {
       <PageHeader
         eyebrow="merchandising"
         title="Buyer inquiries"
-        lede="Paste a buyer email. Style, fabric, quantity, ratio, ship date and target price are read out with a confidence and the phrase each came from. Nothing is costed until a merchandiser confirms."
       />
       <div className="grid gap-10 lg:grid-cols-[1fr_24rem]">
         <Section title="inbox">

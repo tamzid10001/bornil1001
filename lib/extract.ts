@@ -10,14 +10,14 @@ const FIELD_LABELS: Record<string, string> = {
   ratio: 'size ratio',
   shipDate: 'ship date',
   incoterm: 'incoterm & port',
-  targetPrice: 'target price (usd/pc)',
+  targetPrice: 'target price (bdt/pc)',
 }
 
 const schema = z.object({
   fields: z.array(
     z.object({
       key: z.enum(['style', 'fabric', 'quantity', 'ratio', 'shipDate', 'incoterm', 'targetPrice']),
-      value: z.string().nullable().describe('normalised value. quantity as an integer, shipDate as YYYY-MM-DD, targetPrice as a number'),
+      value: z.string().nullable().describe('normalised value. quantity as an integer, shipDate as YYYY-MM-DD, targetPrice as a number in taka (BDT) per piece'),
       confidence: z.number().min(0).max(1),
       source: z.string().nullable().describe('the exact phrase in the email this was read from'),
     }),
@@ -51,7 +51,7 @@ function patternExtract(body: string): ExtractedField[] {
   const ratio = find(/ratio[:\s]+([^\n.]+)/i)
   const date = find(/(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})/)
   const inco = find(/(FOB|CIF|CFR|FCA)\s+([A-Za-z]+)/)
-  const price = find(/(?:usd|\$)\s*(\d+(?:\.\d+)?)/i)
+  const price = find(/(?:bdt|tk\.?|taka|৳)\s*(\d+(?:\.\d+)?)/i)
   const parsedDate = date ? new Date(`${date[1]} UTC`) : null
   const values: Record<string, [string | null, string | null]> = {
     style: [style?.[1] ?? null, style?.[0] ?? null],

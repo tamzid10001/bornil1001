@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { db } from '@/lib/db'
 import { sewing } from '@/lib/db/schema'
 import { listOrders, projection } from '@/lib/queries'
-import { day, n, usdK } from '@/lib/format'
+import { day, n, tkK } from '@/lib/format'
 import { Chip, Empty, PageHeader, Section, StageRail } from '@/components/os/ui'
 
 export const metadata = { title: 'orders' }
@@ -14,7 +14,6 @@ export default async function OrdersPage() {
       <PageHeader
         eyebrow="one record per order"
         title="Orders"
-        lede="Every department writes to the same order. Open one to see where it is held and who holds it."
       />
       <Section title={`${rows.length} orders`}>
         {rows.length === 0 ? (
@@ -32,7 +31,7 @@ export default async function OrdersPage() {
                     </span>
                     <span className="flex flex-col gap-2">
                       <span className="text-sm">
-                        {o.style} · {n(o.quantity)} pcs · {usdK(o.quantity * o.fob)}
+                        {o.style} · {n(o.quantity)} pcs · {tkK(o.quantity * o.fob)}
                       </span>
                       <StageRail stage={o.stage} />
                     </span>

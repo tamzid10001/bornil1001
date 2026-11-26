@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 import { bl, bom, defects, lays, lcs, lots, people, sewing, tna, ud } from '@/lib/db/schema'
 import { getActor } from '@/lib/actor'
 import { getOrder, projection } from '@/lib/queries'
-import { day, n, usdK } from '@/lib/format'
+import { day, n, tkK } from '@/lib/format'
 import { Chip, PageHeader, StageRail, Stat } from '@/components/os/ui'
 import { PlanSection } from '@/components/os/order/plan'
 import { MoneyIn } from '@/components/os/order/commercial'
@@ -46,7 +46,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       />
       <StageRail stage={o.stage} />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={usdK(o.quantity * o.fob)} label={`order value · ${n(o.quantity)} pcs`} />
+        <Stat value={tkK(o.quantity * o.fob)} label={`order value · ${n(o.quantity)} pcs`} />
         <Stat value={n(cut)} label="cut" />
         <Stat value={n(p.sewn)} label={`sewn · ${n(p.pace)} / day pace`} />
         <Stat value={day(p.finish)} label={`projected sewing finish · deadline ${day(p.sewingDeadline)}`} tone={p.late ? 'alert' : p.finish ? 'ok' : undefined} />

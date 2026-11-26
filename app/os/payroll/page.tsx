@@ -25,11 +25,6 @@ export default async function PayrollPage() {
       <PageHeader
         eyebrow={L ? 'এইচআর ও বেতন' : 'hr & payroll'}
         title={L ? 'এ মাসের বেতন' : 'This month’s wages'}
-        lede={
-          L
-            ? 'ডিসেম্বর ২০২৩ গেজেট অনুযায়ী গ্রেড ভিত্তিক মজুরি। ওভারটাইম মূল বেতনের দ্বিগুণ হারে, ২৬ দিন উপস্থিতিতে হাজিরা বোনাস।'
-            : 'Grade wages from the December 2023 minimum wage gazette. Overtime at twice the basic hourly rate; attendance bonus at 26 days present.'
-        }
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
         <Stat value={money(total)} label={L ? 'মোট প্রদেয়' : 'total payable'} />
@@ -45,10 +40,10 @@ export default async function PayrollPage() {
               <tr>
                 <th>{L ? 'শ্রমিক' : 'worker'}</th>
                 <th>{L ? 'গ্রেড' : 'grade'}</th>
-                <th>{L ? 'উপস্থিতি · ওটি' : 'days · ot hours'}</th>
+                <th>{L ? 'উপস্থিতি · ওটি' : 'days · OT hours'}</th>
                 <th className="text-right">{L ? 'অর্জিত' : 'earned'}</th>
                 <th className="text-right">{L ? 'বোনাস' : 'bonus'}</th>
-                <th className="text-right">{L ? 'ওটি' : 'ot'}</th>
+                <th className="text-right">{L ? 'ওটি' : 'OT'}</th>
                 <th className="text-right">{L ? 'নিট' : 'net'}</th>
               </tr>
             </thead>

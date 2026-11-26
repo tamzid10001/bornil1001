@@ -31,11 +31,6 @@ export default async function FloorPage() {
       <PageHeader
         eyebrow={L ? 'সেলাই ফ্লোর · আজ' : 'sewing floor · today'}
         title={L ? 'ঘণ্টাভিত্তিক উৎপাদন' : 'Hour-by-hour output'}
-        lede={
-          L
-            ? 'লাইন চিফ প্রতি ঘণ্টায় লক্ষ্য ও প্রকৃত সংখ্যা লেখেন। পিপি মিটিং সই না হলে এন্ট্রি নেওয়া হয় না।'
-            : 'Line chiefs enter target and actual every hour. An order without a signed pp meeting refuses entries.'
-        }
       />
 
       <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">

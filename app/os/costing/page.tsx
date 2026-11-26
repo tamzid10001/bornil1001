@@ -3,7 +3,7 @@ import { desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { quotes } from '@/lib/db/schema'
 import { quoteMargin } from '@/lib/domain'
-import { n, pct, usd } from '@/lib/format'
+import { n, pct, tk } from '@/lib/format'
 import { Chip, Empty, PageHeader, Section } from '@/components/os/ui'
 
 export const metadata = { title: 'costing' }
@@ -15,7 +15,6 @@ export default async function CostingPage() {
       <PageHeader
         eyebrow="merchandising · costing gate"
         title="Cost sheets"
-        lede="A quote whose margin clears the floor releases itself. Anything under the floor waits for the owner, who must write why."
       />
       <Section title="quotes">
         {rows.length === 0 ? (
@@ -50,7 +49,7 @@ export default async function CostingPage() {
                         <div className="text-xs text-subtle">{q.style}</div>
                       </td>
                       <td className="num text-right">{n(q.quantity)}</td>
-                      <td className="num text-right">{usd(q.fob)}</td>
+                      <td className="num text-right">{tk(q.fob)}</td>
                       <td className={`num text-right ${under ? 'text-alert' : ''}`}>{pct(m.pct)}</td>
                       <td>
                         <Chip status={q.status} />

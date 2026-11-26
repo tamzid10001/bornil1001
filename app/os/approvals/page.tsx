@@ -6,6 +6,7 @@ import { getExceptions } from '@/lib/queries'
 import { GATE_ROLES, ROLE_LABEL } from '@/lib/domain'
 import { stamp } from '@/lib/format'
 import { Empty, PageHeader, Section } from '@/components/os/ui'
+import { acronyms } from '@/lib/acronyms'
 
 export const metadata = { title: 'gates & audit' }
 
@@ -25,7 +26,6 @@ export default async function ApprovalsPage() {
       <PageHeader
         eyebrow="control"
         title="Gates and the audit trail"
-        lede="Four gates stop an order from moving until the right person signs. Every signature, and every action, is written here with a name and a time."
       />
 
       <div className="grid gap-10 lg:grid-cols-2">
@@ -33,7 +33,7 @@ export default async function ApprovalsPage() {
           <ul className="flex flex-col">
             {Object.entries(GATE_ROLES).map(([gate, roles]) => (
               <li key={gate} className="flex flex-col gap-1 border-t border-rule py-3 first:border-t-0">
-                <span className="font-medium">{gate === 'bl' ? 'b/l' : gate} gate</span>
+                <span className="font-medium">{acronyms(gate)} gate</span>
                 <span className="text-sm leading-relaxed text-muted">{GATE_RULE[gate]}.</span>
                 <span className="text-xs text-subtle">passed by: owner, {roles.map((r) => ROLE_LABEL[r] ?? r).join(', ')}</span>
               </li>
@@ -74,7 +74,7 @@ export default async function ApprovalsPage() {
                 <tr key={a.id}>
                   <td className="num whitespace-nowrap text-muted">{stamp(a.at)}</td>
                   <td className="whitespace-nowrap">{a.actor}</td>
-                  <td>{a.action}</td>
+                  <td>{acronyms(a.action)}</td>
                   <td className="text-muted">{a.detail}</td>
                 </tr>
               ))}

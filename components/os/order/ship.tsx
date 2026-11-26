@@ -44,7 +44,7 @@ export function ShipSection({
       <GateNote gate="b/l" open={released || clean}>
         {released
           ? `released to the bank by ${nameOf(current!.releasedBy)} · ${stamp(current!.releasedAt)}`
-          : 'documents leave the factory only when every b/l field matches the master lc. a discrepancy costs a bank fee and a payment delay.'}
+          : 'documents leave the factory only when every B/L field matches the master LC. a discrepancy costs a bank fee and a payment delay.'}
       </GateNote>
       {!quantityAccepted && !current ? <p className="text-sm text-muted">Waiting for an accepted final inspection.</p> : null}
 
@@ -84,7 +84,7 @@ export function ShipSection({
           {current ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
-                <span className="label">b/l vs master lc</span>
+                <span className="label">B/L vs master LC</span>
                 <Chip status={current.status} />
               </div>
               <ul className="flex flex-col">

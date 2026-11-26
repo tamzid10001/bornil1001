@@ -8,7 +8,7 @@ import { record, requireActor, requireGate } from '@/lib/actor'
 import { int, isoDate, num, run, str, type ActionState } from '@/lib/action'
 import { addDays, aqlPlan, DEFECT_CODES, STAGES, today, type Stage } from '@/lib/domain'
 import { blChecks } from '@/lib/queries'
-import { usd } from '@/lib/format'
+import { tk } from '@/lib/format'
 
 async function loadOrder(fd: FormData) {
   const id = int(fd, 'order_id')
@@ -102,9 +102,9 @@ export async function requestBtb(_: ActionState, fd: FormData): Promise<ActionSt
       .values({ kind: 'btb', number, orderId: o.id, masterId: master?.id ?? null, amount, tenorDays: int(fd, 'tenor_days', { min: 30, max: 180 }), bank: str(fd, 'bank') || null })
       .returning({ id: lcs.id })
     await db.update(bom).set({ btbId: btb.id }).where(inArray(bom.id, unlinked.map((l) => l.id)))
-    await record(actor, 'requested a btb lc', 'lc', btb.id, `${number} · ${usd(amount)}`)
+    await record(actor, 'requested a btb lc', 'lc', btb.id, `${number} · ${tk(amount)}`)
     done(o)
-    return `${number} requested for ${usd(amount)}`
+    return `${number} requested for ${tk(amount)}`
   })
 }
 
@@ -120,11 +120,11 @@ export async function openBtb(_: ActionState, fd: FormData): Promise<ActionState
     const opened = await db.select().from(lcs).where(and(eq(lcs.masterId, master.id), eq(lcs.kind, 'btb'), eq(lcs.status, 'opened')))
     const used = opened.reduce((s, l) => s + l.amount, 0) + btb.amount
     if (used > master.amount * 0.75) {
-      throw new Error(`btb total ${usd(used)} would exceed 75% of the master lc (${usd(master.amount * 0.75)}).`)
+      throw new Error(`btb total ${tk(used)} would exceed 75% of the master lc (${tk(master.amount * 0.75)}).`)
     }
     await db.update(lcs).set({ status: 'opened', openedAt: today(), maturity: addDays(today(), btb.tenorDays) }).where(eq(lcs.id, id))
     await tick(o.id, 'btb lc opened')
-    await record(actor, 'opened a btb lc', 'lc', id, `${btb.number} · ${usd(btb.amount)} · ${btb.tenorDays} days`)
+    await record(actor, 'opened a btb lc', 'lc', id, `${btb.number} · ${tk(btb.amount)} · ${btb.tenorDays} days`)
     done(o)
     return `${btb.number} opened — fabric can now be booked`
   })
@@ -329,7 +329,7 @@ export async function realiseOrder(_: ActionState, fd: FormData): Promise<Action
     await db.update(orders).set(values).where(eq(orders.id, o.id))
     const btbs = await db.select().from(lcs).where(and(eq(lcs.orderId, o.id), eq(lcs.kind, 'btb'), eq(lcs.status, 'opened')))
     for (const b of btbs) await db.update(lcs).set({ settledAmount: b.amount }).where(eq(lcs.id, b.id))
-    await record(actor, 'recorded realisation and closed the order', 'order', o.id, `${o.code}: ${usd(values.realisedAmount)} realised`)
+    await record(actor, 'recorded realisation and closed the order', 'order', o.id, `${o.code}: ${tk(values.realisedAmount)} realised`)
     done(o)
     return 'order closed'
   })

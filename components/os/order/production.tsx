@@ -94,16 +94,16 @@ export function ProductionSection({
         </div>
 
         <div className="flex flex-col gap-3">
-          <span className="label">pp meeting</span>
+          <span className="label">PP meeting</span>
           <GateNote gate="pp" open={!!order.ppSignedAt}>
-            {order.ppSignedAt ? `signed by ${nameOf(order.ppSignedBy)} · ${stamp(order.ppSignedAt)}` : 'bulk sewing output is refused until quality signs the pp meeting.'}
+            {order.ppSignedAt ? `signed by ${nameOf(order.ppSignedBy)} · ${stamp(order.ppSignedAt)}` : 'bulk sewing output is refused until quality signs the PP meeting.'}
           </GateNote>
           {!order.ppSignedAt && !closed ? (
             canPass('pp', role) ? (
               <ActionForm action={signPp} className="flex flex-col gap-3">
                 <input type="hidden" name="order_id" value={order.id} />
                 <textarea name="notes" rows={2} className="field" placeholder="decisions: shrinkage 3% allowed, collar tension adjusted…" aria-label="pp meeting decisions" />
-                <Submit small>sign the pp meeting</Submit>
+                <Submit small>sign the PP meeting</Submit>
               </ActionForm>
             ) : (
               <p className="text-sm text-muted">Switch “acting as” to quality or merchandising to sign.</p>
@@ -182,7 +182,7 @@ export function ProductionSection({
       </div>
 
       <div className="flex flex-col gap-3">
-        <span className="label">final inspection · aql 2.5, level ii</span>
+        <span className="label">final inspection · AQL 2.5, level II</span>
         {lots.map((l) => (
           <p key={l.id} className="flex flex-wrap items-center gap-3 text-sm">
             <Chip status={l.result} />

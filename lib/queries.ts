@@ -3,7 +3,7 @@ import { desc, eq, isNull } from 'drizzle-orm'
 import { db } from './db'
 import { bl, bom, inquiries, lcs, orders, quotes, sewing, tickets, machines, tna, type Lc, type Order } from './db/schema'
 import { daysBetween, quoteMargin, STAGES, today, addDays } from './domain'
-import { day, pct } from './format'
+import { day, pct, tkK } from './format'
 
 export type Exception = {
   kind: 'gate' | 'risk' | 'info'
@@ -120,7 +120,7 @@ export async function getExceptions(): Promise<Exception[]> {
   for (const l of allLcs.filter((l) => l.kind === 'btb' && l.status === 'opened' && l.maturity && !l.settledAmount)) {
     const left = daysBetween(t, l.maturity!)
     if (left <= 21) {
-      out.push({ kind: 'risk', dept: 'commercial', title: `${l.number} matures in ${left} days`, detail: `$${Math.round(l.amount).toLocaleString('en-US')} to settle — check export proceeds.`, href: '/os/commercial' })
+      out.push({ kind: 'risk', dept: 'commercial', title: `${l.number} matures in ${left} days`, detail: `${tkK(l.amount)} to settle — check export proceeds.`, href: '/os/commercial' })
     }
   }
 

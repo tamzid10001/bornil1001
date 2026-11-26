@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { STAGES } from '@/lib/domain'
+import { acronyms } from '@/lib/acronyms'
 
 export function PageHeader({
   eyebrow,
@@ -106,7 +107,7 @@ export function GateNote({ gate, open, children }: { gate: string; open: boolean
       }`}
     >
       <span className={`shrink-0 font-medium ${open ? 'text-ok' : ''}`}>
-        {gate} gate · {open ? 'open' : 'closed'}
+        {acronyms(gate)} gate · {open ? 'open' : 'closed'}
       </span>
       <span className="leading-relaxed">{children}</span>
     </div>

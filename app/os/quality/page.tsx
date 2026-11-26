@@ -33,7 +33,6 @@ export default async function QualityPage() {
       <PageHeader
         eyebrow="quality"
         title="Defects and final inspections"
-        lede="Every defect is coded at the line. Final lots are sampled to ISO 2859-1, level II, AQL 2.5. The rule decides; the inspector records."
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
         <Stat value={n(total)} label="defects logged" />

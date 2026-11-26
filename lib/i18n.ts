@@ -28,7 +28,7 @@ export const NAV = [
   {
     group: { en: 'the books', bn: 'হিসাব' },
     items: [
-      { href: '/os/commercial', en: 'lc, btb & ud', bn: 'এলসি, বিটুবি ও ইউডি', icon: 'landmark' },
+      { href: '/os/commercial', en: 'LC, BTB & UD', bn: 'এলসি, বিটুবি ও ইউডি', icon: 'landmark' },
       { href: '/os/payroll', en: 'payroll', bn: 'বেতন', icon: 'wallet' },
       { href: '/os/approvals', en: 'gates & audit', bn: 'গেট ও অডিট', icon: 'stamp' },
     ],

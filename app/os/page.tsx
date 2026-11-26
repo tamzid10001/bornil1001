@@ -4,8 +4,9 @@ import { db } from '@/lib/db'
 import { audit, bl, orders, sewing } from '@/lib/db/schema'
 import { getExceptions, projection } from '@/lib/queries'
 import { today } from '@/lib/domain'
-import { day, n, pct, stamp, usdK } from '@/lib/format'
+import { day, n, pct, stamp, tkK } from '@/lib/format'
 import { PageHeader, Section, StageRail, Stat } from '@/components/os/ui'
+import { acronyms } from '@/lib/acronyms'
 
 export const metadata = { title: 'tonight' }
 
@@ -34,14 +35,13 @@ export default async function TonightPage() {
       <PageHeader
         eyebrow={new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Dhaka' }).toLowerCase()}
         title="What needs you tonight."
-        lede="Everything that went to plan is left out. What remains is held at a gate, slipping on the critical path, or waiting for a person."
       />
 
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
         <Stat value={gates.length} label="held at a gate" tone={gates.length ? 'alert' : 'ok'} />
         <Stat value={risks.length} label="slipping or down" tone={risks.length ? 'alert' : undefined} />
         <Stat value={target ? pct((actual / target) * 100, 0) : '—'} label={`floor efficiency · ${lines} lines today`} />
-        <Stat value={usdK(book)} label={`open order book · ${openOrders.length} orders`} />
+        <Stat value={tkK(book)} label={`open order book · ${openOrders.length} orders`} />
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
@@ -102,7 +102,7 @@ export default async function TonightPage() {
               {recent.map((a) => (
                 <li key={a.id} className="flex flex-col">
                   <span>
-                    <span className="font-medium">{a.actor.split(' · ')[0]}</span> {a.action}
+                    <span className="font-medium">{a.actor.split(' · ')[0]}</span> {acronyms(a.action)}
                   </span>
                   <span className="text-xs text-subtle">
                     {a.detail} · {stamp(a.at)}

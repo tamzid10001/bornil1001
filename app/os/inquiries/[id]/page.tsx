@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { inquiries, quotes } from '@/lib/db/schema'
-import { stamp } from '@/lib/format'
+import { stamp, input } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, PageHeader, Section, TextLink } from '@/components/os/ui'
 import { confirmInquiry } from '../../actions/sales'
@@ -71,8 +71,8 @@ export default async function InquiryPage({ params }: { params: Promise<{ id: st
                   <input name="ship_date" type="date" defaultValue={inq.shipDate ?? field('shipDate')?.value ?? ''} required className="field" />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="label">target fob (usd/pc)</span>
-                  <input name="target_price" type="number" step="0.01" defaultValue={inq.targetPrice ?? ''} required className="field num" />
+                  <span className="label">target fob (৳ / pc)</span>
+                  <input name="target_price" type="number" step="0.01" defaultValue={input(inq.targetPrice)} required className="field num" />
                 </label>
               </div>
               <Submit>confirm and start costing</Submit>

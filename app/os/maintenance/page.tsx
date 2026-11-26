@@ -27,7 +27,6 @@ export default async function MaintenancePage() {
       <PageHeader
         eyebrow="maintenance"
         title="Machines and breakdowns"
-        lede="Anyone on the floor can mark a machine down. The clock runs until maintenance closes the ticket, and the minutes land on the line's efficiency."
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
         <Stat value={allMachines.filter((m) => m.status === 'down').length} label="machines down now" tone={open.length ? 'alert' : 'ok'} />

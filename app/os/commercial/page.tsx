@@ -3,7 +3,7 @@ import { asc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { bom, lcs, orders, ud } from '@/lib/db/schema'
 import { daysBetween, today } from '@/lib/domain'
-import { day, n, usd, usdK } from '@/lib/format'
+import { day, n, tk, tkK } from '@/lib/format'
 import { Chip, Empty, PageHeader, Section, Stat } from '@/components/os/ui'
 
 export const metadata = { title: 'lc, btb & ud' }
@@ -27,11 +27,10 @@ export default async function CommercialPage() {
       <PageHeader
         eyebrow="commercial"
         title="Letters of credit, back-to-back and UD"
-        lede="Every btb lc is opened against a master lc and capped at 75% of it. Maturities are tracked so nothing reaches the bank unpaid."
       />
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <Stat value={usdK(masters.filter((m) => m.status === 'opened').reduce((s, m) => s + m.amount, 0))} label="master lcs opened" />
-        <Stat value={usdK(liability.reduce((s, b) => s + b.amount, 0))} label="btb liability outstanding" />
+        <Stat value={tkK(masters.filter((m) => m.status === 'opened').reduce((s, m) => s + m.amount, 0))} label="master lcs opened" />
+        <Stat value={tkK(liability.reduce((s, b) => s + b.amount, 0))} label="btb liability outstanding" />
         <Stat value={due30.length} label="btb maturing in 30 days" tone={due30.length ? 'alert' : undefined} />
         <Stat value={masters.filter((m) => m.status === 'requested').length} label="master lcs awaited" />
       </div>
@@ -65,7 +64,7 @@ export default async function CommercialPage() {
                           {code(m.orderId)}
                         </Link>
                       </td>
-                      <td className="num text-right">{usd(m.amount)}</td>
+                      <td className="num text-right">{tk(m.amount)}</td>
                       <td className={`num text-right ${share > 75 ? 'text-alert' : ''}`}>{share.toFixed(0)}%</td>
                       <td>{m.bank ?? '—'}</td>
                       <td>{day(m.latestShipment)}</td>
@@ -101,7 +100,7 @@ export default async function CommercialPage() {
                   <tr key={b.id}>
                     <td className="font-medium">{b.number}</td>
                     <td>{code(b.orderId)}</td>
-                    <td className="num text-right">{usd(b.amount)}</td>
+                    <td className="num text-right">{tk(b.amount)}</td>
                     <td>{b.tenorDays} days</td>
                     <td className={left != null && left <= 30 && b.settledAmount == null ? 'text-alert' : ''}>
                       {day(b.maturity)}

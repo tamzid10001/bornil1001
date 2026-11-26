@@ -4,6 +4,7 @@ import { day } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Section } from '@/components/os/ui'
 import { commitTna, toggleMilestone } from '@/app/os/actions/orders'
+import { acronyms } from '@/lib/acronyms'
 
 type Milestone = { id: number; name: string; ownerDept: string; dueDate: string; doneAt: string | null }
 
@@ -42,7 +43,7 @@ export function PlanSection({ order, milestones, role }: { order: Order; milesto
                 />
               </ActionForm>
               <span className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                <span className={m.doneAt ? 'text-muted' : late ? 'font-medium text-alert' : 'font-medium'}>{m.name}</span>
+                <span className={m.doneAt ? 'text-muted' : late ? 'font-medium text-alert' : 'font-medium'}>{acronyms(m.name)}</span>
                 <span className="text-xs text-subtle">{m.ownerDept}</span>
               </span>
               <span className={`num text-right text-sm ${late ? 'text-alert' : 'text-muted'}`}>
