@@ -29,7 +29,7 @@ export default async function DocPage({ params }: { params: Promise<{ id: string
       <header className="flex items-start justify-between gap-6 border-b border-foreground pb-6">
         <div className="flex flex-col gap-2">
           <BornilLogo className="h-7 w-auto self-start" />
-          <p className="text-xs leading-relaxed text-muted">Bornil Technologies Limited · Banani, Dhaka, Bangladesh</p>
+          <p className="text-xs leading-relaxed text-muted">Bornil Technologies Limited</p>
         </div>
         <div className="flex flex-col items-end gap-1 text-right">
           <h1 className="text-xl font-semibold">{doc === 'packing' ? 'প্যাকিং লিস্ট' : 'কমার্শিয়াল ইনভয়েস'}</h1>
