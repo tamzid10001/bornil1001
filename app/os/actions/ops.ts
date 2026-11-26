@@ -1,5 +1,6 @@
 'use server'
 
+import { n } from '@/lib/format'
 import { and, eq, isNull } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
@@ -21,7 +22,7 @@ export async function openTicket(_: ActionState, fd: FormData): Promise<ActionSt
     await db.update(machines).set({ status: 'down' }).where(eq(machines.id, machineId))
     await record(actor, 'ব্রেকডাউন জানিয়েছেন', 'machine', machineId, `${m.code}: ${issue}`)
     revalidatePath('/os', 'layout')
-    return `${m.code} marked down — maintenance called`
+    return `${m.code} বন্ধ হিসেবে চিহ্নিত — রক্ষণাবেক্ষণে খবর দেওয়া হয়েছে`
   })
 }
 
@@ -37,7 +38,7 @@ export async function closeTicket(_: ActionState, fd: FormData): Promise<ActionS
     await db.update(machines).set({ status: 'running' }).where(eq(machines.id, t.machineId))
     await record(actor, 'মেশিন ঠিক করেছেন', 'machine', t.machineId, `${downtime} মিনিট বন্ধ: ${str(fd, 'fix') || t.issue}`)
     revalidatePath('/os', 'layout')
-    return `back running after ${downtime} min`
+    return `${n(downtime)} মিনিট পর আবার চালু`
   })
 }
 
@@ -52,7 +53,7 @@ export async function updateAttendance(_: ActionState, fd: FormData): Promise<Ac
     if (!e) throw new Error('কর্মী পাওয়া যায়নি।')
     await record(actor, 'হাজিরা হালনাগাদ করেছেন', 'employee', id, `${e.code}: ${daysPresent} দিন, ${otHours} ঘণ্টা ওটি`)
     revalidatePath('/os/payroll')
-    return `${e.name} updated`
+    return `${e.name} হালনাগাদ হয়েছে`
   })
 }
 
@@ -70,6 +71,6 @@ export async function addEmployee(_: ActionState, fd: FormData): Promise<ActionS
     await db.insert(employees).values({ code, name, grade, section, line: lineRaw ? int(fd, 'line', { min: 1, max: 40 }) : null })
     await record(actor, 'কর্মী যোগ করেছেন', 'employee', null, `${code} ${name}, গ্রেড ${grade}`)
     revalidatePath('/os/payroll')
-    return `${name} added as ${code}`
+    return `${name} যোগ হয়েছে (${code})`
   })
 }

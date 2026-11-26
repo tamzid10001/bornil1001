@@ -98,7 +98,7 @@ export async function saveQuote(_: ActionState, fd: FormData): Promise<ActionSta
       .where(eq(quotes.id, id))
     await record(actor, 'কস্ট শিট সংরক্ষণ করেছেন', 'quote', id, `${q.code} সংশোধন ${changed ? q.rev + 1 : q.rev} · এফওবি ${tk(values.fob)}`)
     revalidatePath('/os', 'layout')
-    return 'cost sheet saved'
+    return 'কস্ট শিট সংরক্ষিত হয়েছে'
   })
 }
 
@@ -147,7 +147,7 @@ export async function sendQuote(_: ActionState, fd: FormData): Promise<ActionSta
     await db.update(quotes).set({ status: 'sent', sentAt: new Date() }).where(eq(quotes.id, id))
     await record(actor, 'বায়ারকে কোটেশন পাঠিয়েছেন', 'quote', id, `${q.code} · ${tk(q.fob)}`)
     revalidatePath('/os', 'layout')
-    return 'sent to buyer'
+    return 'বায়ারকে পাঠানো হয়েছে'
   })
 }
 

@@ -8,7 +8,7 @@ import { record, requireActor, requireGate } from '@/lib/actor'
 import { int, isoDate, num, run, str, type ActionState } from '@/lib/action'
 import { addDays, aqlPlan, DEFECT_CODES, DEPT_LABEL, ROLE_LABEL, STAGES, TNA_LABEL, today, type Stage } from '@/lib/domain'
 import { blChecks } from '@/lib/queries'
-import { tk } from '@/lib/format'
+import { tk, n } from '@/lib/format'
 
 async function loadOrder(fd: FormData) {
   const id = int(fd, 'order_id')
@@ -48,7 +48,7 @@ export async function commitTna(_: ActionState, fd: FormData): Promise<ActionSta
     await db.update(orders).set({ tnaCommitted: true }).where(eq(orders.id, o.id))
     await record(actor, 'ক্রিটিক্যাল পাথ নিশ্চিত করেছেন', 'order', o.id, `${o.code} শিপমেন্ট ${o.shipDate}`)
     done(o)
-    return 'critical path committed — every department now owns its dates'
+    return 'ক্রিটিক্যাল পাথ চূড়ান্ত — প্রতিটি বিভাগ এখন নিজের তারিখের দায়িত্বে'
   })
 }
 
@@ -104,7 +104,7 @@ export async function requestBtb(_: ActionState, fd: FormData): Promise<ActionSt
     await db.update(bom).set({ btbId: btb.id }).where(inArray(bom.id, unlinked.map((l) => l.id)))
     await record(actor, 'বিটুবি এলসি অনুরোধ করেছেন', 'lc', btb.id, `${number} · ${tk(amount)}`)
     done(o)
-    return `${number} requested for ${tk(amount)}`
+    return `${number} — ${tk(amount)} এর জন্য আবেদন করা হয়েছে`
   })
 }
 
@@ -126,7 +126,7 @@ export async function openBtb(_: ActionState, fd: FormData): Promise<ActionState
     await tick(o.id, 'btb lc opened')
     await record(actor, 'বিটুবি এলসি খুলেছেন', 'lc', id, `${btb.number} · ${tk(btb.amount)} · ${btb.tenorDays} দিন`)
     done(o)
-    return `${btb.number} opened — fabric can now be booked`
+    return `${btb.number} খোলা হয়েছে — এখন ফেব্রিক বুক করা যাবে`
   })
 }
 
@@ -165,7 +165,7 @@ export async function bookMaterial(_: ActionState, fd: FormData): Promise<Action
     await advance(o, 'materials')
     await record(actor, 'কাঁচামাল বুক করেছেন', 'order', o.id, `${o.code} · ${line.material} · ${supplier}`)
     done(o)
-    return rest.length ? `${line.material} booked` : 'all materials booked'
+    return rest.length ? `${line.material} বুক করা হয়েছে` : 'সব মালামাল বুক করা হয়েছে'
   })
 }
 
@@ -188,7 +188,7 @@ export async function addLay(_: ActionState, fd: FormData): Promise<ActionState>
     await advance(o, 'cut')
     await record(actor, 'লে লিখেছেন', 'order', o.id, `${o.code} লে ${prev.length + 1} · ${plies} প্লাই · ${markerEff}% মার্কার`)
     done(o)
-    return `lay ${prev.length + 1}: ${plies * bundles} pcs, bundles ${last + 1}–${last + bundles}`
+    return `লে ${n(prev.length + 1)}: ${n(plies * bundles)} পিস, বান্ডেল ${n(last + 1)}–${n(last + bundles)}`
   })
 }
 
@@ -203,7 +203,7 @@ export async function signPp(_: ActionState, fd: FormData): Promise<ActionState>
     await tick(o.id, 'pp meeting')
     await record(actor, 'পিপি মিটিং স্বাক্ষর করেছেন', 'order', o.id, `${o.code}: ${notes}`)
     done(o)
-    return 'pp meeting signed — bulk sewing may start'
+    return 'পিপি মিটিং স্বাক্ষরিত — বাল্ক সেলাই শুরু করা যাবে'
   })
 }
 
@@ -222,7 +222,7 @@ export async function logSewing(_: ActionState, fd: FormData): Promise<ActionSta
     await advance(o, 'sew')
     await record(actor, 'এক ঘণ্টার হিসাব লিখেছেন', 'order', o.id, `${o.code} লাইন ${line}: ${actual}/${target}`)
     done(o)
-    return `line ${line}: ${actual} of ${target} logged`
+    return `লাইন ${n(line)}: ${n(target)} এর মধ্যে ${n(actual)} লেখা হয়েছে`
   })
 }
 
@@ -238,7 +238,7 @@ export async function logDefect(_: ActionState, fd: FormData): Promise<ActionSta
     await db.insert(defects).values({ orderId: o.id, line, code, label: d.label, count })
     await record(actor, 'ত্রুটি লিখেছেন', 'order', o.id, `${o.code} লাইন ${line}: ${count} × ${d.bn}`)
     done(o)
-    return `${count} × ${d.label} logged on line ${line}`
+    return `লাইন ${n(line)} এ ${n(count)} × ${d.label} লেখা হয়েছে`
   })
 }
 
@@ -306,7 +306,7 @@ export async function releaseBl(_: ActionState, fd: FormData): Promise<ActionSta
     await tick(o.id, 'ex-factory')
     await record(actor, 'ডকুমেন্ট ব্যাংকে পাঠিয়েছেন', 'order', o.id, `${o.code} বি/এল`)
     done(o)
-    return 'documents released to the bank'
+    return 'ডকুমেন্ট ব্যাংকে পাঠানো হয়েছে'
   })
 }
 
@@ -331,6 +331,6 @@ export async function realiseOrder(_: ActionState, fd: FormData): Promise<Action
     for (const b of btbs) await db.update(lcs).set({ settledAmount: b.amount }).where(eq(lcs.id, b.id))
     await record(actor, 'টাকা প্রাপ্তি লিখে অর্ডার বন্ধ করেছেন', 'order', o.id, `${o.code}: ${tk(values.realisedAmount)} প্রাপ্ত`)
     done(o)
-    return 'order closed'
+    return 'অর্ডার বন্ধ করা হয়েছে'
   })
 }

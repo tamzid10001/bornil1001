@@ -43,10 +43,10 @@ export default async function OsLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <aside className="flex flex-col gap-6 border-b border-rule px-4 py-5 lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
-        <Link href="/os" aria-label="বর্ণিল আরএমজি, হোম" className="flex items-center gap-3 px-3 text-foreground">
+        <Link href="/os" aria-label="বর্ণিল RMG, হোম" className="flex items-center gap-3 px-3 text-foreground">
           <BornilLogo className="h-7 w-auto" />
           <span aria-hidden="true" className="h-5 w-px bg-rule" />
-          <span className="font-heading text-sm font-semibold tracking-widest">আরএমজি</span>
+          <span className="font-heading text-sm font-semibold tracking-widest">RMG</span>
         </Link>
         <Nav groups={groups} />
         <div className="mt-auto flex flex-col gap-4 border-t border-rule px-3 pt-4">
