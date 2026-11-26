@@ -91,6 +91,82 @@ export const orders = pgTable('orders', {
   discount: doublePrecision('discount'),
   realisedAt: day('realised_at'),
   closedAt: ts('closed_at'),
+  planLines: integer('plan_lines').notNull().default(4),
+  planPerLineDay: integer('plan_per_line_day').notNull().default(900),
+  planFabricLeadDays: integer('plan_fabric_lead_days').notNull().default(25),
+  createdAt: ts('created_at').notNull().defaultNow(),
+})
+
+export const lcAmendments = pgTable('lc_amendments', {
+  id: serial('id').primaryKey(),
+  lcId: integer('lc_id').notNull(),
+  orderId: integer('order_id').notNull(),
+  no: integer('no').notNull(),
+  field: text('field').notNull(),
+  oldValue: text('old_value'),
+  newValue: text('new_value').notNull(),
+  reason: text('reason').notNull(),
+  createdBy: integer('created_by'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+})
+
+export const bondLedger = pgTable('bond_ledger', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id').notNull(),
+  udId: integer('ud_id').notNull(),
+  kind: text('kind').notNull(),
+  material: text('material').notNull(),
+  qtyKg: doublePrecision('qty_kg').notNull(),
+  ref: text('ref').notNull(),
+  on: day('on_date').notNull(),
+  createdBy: integer('created_by'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+})
+
+export const cartons = pgTable('cartons', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id').notNull(),
+  cartonFrom: integer('carton_from').notNull(),
+  cartonTo: integer('carton_to').notNull(),
+  size: text('size').notNull(),
+  pcsPerCarton: integer('pcs_per_carton').notNull(),
+  netKg: doublePrecision('net_kg').notNull(),
+  grossKg: doublePrecision('gross_kg').notNull(),
+  cbm: doublePrecision('cbm').notNull(),
+  createdBy: integer('created_by'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+})
+
+export type TechPackData = {
+  fields: ExtractedField[]
+  measurements: { point: string; sizes: Record<string, string>; tolerance: string | null }[]
+  trims: { item: string; qtyPerPc: number | null; note: string | null }[]
+  operations: { name: string; smv: number | null }[]
+}
+
+export const techPacks = pgTable('tech_packs', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id').notNull(),
+  body: text('body').notNull(),
+  data: jsonb('data').$type<TechPackData>().notNull(),
+  reader: text('reader').notNull().default('ai'),
+  trimsAdded: boolean('trims_added').notNull().default(false),
+  createdBy: integer('created_by'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+})
+
+export const invoices = pgTable('invoices', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id').notNull(),
+  number: text('number').notNull(),
+  issuedOn: day('issued_on').notNull(),
+  quantity: integer('quantity').notNull(),
+  unitPrice: doublePrecision('unit_price').notNull(),
+  amount: doublePrecision('amount').notNull(),
+  description: text('description').notNull(),
+  exp: text('exp'),
+  status: text('status').notNull().default('draft'),
+  createdBy: integer('created_by'),
   createdAt: ts('created_at').notNull().defaultNow(),
 })
 
@@ -255,3 +331,8 @@ export type Order = typeof orders.$inferSelect
 export type Quote = typeof quotes.$inferSelect
 export type Person = typeof people.$inferSelect
 export type Lc = typeof lcs.$inferSelect
+export type LcAmendment = typeof lcAmendments.$inferSelect
+export type BondEntry = typeof bondLedger.$inferSelect
+export type Carton = typeof cartons.$inferSelect
+export type Invoice = typeof invoices.$inferSelect
+export type TechPack = typeof techPacks.$inferSelect

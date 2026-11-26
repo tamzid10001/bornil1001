@@ -1,4 +1,5 @@
-import type { Lc, Order } from '@/lib/db/schema'
+import type { Lc, LcAmendment, Order } from '@/lib/db/schema'
+import { LcAmendments } from '@/components/os/order/amend'
 import { canPass } from '@/lib/domain'
 import { bn, day, n, tk } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
@@ -16,9 +17,11 @@ export async function MaterialsSection({
   materials,
   nameOf,
   role,
+  amendments,
 }: {
   order: Order
   master: Lc | undefined
+  amendments: LcAmendment[]
   lcs: Lc[]
   ud: Ud[]
   materials: Bom[]
@@ -57,6 +60,9 @@ export async function MaterialsSection({
                   </div>
                   <Submit small>প্রাপ্ত এলসি লিখুন</Submit>
                 </ActionForm>
+              ) : null}
+              {master.status !== 'requested' ? (
+                <LcAmendments orderId={order.id} master={master} amendments={amendments} nameOf={nameOf} canAmend={isCommercial && !closed} />
               ) : null}
             </>
           ) : (

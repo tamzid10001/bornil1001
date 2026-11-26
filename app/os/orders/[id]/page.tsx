@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation'
-import { asc, eq } from 'drizzle-orm'
+import { asc, desc, eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { bl, bom, defects, lays, lcs, lots, people, sewing, tna, ud } from '@/lib/db/schema'
+import { bl, bom, bondLedger, cartons, defects, invoices, lays, lcAmendments, lcs, lots, people, sewing, techPacks, tna, ud } from '@/lib/db/schema'
+import { TechPackSection } from '@/components/os/order/techpack'
+import { BondSection } from '@/components/os/order/bond'
+import { ExportDocsSection } from '@/components/os/order/docs'
 import { getActor } from '@/lib/actor'
 import { getOrder, projection } from '@/lib/queries'
 import { day, n, tkK } from '@/lib/format'
@@ -17,7 +20,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const o = await getOrder(Number(id))
   if (!o) notFound()
 
-  const [actor, staff, milestones, orderLcs, orderUd, materials, orderLays, orderSewing, orderDefects, orderLots, bls] = await Promise.all([
+  const [actor, staff, milestones, orderLcs, orderUd, materials, orderLays, orderSewing, orderDefects, orderLots, bls, amendments, bond, packed, invs, packs] = await Promise.all([
     getActor(),
     db.select().from(people),
     db.select().from(tna).where(eq(tna.orderId, o.id)).orderBy(asc(tna.sort)),
@@ -29,7 +32,13 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
     db.select().from(defects).where(eq(defects.orderId, o.id)),
     db.select().from(lots).where(eq(lots.orderId, o.id)),
     db.select().from(bl).where(eq(bl.orderId, o.id)),
+    db.select().from(lcAmendments).where(eq(lcAmendments.orderId, o.id)).orderBy(asc(lcAmendments.no)),
+    db.select().from(bondLedger).where(eq(bondLedger.orderId, o.id)).orderBy(asc(bondLedger.on), asc(bondLedger.id)),
+    db.select().from(cartons).where(eq(cartons.orderId, o.id)).orderBy(asc(cartons.cartonFrom)),
+    db.select().from(invoices).where(eq(invoices.orderId, o.id)).orderBy(desc(invoices.id)).limit(1),
+    db.select().from(techPacks).where(eq(techPacks.orderId, o.id)).orderBy(desc(techPacks.id)).limit(1),
   ])
+  const latestBl = [...bls].sort((a, b) => b.id - a.id)[0]
   const nameOf = (pid: number | null) => staff.find((p) => p.id === pid)?.name ?? '—'
   const p = projection(o, orderSewing)
   const master = orderLcs.find((l) => l.kind === 'master')
@@ -53,8 +62,11 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       </div>
 
       <PlanSection order={o} milestones={milestones} role={role} />
-      <MaterialsSection order={o} master={master} lcs={orderLcs} ud={orderUd} materials={materials} nameOf={nameOf} role={role} />
+      <TechPackSection order={o} pack={packs[0]} nameOf={nameOf} role={role} />
+      <MaterialsSection order={o} master={master} amendments={amendments} lcs={orderLcs} ud={orderUd} materials={materials} nameOf={nameOf} role={role} />
+      <BondSection order={o} ud={orderUd[0]} entries={bond} nameOf={nameOf} role={role} />
       <ProductionSection order={o} lays={orderLays} sewing={orderSewing} defects={orderDefects} lots={orderLots} nameOf={nameOf} role={role} />
+      <ExportDocsSection order={o} master={master} rows={packed} invoice={invs[0]} blQty={latestBl?.quantity ?? null} role={role} />
       <ShipSection order={o} master={master} bls={bls} nameOf={nameOf} role={role} quantityAccepted={orderLots.some((l) => l.result === 'accepted')} />
       <MoneyIn order={o} lcs={orderLcs} />
     </>

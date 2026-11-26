@@ -7,17 +7,19 @@ export function PageHeader({
   title,
   lede,
   actions,
+  hideTitle,
 }: {
   eyebrow?: string
   title: string
   lede?: React.ReactNode
   actions?: React.ReactNode
+  hideTitle?: boolean
 }) {
   return (
     <header className="flex flex-col gap-4 border-b border-rule pb-6 md:flex-row md:items-end md:justify-between">
       <div className="flex max-w-2xl flex-col gap-2">
         {eyebrow ? <p className="label">{eyebrow}</p> : null}
-        <h1 className="text-3xl leading-tight md:text-4xl">{title}</h1>
+        <h1 className={hideTitle ? 'sr-only' : 'text-3xl leading-tight md:text-4xl'}>{title}</h1>
         {lede ? <p className="text-pretty leading-relaxed text-muted">{lede}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
@@ -36,6 +38,7 @@ const CHIP: Record<string, string> = {
   rejected: 'bg-alert-soft text-alert',
   late: 'bg-alert-soft text-alert',
   released: 'border border-ok text-ok',
+  issued: 'border border-ok text-ok',
   opened: 'border border-ok text-ok',
   booked: 'border border-ok text-ok',
   accepted: 'border border-ok text-ok',

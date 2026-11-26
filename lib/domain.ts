@@ -36,6 +36,7 @@ export const STATUS_LABEL: Record<string, string> = {
   rejected: 'বাতিল',
   late: 'দেরি',
   released: 'ছাড় দেওয়া হয়েছে',
+  issued: 'ইস্যু হয়েছে',
   opened: 'খোলা হয়েছে',
   booked: 'বুক করা হয়েছে',
   accepted: 'গৃহীত',
@@ -138,6 +139,39 @@ export const TNA_TEMPLATE: { name: string; dept: string; offset: number }[] = [
   { name: 'ex-factory', dept: 'commercial', offset: 2 },
 ]
 
+export type PlanInputs = { lines: number; perLineDay: number; fabricLeadDays: number }
+
+export const PLAN_DEFAULTS: PlanInputs = { lines: 4, perLineDay: 900, fabricLeadDays: 25 }
+
+/**
+ * Works the critical path backwards from the ship date. Each milestone's latest date is its
+ * successor's date minus the work between them, so sewing length follows quantity and line
+ * capacity, and fabric booking follows the supplier lead time.
+ */
+export function backSchedule(shipDate: string, quantity: number, p: PlanInputs) {
+  const sewingDays = Math.ceil(quantity / Math.max(1, p.lines * p.perLineDay)) + 2
+  const d: Record<string, string> = {}
+  d['ex-factory'] = addDays(shipDate, -2)
+  d['final inspection'] = addDays(d['ex-factory'], -2)
+  d['sewing complete'] = addDays(d['final inspection'], -3)
+  d['sewing start'] = addDays(d['sewing complete'], -sewingDays)
+  d['bulk cutting start'] = addDays(d['sewing start'], -3)
+  d['pp meeting'] = addDays(d['bulk cutting start'], -2)
+  d['pp sample approval'] = addDays(d['pp meeting'], -4)
+  d['fabric in-house'] = addDays(d['bulk cutting start'], -4)
+  d['trims booking'] = addDays(d['sewing start'], -20)
+  d['fabric booking'] = addDays(d['fabric in-house'], -p.fabricLeadDays)
+  d['btb lc opened'] = addDays(d['fabric booking'], -2)
+  d['lab dip approval'] = addDays(d['fabric booking'], -3)
+  d['master lc received'] = addDays(d['btb lc opened'], -4)
+
+  const rows = TNA_TEMPLATE.map((m) => ({ name: m.name, dept: m.dept, due: d[m.name] }))
+    .sort((a, b) => a.due.localeCompare(b.due))
+    .map((m, i) => ({ ...m, sort: i }))
+  const start = rows[0].due
+  return { rows, sewingDays, start, slack: daysBetween(today(), start) }
+}
+
 export const TNA_LABEL: Record<string, string> = {
   'lab dip approval': 'ল্যাব ডিপ অনুমোদন',
   'master lc received': 'মাস্টার এলসি প্রাপ্তি',
@@ -217,7 +251,7 @@ export function addDays(iso: string, days: number) {
 }
 
 export function today() {
-  return new Date().toISOString().slice(0, 10)
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Dhaka' })
 }
 
 export function daysBetween(a: string, b: string) {

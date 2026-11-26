@@ -34,7 +34,8 @@ export default async function TonightPage() {
     <>
       <PageHeader
         eyebrow={new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Dhaka' })}
-        title="আজ রাতে যা আপনার নজর চায়।"
+        title="আজ রাত"
+  hideTitle
       />
 
       <div className="grid grid-cols-2 gap-6 md:grid-cols-4">

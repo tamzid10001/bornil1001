@@ -39,3 +39,10 @@ export function stamp(v: Date | string | null | undefined) {
 
 const bnDigits = '০১২৩৪৫৬৭৮৯'
 export const bn = (v: number | string) => String(v).replace(/\d/g, (d) => bnDigits[Number(d)])
+
+export function localDay(d: Date) {
+  return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Dhaka' })
+}
+
+const kgFmt = new Intl.NumberFormat('bn-BD', { maximumFractionDigits: 1 })
+export const kg = (v: number | null | undefined) => (v == null ? '—' : kgFmt.format(Math.round(v * 10) / 10))

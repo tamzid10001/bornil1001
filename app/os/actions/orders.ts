@@ -8,7 +8,7 @@ import { record, requireActor, requireGate } from '@/lib/actor'
 import { int, isoDate, num, run, str, type ActionState } from '@/lib/action'
 import { addDays, aqlPlan, DEFECT_CODES, DEPT_LABEL, ROLE_LABEL, STAGES, TNA_LABEL, today, type Stage } from '@/lib/domain'
 import { blChecks } from '@/lib/queries'
-import { tk, n } from '@/lib/format'
+import { bn, tk, n } from '@/lib/format'
 
 async function loadOrder(fd: FormData) {
   const id = int(fd, 'order_id')
@@ -288,7 +288,7 @@ export async function saveBl(_: ActionState, fd: FormData): Promise<ActionState>
     else await db.insert(bl).values({ ...values, status })
     await record(actor, 'বি/এল খসড়া সংরক্ষণ করেছেন', 'order', o.id, `${o.code}: ${failed.length ? `${failed.length}টি অমিল` : 'এলসির সঙ্গে মিলেছে'}`)
     done(o)
-    return failed.length ? `${failed.length} discrepanc${failed.length > 1 ? 'ies' : 'y'} against the lc — fix before release` : 'b/l matches the lc'
+    return failed.length ? `এলসির সঙ্গে ${bn(failed.length)}টি অমিল — পাঠানোর আগে ঠিক করুন` : 'বি/এল এলসির সঙ্গে মিলেছে'
   })
 }
 

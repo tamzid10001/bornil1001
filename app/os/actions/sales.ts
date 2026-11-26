@@ -9,7 +9,7 @@ import { record, requireActor, requireGate } from '@/lib/actor'
 import { int, isoDate, num, run, str, type ActionState } from '@/lib/action'
 import { extractInquiry } from '@/lib/extract'
 import { nextCode } from '@/lib/codes'
-import { addDays, quoteMargin, TNA_TEMPLATE } from '@/lib/domain'
+import { addDays, backSchedule, PLAN_DEFAULTS, quoteMargin, today } from '@/lib/domain'
 import { pct, tk } from '@/lib/format'
 
 export async function createInquiry(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -161,7 +161,7 @@ export async function winQuote(_: ActionState, fd: FormData): Promise<ActionStat
     const [q] = await db.select().from(quotes).where(eq(quotes.id, id))
     if (!q || q.status !== 'sent') throw new Error('শুধু পাঠানো কোটেশন থেকেই অর্ডার নেওয়া যায়।')
     const [inq] = q.inquiryId ? await db.select().from(inquiries).where(eq(inquiries.id, q.inquiryId)) : []
-    const shipDate = inq?.shipDate ?? addDays(new Date().toISOString().slice(0, 10), 90)
+    const shipDate = inq?.shipDate ?? addDays(today(), 90)
     const code = await nextCode(orders, 'PO', 2040)
     const ratio = { S: 1, M: 3, L: 3, XL: 2, XXL: 1 }
     const unit = q.quantity / 10
@@ -171,7 +171,8 @@ export async function winQuote(_: ActionState, fd: FormData): Promise<ActionStat
       .values({ code, quoteId: id, buyer: q.buyer, style: q.style, fabric: inq?.fabric ?? null, quantity: q.quantity, sizes, shipDate, fob: q.fob })
       .returning({ id: orders.id })
     orderId = o.id
-    await db.insert(tna).values(TNA_TEMPLATE.map((m, i) => ({ orderId, name: m.name, ownerDept: m.dept, dueDate: addDays(shipDate, -m.offset), sort: i })))
+    const plan = backSchedule(shipDate, q.quantity, PLAN_DEFAULTS)
+    await db.insert(tna).values(plan.rows.map((m) => ({ orderId, name: m.name, ownerDept: m.dept, dueDate: m.due, sort: m.sort })))
     const fabricKg = Math.round(q.fabricKg * q.quantity * 1.04)
     await db.insert(bom).values([
       { orderId, material: inq?.fabric ?? 'body fabric', qty: fabricKg, unit: 'kg', rate: q.fabricRate, supplier: null, source: 'import' },
