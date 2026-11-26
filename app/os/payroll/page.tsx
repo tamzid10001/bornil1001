@@ -46,7 +46,7 @@ export default async function PayrollPage() {
           <Empty>এখনো কোনো শ্রমিক যোগ করা হয়নি।</Empty>
         ) : (
           <div className="overflow-x-auto">
-            <table className="tbl">
+            <table className="tbl min-w-160">
               <thead>
                 <tr>
                   <th>শ্রমিক</th>

@@ -44,7 +44,7 @@ export default async function CommercialPage() {
           <Empty>কোনো মাস্টার এলসি নেই।</Empty>
         ) : (
           <div className="overflow-x-auto">
-            <table className="tbl">
+            <table className="tbl min-w-160">
               <thead>
                 <tr>
                   <th>এলসি</th>
@@ -62,8 +62,8 @@ export default async function CommercialPage() {
                   const share = m.amount ? (used / m.amount) * 100 : 0
                   return (
                     <tr key={m.id}>
-                      <td className="font-medium">{m.number}</td>
-                      <td>
+                      <td className="whitespace-nowrap font-medium">{m.number}</td>
+                      <td className="whitespace-nowrap">
                         <Link href={`/os/orders/${m.orderId}`} className="text-ink underline-offset-4 hover:underline">
                           {code(m.orderId)}
                         </Link>
@@ -86,7 +86,7 @@ export default async function CommercialPage() {
 
       <Section title="মেয়াদ অনুযায়ী ব্যাক-টু-ব্যাক এলসি">
         <div className="overflow-x-auto">
-          <table className="tbl">
+          <table className="tbl min-w-160">
             <thead>
               <tr>
                 <th>বিটুবি</th>
@@ -102,8 +102,8 @@ export default async function CommercialPage() {
                 const left = b.maturity ? daysBetween(t, b.maturity) : null
                 return (
                   <tr key={b.id}>
-                    <td className="font-medium">{b.number}</td>
-                    <td>{code(b.orderId)}</td>
+                    <td className="whitespace-nowrap font-medium">{b.number}</td>
+                    <td className="whitespace-nowrap">{code(b.orderId)}</td>
                     <td className="num text-right">{tk(b.amount)}</td>
                     <td>{bn(b.tenorDays)} দিন</td>
                     <td className={left != null && left <= 30 && b.settledAmount == null ? 'text-alert' : ''}>
@@ -123,38 +123,40 @@ export default async function CommercialPage() {
         {allUd.length === 0 ? (
           <Empty>কোনো ইউডি লেখা হয়নি।</Empty>
         ) : (
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>ইউডি</th>
-                <th>অর্ডার</th>
-                <th className="text-right">অনুমোদিত</th>
-                <th className="text-right">বুক করা</th>
-                <th className="text-right">বাকি সীমা</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allUd.map((u) => {
-                const used = allBom.filter((b) => b.orderId === u.orderId && b.kind === 'fabric' && b.unit === u.permittedUnit).reduce((s, b) => s + b.qty, 0)
-                const unit = unitLabel(u.permittedUnit)
-                return (
-                  <tr key={u.id}>
-                    <td className="font-medium">{u.number}</td>
-                    <td>{code(u.orderId)}</td>
-                    <td className="num text-right">
-                      {u.material} {n(u.permittedQty)} {unit}
-                    </td>
-                    <td className="num text-right">
-                      {n(used)} {unit}
-                    </td>
-                    <td className={`num text-right ${used > u.permittedQty ? 'text-alert' : 'text-ok'}`}>
-                      {n(u.permittedQty - used)} {unit}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="tbl min-w-140">
+              <thead>
+                <tr>
+                  <th>ইউডি</th>
+                  <th>অর্ডার</th>
+                  <th className="text-right">অনুমোদিত</th>
+                  <th className="text-right">বুক করা</th>
+                  <th className="text-right">বাকি সীমা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allUd.map((u) => {
+                  const used = allBom.filter((b) => b.orderId === u.orderId && b.kind === 'fabric' && b.unit === u.permittedUnit).reduce((s, b) => s + b.qty, 0)
+                  const unit = unitLabel(u.permittedUnit)
+                  return (
+                    <tr key={u.id}>
+                      <td className="whitespace-nowrap font-medium">{u.number}</td>
+                      <td className="whitespace-nowrap">{code(u.orderId)}</td>
+                      <td className="num text-right">
+                        {u.material} {n(u.permittedQty)} {unit}
+                      </td>
+                      <td className="num text-right">
+                        {n(used)} {unit}
+                      </td>
+                      <td className={`num text-right ${used > u.permittedQty ? 'text-alert' : 'text-ok'}`}>
+                        {n(u.permittedQty - used)} {unit}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </Section>
     </>

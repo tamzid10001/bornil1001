@@ -64,7 +64,7 @@ export default async function CostingPage() {
           <Empty>{config.modules.inquiries ? 'একটি ইনকোয়ারি নিশ্চিত করলে বা ওপরের ফর্ম থেকে কস্ট শিট শুরু হবে।' : 'ওপরের ফর্ম থেকে প্রথম কস্ট শিট খুলুন।'}</Empty>
         ) : (
           <div className="overflow-x-auto">
-            <table className="tbl">
+            <table className="tbl min-w-160">
               <thead>
                 <tr>
                   <th>কোটেশন</th>

@@ -136,7 +136,7 @@ export default async function MaintenancePage() {
       <Section title="ইতিহাস">
         {closed.length ? (
           <div className="overflow-x-auto">
-            <table className="tbl">
+            <table className="tbl min-w-160">
               <thead>
                 <tr>
                   <th>মেশিন</th>

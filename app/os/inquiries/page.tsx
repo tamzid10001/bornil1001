@@ -27,7 +27,7 @@ export default async function InquiriesPage() {
             <Empty>এখনো কোনো ইনকোয়ারি নেই।</Empty>
           ) : (
             <div className="overflow-x-auto">
-              <table className="tbl">
+              <table className="tbl min-w-160">
                 <thead>
                   <tr>
                     <th>ইনকোয়ারি</th>

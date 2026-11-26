@@ -1,3 +1,12 @@
+export function BornilCredit({ className = '' }: { className?: string }) {
+  return (
+    <p className={`flex items-center gap-2 text-xs text-subtle ${className}`}>
+      <span lang="en">Product Developed By</span>
+      <BornilLogo className="h-4 w-auto shrink-0 text-muted" />
+    </p>
+  )
+}
+
 export function BornilLogo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 274.318 80.025" role="img" aria-label="বর্ণিল" fill="currentColor" className={className}>

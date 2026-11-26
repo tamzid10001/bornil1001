@@ -108,7 +108,7 @@ export default async function QualityPage() {
           <Empty>এখনো কোনো লট পরিদর্শন করা হয়নি। অর্ডারের পাতা থেকে পরিদর্শন করুন।</Empty>
         ) : (
           <div className="overflow-x-auto">
-            <table className="tbl">
+            <table className="tbl min-w-160">
               <thead>
                 <tr>
                   <th>অর্ডার</th>
@@ -124,7 +124,7 @@ export default async function QualityPage() {
               <tbody>
                 {allLots.map((l) => (
                   <tr key={l.id}>
-                    <td>
+                    <td className="whitespace-nowrap">
                       <Link href={`/os/orders/${l.orderId}`} className="text-ink underline-offset-4 hover:underline">
                         {orderCode(l.orderId)}
                       </Link>

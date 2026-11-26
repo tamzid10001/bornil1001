@@ -69,7 +69,18 @@ export default async function ApprovalsPage() {
       </div>
 
       <Section title="অডিট ট্রেইল" aside={<span className="text-sm text-muted">সর্বশেষ {bn(trail.length)}টি</span>}>
-        <div className="overflow-x-auto">
+        <ul className="flex flex-col md:hidden">
+          {trail.map((a) => (
+            <li key={a.id} className="flex flex-col gap-0.5 border-t border-rule py-3 first:border-t-0">
+              <span className="font-medium">{acronyms(a.action)}</span>
+              {a.detail ? <span className="text-sm text-muted">{a.detail}</span> : null}
+              <span className="text-xs text-subtle">
+                {a.actor} · <span className="num">{stamp(a.at)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden overflow-x-auto md:block">
           <table className="tbl">
             <thead>
               <tr>

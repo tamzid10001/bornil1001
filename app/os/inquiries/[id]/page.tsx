@@ -30,7 +30,7 @@ export default async function InquiryPage({ params }: { params: Promise<{ id: st
       />
       <div className="grid gap-10 lg:grid-cols-2">
         <Section title="ইমেইল">
-          <pre className="whitespace-pre-wrap rounded-xl bg-key p-5 font-mono text-sm leading-relaxed">{inq.body}</pre>
+          <pre className="whitespace-pre-wrap wrap-anywhere rounded-xl bg-key p-5 font-mono text-sm leading-relaxed">{inq.body}</pre>
         </Section>
         <Section title={locked ? 'নিশ্চিত করা তথ্য' : 'ইমেইল থেকে পাওয়া তথ্য যাচাই করুন'}>
           <ul className="flex flex-col">

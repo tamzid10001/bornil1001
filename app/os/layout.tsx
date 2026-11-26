@@ -5,8 +5,9 @@ import { NAV } from '@/lib/i18n'
 import { getExceptions } from '@/lib/queries'
 import { getConfig, getFactory, getRoles } from '@/lib/settings'
 import { AutoSubmitSelect, Nav } from '@/components/os/nav'
-import { BornilLogo } from '@/components/os/logo'
+import { BornilCredit, BornilLogo } from '@/components/os/logo'
 import { BrandMark } from '@/components/os/brand'
+import { MobileNav } from '@/components/os/mobile-nav'
 import { SetupWizard } from '@/components/os/setup-wizard'
 import { loadExampleFactory, setActor } from './actions/shell'
 import { setupFactory } from './actions/settings'
@@ -57,35 +58,58 @@ export default async function OsLayout({ children }: { children: React.ReactNode
   const roleName = (key: string) => roles.find((r) => r.key === key)?.name ?? key
   const active = staff.filter((p) => p.active)
 
-  return (
-    <div className="flex min-h-dvh flex-col lg:flex-row">
-      <aside className="flex flex-col gap-6 border-b border-rule px-4 py-5 lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
-        <Link href="/os" aria-label={`${factory.name}, মূল পাতা`} className="flex items-center gap-3 px-3 text-foreground">
-          <BrandMark brand={factory} />
-          <span className="flex min-w-0 flex-col">
-            <span className="line-clamp-2 font-heading text-sm font-semibold leading-snug">{factory.name}</span>
-            {factory.nameEn ? <span className="truncate text-xs text-subtle">{factory.nameEn}</span> : null}
-          </span>
-        </Link>
+  const homeLabel = `${factory.name}, মূল পাতা`
+  const brand = (
+    <Link href="/os" aria-label={homeLabel} className="flex min-w-0 items-center gap-3 px-3 text-foreground">
+      <BrandMark brand={factory} />
+      <span className="flex min-w-0 flex-col">
+        <span className="line-clamp-2 font-heading text-sm font-semibold leading-snug">{factory.name}</span>
+        {factory.nameEn ? <span className="truncate text-xs text-subtle">{factory.nameEn}</span> : null}
+      </span>
+    </Link>
+  )
+  const menu = (
+    <>
+      <div className="scroll-shade -mx-4 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-1">
         <Nav groups={groups} />
-        <div className="mt-auto flex flex-col gap-4 border-t border-rule px-3 pt-4">
-          <form action={setActor}>
-            <AutoSubmitSelect name="actor" defaultValue={String(actor?.id ?? '')} label="বর্তমান ব্যবহারকারী">
-              {active.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} · {roleName(p.role)}
-                </option>
-              ))}
-            </AutoSubmitSelect>
-          </form>
-          <p className="flex items-center gap-2 text-xs text-subtle">
-            <BornilLogo className="h-3 w-auto" />
-            <span>দিয়ে চালিত</span>
-          </p>
-        </div>
+      </div>
+      <div className="flex shrink-0 flex-col gap-4 border-t border-rule px-3 pt-4">
+        <form action={setActor}>
+          <AutoSubmitSelect name="actor" defaultValue={String(actor?.id ?? '')} label="বর্তমান ব্যবহারকারী">
+            {active.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} · {roleName(p.role)}
+              </option>
+            ))}
+          </AutoSubmitSelect>
+        </form>
+        <BornilCredit />
+      </div>
+    </>
+  )
+
+  return (
+    <div className="flex min-h-dvh flex-col xl:flex-row">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-1 border-b border-rule bg-background px-2.5 md:px-7.5 xl:hidden">
+        <MobileNav brand={brand} alerts={badges['/os']}>
+          {menu}
+        </MobileNav>
+        <Link href="/os" aria-label={homeLabel} className="flex min-w-0 items-center gap-2.5 rounded-lg px-1 text-foreground">
+          <BrandMark brand={factory} />
+          <span className="truncate font-heading text-sm font-semibold">{factory.name}</span>
+        </Link>
+      </header>
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r border-rule px-4 py-5 xl:flex">
+        {brand}
+        {menu}
       </aside>
       <main className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10">{children}</div>
+        <div className="mx-auto flex max-w-6xl flex-col gap-10">
+          {children}
+          <footer className="border-t border-rule pt-6 xl:hidden">
+            <BornilCredit />
+          </footer>
+        </div>
       </main>
     </div>
   )

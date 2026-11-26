@@ -178,7 +178,7 @@ export async function MaterialsSection({
           </GateNote>
         ) : null}
         <div className="overflow-x-auto">
-          <table className="tbl">
+          <table className="tbl min-w-160">
             <thead>
               <tr>
                 <th>কাঁচামাল</th>

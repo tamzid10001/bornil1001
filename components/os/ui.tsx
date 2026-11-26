@@ -74,7 +74,7 @@ export function Stat({ value, label, tone }: { value: React.ReactNode; label: st
 
 export function Section({ title, aside, children }: { title: string; aside?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex min-w-0 flex-col gap-4">
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-xl">{title}</h2>
         {aside}
