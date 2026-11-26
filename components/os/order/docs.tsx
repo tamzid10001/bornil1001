@@ -1,4 +1,5 @@
 import type { Carton, Invoice, Lc, Order } from '@/lib/db/schema'
+import type { Grants } from '@/lib/actor'
 import { invoiceChecks, packingTotals } from '@/lib/export-checks'
 import { today } from '@/lib/domain'
 import { bn, day, kg, n, tk } from '@/lib/format'
@@ -12,20 +13,20 @@ export function ExportDocsSection({
   rows,
   invoice,
   blQty,
-  role,
+  can,
 }: {
   order: Order
   master: Lc | undefined
   rows: Carton[]
   invoice: Invoice | undefined
   blQty: number | null
-  role: string
+  can: Grants
 }) {
   const t = packingTotals(rows)
   const closed = !!order.closedAt
   const locked = invoice?.status === 'issued'
-  const canPack = ['owner', 'store', 'qa', 'commercial'].includes(role) && !closed && !locked
-  const canInvoice = ['owner', 'commercial'].includes(role) && !closed
+  const canPack = can['packing.manage'] && !closed && !locked
+  const canInvoice = can['commercial.manage'] && !closed
   const sizes = Object.keys(order.sizes)
   const checks = invoice ? invoiceChecks(invoice, master, t.pcs, blQty) : []
 

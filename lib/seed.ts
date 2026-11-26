@@ -6,9 +6,12 @@ import {
   bom,
   defects,
   employees,
+  factory,
+  floors,
   inquiries,
   lays,
   lcs,
+  lines,
   lots,
   machines,
   orders,
@@ -19,7 +22,8 @@ import {
   tna,
   ud,
 } from './db/schema'
-import { addDays, DEFECT_CODES, TNA_TEMPLATE, today } from './domain'
+import { addDays, backSchedule, DEFAULT_DEFECTS, DEFAULT_TNA, today } from './config'
+import { getRoles } from './settings'
 
 const INQUIRY_BODY = `Hi team,
 
@@ -43,6 +47,18 @@ export async function seedExampleFactory() {
   if (existing.length) return
 
   const t = today()
+
+  await getRoles()
+  await db
+    .insert(factory)
+    .values({ id: 1, name: 'নমুনা অ্যাপারেলস লিমিটেড', nameEn: 'Sample Apparels Ltd.', tagline: 'নিট ও ওভেন পোশাক রপ্তানিকারক', erc: 'RA-0123456', bin: '000123456-0101', membership: 'BGMEA 1234' })
+    .onConflictDoNothing()
+  const [floor] = await db.insert(floors).values({ name: 'ফ্লোর ১', building: 'ভবন এ', sort: 0 }).returning()
+  const lineRows = await db
+    .insert(lines)
+    .values(['লাইন ১', 'লাইন ২', 'লাইন ৩', 'লাইন ৪'].map((name, i) => ({ floorId: floor.id, name, kind: 'sewing', hourlyTarget: 120, operators: 28, sort: i })))
+    .returning()
+  const lineId = (n: number) => lineRows[n - 1].id
 
   const staff = await db
     .insert(people)
@@ -71,6 +87,7 @@ export async function seedExampleFactory() {
         subject: 'SS26 piqué polo — price request',
         body: INQUIRY_BODY,
         style: 'NH-PQ-220 piqué polo',
+        category: 'knit-top',
         fabric: '220gsm cotton piqué',
         quantity: 36000,
         shipDate: '2026-11-12',
@@ -93,6 +110,7 @@ export async function seedExampleFactory() {
         fromEmail: 'buying@halden.example',
         subject: 'AW27 twill chino — RFQ',
         body: 'Hello,\n\nRequesting FOB for a stretch twill chino, 98/2 cotton elastane, 280gsm.\nQty 18,000 units across 28-38 waist.\nDelivery end of January 2027.\nTarget BDT 903 / pc.\n\nRegards,\nMarkus Lind',
+        category: 'woven-bottom',
         status: 'draft',
         fields: [],
       },
@@ -102,28 +120,27 @@ export async function seedExampleFactory() {
   const qs = await db
     .insert(quotes)
     .values([
-      { code: 'QT-3172', inquiryId: inq.id, buyer: 'Nordhavn Apparel', style: 'NH-PQ-220 piqué polo', quantity: 36000, rev: 2, fabricKg: 0.25, fabricRate: 561.2, cmMinutes: 18.4, cmRate: 6.34, trims: 58.56, overhead: 39.04, fob: 592.92, status: 'confirmed', releasedBy: by('owner'), releasedAt: hoursAgo(24 * 66), sentAt: hoursAgo(24 * 66) },
-      { code: 'QT-3190', buyer: 'Aster Retail', style: 'AS-JT-160 jersey tee', quantity: 24000, rev: 3, fabricKg: 0.19, fabricRate: 512.4, cmMinutes: 11.2, cmRate: 6.34, trims: 37.82, overhead: 32.94, fob: 283.04, status: 'held' },
-      { code: 'QT-3201', buyer: 'Halden Workwear', style: 'HW-TC-280 twill chino', quantity: 18000, rev: 1, fabricKg: 0.62, fabricRate: 622.2, cmMinutes: 27, cmRate: 6.34, trims: 90.28, overhead: 54.9, fob: 896.7, status: 'confirmed', releasedBy: by('owner'), releasedAt: hoursAgo(24 * 20), sentAt: hoursAgo(24 * 20) },
+      { code: 'QT-3172', inquiryId: inq.id, buyer: 'Nordhavn Apparel', style: 'NH-PQ-220 piqué polo', category: 'knit-top', quantity: 36000, rev: 2, fabricQty: 0.25, fabricUnit: 'kg', fabricRate: 561.2, cmMinutes: 18.4, cmRate: 6.34, trims: 58.56, overhead: 39.04, fob: 592.92, status: 'confirmed', releasedBy: by('owner'), releasedAt: hoursAgo(24 * 66), sentAt: hoursAgo(24 * 66) },
+      { code: 'QT-3190', buyer: 'Aster Retail', style: 'AS-JT-160 jersey tee', category: 'knit-top', quantity: 24000, rev: 3, fabricQty: 0.19, fabricUnit: 'kg', fabricRate: 512.4, cmMinutes: 11.2, cmRate: 6.34, trims: 37.82, overhead: 32.94, fob: 283.04, status: 'held' },
+      { code: 'QT-3201', buyer: 'Halden Workwear', style: 'HW-TC-280 twill chino', category: 'woven-bottom', quantity: 18000, rev: 1, fabricQty: 1.35, fabricUnit: 'yd', fabricRate: 285.6, cmMinutes: 27, cmRate: 6.34, trims: 90.28, overhead: 54.9, fob: 896.7, status: 'confirmed', releasedBy: by('owner'), releasedAt: hoursAgo(24 * 20), sentAt: hoursAgo(24 * 20) },
     ])
     .returning()
 
   const os = await db
     .insert(orders)
     .values([
-      { code: 'PO-2044', quoteId: qs[0].id, buyer: 'Nordhavn Apparel', style: 'NH-PQ-220 piqué polo', fabric: '220gsm cotton piqué', quantity: 36000, sizes: { S: 3600, M: 10800, L: 10800, XL: 7200, XXL: 3600 }, shipDate: addDays(t, 24), fob: 592.92, stage: 'sew', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 9) },
-      { code: 'PO-2051', quoteId: qs[2].id, buyer: 'Halden Workwear', style: 'HW-TC-280 twill chino', fabric: '280gsm stretch twill', quantity: 18000, sizes: { '30': 3600, '32': 5400, '34': 5400, '36': 3600 }, shipDate: addDays(t, 64), fob: 896.7, stage: 'materials', tnaCommitted: true },
-      { code: 'PO-2039', buyer: 'Aster Retail', style: 'AS-JT-150 jersey tee', fabric: '150gsm combed jersey', quantity: 48000, sizes: { S: 9600, M: 14400, L: 14400, XL: 9600 }, shipDate: addDays(t, 3), fob: 294.02, stage: 'ship', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 45) },
-      { code: 'PO-2027', buyer: 'Nordhavn Apparel', style: 'NH-SW-300 crew sweatshirt', fabric: '300gsm fleece', quantity: 22000, sizes: { S: 4400, M: 6600, L: 6600, XL: 4400 }, shipDate: addDays(t, -38), fob: 841.8, stage: 'paid', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 90), realisedAmount: 18358560, btbSettled: 10516400, airFreight: 0, discount: 161040, realisedAt: addDays(t, -6), closedAt: hoursAgo(24 * 5) },
+      { code: 'PO-2044', quoteId: qs[0].id, buyer: 'Nordhavn Apparel', style: 'NH-PQ-220 piqué polo', category: 'knit-top', fabric: '220gsm cotton piqué', quantity: 36000, sizes: { S: 3600, M: 10800, L: 10800, XL: 7200, XXL: 3600 }, shipDate: addDays(t, 24), fob: 592.92, stage: 'sew', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 9) },
+      { code: 'PO-2051', quoteId: qs[2].id, buyer: 'Halden Workwear', style: 'HW-TC-280 twill chino', category: 'woven-bottom', fabric: '280gsm stretch twill', quantity: 18000, sizes: { '30': 3600, '32': 5400, '34': 5400, '36': 3600 }, shipDate: addDays(t, 64), fob: 896.7, stage: 'materials', tnaCommitted: true },
+      { code: 'PO-2039', buyer: 'Aster Retail', style: 'AS-JT-150 jersey tee', category: 'knit-top', fabric: '150gsm combed jersey', quantity: 48000, sizes: { S: 9600, M: 14400, L: 14400, XL: 9600 }, shipDate: addDays(t, 3), fob: 294.02, stage: 'ship', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 45) },
+      { code: 'PO-2027', buyer: 'Nordhavn Apparel', style: 'NH-SW-300 crew sweatshirt', category: 'knit-fleece', fabric: '300gsm fleece', quantity: 22000, sizes: { S: 4400, M: 6600, L: 6600, XL: 4400 }, shipDate: addDays(t, -38), fob: 841.8, stage: 'paid', tnaCommitted: true, ppSignedBy: by('qa'), ppSignedAt: hoursAgo(24 * 90), realisedAmount: 18358560, btbSettled: 10516400, airFreight: 0, discount: 161040, realisedAt: addDays(t, -6), closedAt: hoursAgo(24 * 5) },
     ])
     .returning()
   const [o2044, o2051, o2039, o2027] = os
 
   const tnaRows = os.flatMap((o) =>
-    TNA_TEMPLATE.map((m, i) => {
-      const due = addDays(o.shipDate, -m.offset)
-      const done = due < t && !(o.id === o2051.id && m.name === 'btb lc opened')
-      return { orderId: o.id, name: m.name, ownerDept: m.dept, dueDate: due, doneAt: done ? due : null, sort: i }
+    backSchedule(DEFAULT_TNA, o.shipDate, o.quantity, { lines: 4, perLineDay: 900, fabricLeadDays: 25 }, o.category).rows.map((m) => {
+      const done = m.due < t && !(o.id === o2051.id && m.key === 'btb lc opened')
+      return { orderId: o.id, name: m.key, label: m.label, ownerDept: m.dept, dueDate: m.due, doneAt: done ? m.due : null, sort: m.sort }
     }),
   )
   await db.insert(tna).values(tnaRows)
@@ -149,20 +166,20 @@ export async function seedExampleFactory() {
     .returning()
 
   await db.insert(ud).values([
-    { number: 'UD-BGMEA-44712', orderId: o2044.id, yarnPermittedKg: 9500 },
-    { number: 'UD-BGMEA-45021', orderId: o2051.id, yarnPermittedKg: 11800 },
-    { number: 'UD-BGMEA-43980', orderId: o2039.id, yarnPermittedKg: 9600 },
+    { number: 'UD-BGMEA-44712', orderId: o2044.id, material: 'সুতা', permittedQty: 9500, permittedUnit: 'kg' },
+    { number: 'UD-BGMEA-45021', orderId: o2051.id, material: 'ওভেন কাপড়', permittedQty: 25400, permittedUnit: 'yd' },
+    { number: 'UD-BGMEA-43980', orderId: o2039.id, material: 'সুতা', permittedQty: 9600, permittedUnit: 'kg' },
   ])
 
   await db.insert(bom).values([
-    { orderId: o2044.id, material: '220gsm cotton piqué', qty: 9450, unit: 'kg', rate: 561.2, supplier: 'Square Textiles', source: 'import', status: 'booked', btbId: btbs[0].id, bookedBy: by('store'), bookedAt: hoursAgo(24 * 45) },
-    { orderId: o2044.id, material: '2x1 rib collar & cuff', qty: 37800, unit: 'set', rate: 10.98, supplier: 'Padma Knit', source: 'local', status: 'booked', bookedBy: by('store'), bookedAt: hoursAgo(24 * 44) },
-    { orderId: o2044.id, material: 'buttons 18L, 3 per pc', qty: 113400, unit: 'pc', rate: 0.73, supplier: 'YKK Bangladesh', source: 'local', status: 'booked', bookedBy: by('store'), bookedAt: hoursAgo(24 * 44) },
-    { orderId: o2044.id, material: 'polybag + carton', qty: 36000, unit: 'pc', rate: 8.54, supplier: 'Dhaka Pack', source: 'local', status: 'booked', bookedBy: by('store'), bookedAt: hoursAgo(24 * 40) },
-    { orderId: o2051.id, material: '280gsm stretch twill', qty: 11750, unit: 'kg', rate: 622.2, supplier: 'Envoy Textiles', source: 'import', status: 'pending', btbId: btbs[1].id },
-    { orderId: o2051.id, material: 'metal shank button + rivets', qty: 18900, unit: 'set', rate: 14.64, supplier: 'YKK Bangladesh', source: 'local', status: 'booked', bookedBy: by('store'), bookedAt: hoursAgo(24 * 5) },
-    { orderId: o2051.id, material: 'zipper #4 brass', qty: 18900, unit: 'pc', rate: 17.08, supplier: 'YKK Bangladesh', source: 'local', status: 'pending' },
-    { orderId: o2039.id, material: '150gsm combed jersey', qty: 9580, unit: 'kg', rate: 512.4, supplier: 'Mondol Fabrics', source: 'import', status: 'booked', btbId: btbs[2].id, bookedBy: by('store'), bookedAt: hoursAgo(24 * 74) },
+    { orderId: o2044.id, material: '220gsm cotton piqué', kind: 'fabric', qty: 9450, unit: 'kg', rate: 561.2, supplier: 'Square Textiles', source: 'import', status: 'booked', btbId: btbs[0].id, bookedBy: by('store'), bookedAt: hoursAgo(24 * 45) },
+    { orderId: o2044.id, material: '2x1 rib collar & cuff', kind: 'trim', qty: 37800, unit: 'set', rate: 10.98, supplier: 'Padma Knit', source: 'local', status: 'booked', bookedBy: by('store'), bookedAt: hoursAgo(24 * 44) },
+    { orderId: o2044.id, material: 'buttons 18L, 3 per pc', kind: 'trim', qty: 113400, unit: 'pc', rate: 0.73, supplier: 'YKK Bangladesh', source: 'local', status: 'booked', bookedBy: by('store'), bookedAt: hoursAgo(24 * 44) },
+    { orderId: o2044.id, material: 'polybag + carton', kind: 'trim', qty: 36000, unit: 'pc', rate: 8.54, supplier: 'Dhaka Pack', source: 'local', status: 'booked', bookedBy: by('store'), bookedAt: hoursAgo(24 * 40) },
+    { orderId: o2051.id, material: '280gsm stretch twill', kind: 'fabric', qty: 25270, unit: 'yd', rate: 289.3, supplier: 'Envoy Textiles', source: 'import', status: 'pending', btbId: btbs[1].id },
+    { orderId: o2051.id, material: 'metal shank button + rivets', kind: 'trim', qty: 18900, unit: 'set', rate: 14.64, supplier: 'YKK Bangladesh', source: 'local', status: 'booked', bookedBy: by('store'), bookedAt: hoursAgo(24 * 5) },
+    { orderId: o2051.id, material: 'zipper #4 brass', kind: 'trim', qty: 18900, unit: 'pc', rate: 17.08, supplier: 'YKK Bangladesh', source: 'local', status: 'pending' },
+    { orderId: o2039.id, material: '150gsm combed jersey', kind: 'fabric', qty: 9580, unit: 'kg', rate: 512.4, supplier: 'Mondol Fabrics', source: 'import', status: 'booked', btbId: btbs[2].id, bookedBy: by('store'), bookedAt: hoursAgo(24 * 74) },
   ])
 
   await db.insert(lays).values([
@@ -187,7 +204,7 @@ export async function seedExampleFactory() {
         const at = new Date()
         at.setUTCDate(at.getUTCDate() - d)
         at.setUTCHours(8 - 6 + h, 0, 0, 0)
-        sewingRows.push({ orderId: o2044.id, line, hourAt: at, target, actual, downtimeMin: down, note: down ? 'ওভারলক M4-03 বন্ধ' : null })
+        sewingRows.push({ orderId: o2044.id, line: lineId(line), hourAt: at, target, actual, downtimeMin: down, note: down ? 'ওভারলক M4-03 বন্ধ' : null })
       }
     }
   }
@@ -200,9 +217,9 @@ export async function seedExampleFactory() {
   await db.insert(defects).values(
     defectRows.map(([line, code, count]) => ({
       orderId: o2044.id,
-      line,
+      line: lineId(line),
       code,
-      label: DEFECT_CODES.find((d) => d.code === code)!.label,
+      label: DEFAULT_DEFECTS.find((d) => d.code === code)!.label,
       count,
     })),
   )
@@ -220,7 +237,7 @@ export async function seedExampleFactory() {
   const machineRows = [1, 2, 3, 4].flatMap((line) =>
     ['SNLS', 'SNLS', 'overlock', 'overlock', 'flatlock', 'bartack'].map((kind, i) => ({
       code: `M${line}-${String(i + 1).padStart(2, '0')}`,
-      line,
+      line: lineId(line),
       kind,
       status: line === 4 && i === 2 ? 'down' : 'running',
     })),
@@ -239,7 +256,7 @@ export async function seedExampleFactory() {
       name,
       grade: [3, 4, 4, 5, 3, 4, 2, 5, 4, 3, 5, 4, 3, 4, 5, 2][i],
       section: 'sewing',
-      line: (i % 4) + 1,
+      line: lineId((i % 4) + 1),
       daysPresent: [26, 26, 25, 26, 24, 26, 26, 23, 26, 26, 25, 26, 26, 22, 26, 26][i],
       otHours: [42, 38, 30, 44, 20, 36, 40, 18, 46, 34, 28, 40, 39, 12, 44, 41][i],
     })),

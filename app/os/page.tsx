@@ -3,16 +3,22 @@ import { desc, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { audit, bl, orders, sewing } from '@/lib/db/schema'
 import { getExceptions, projection } from '@/lib/queries'
-import { DEPT_LABEL, today } from '@/lib/domain'
+import { getConfig, getFactory } from '@/lib/settings'
+import { optionLabel, today } from '@/lib/config'
 import { bn, day, n, pct, stamp, tkK } from '@/lib/format'
 import { PageHeader, Section, StageRail, Stat } from '@/components/os/ui'
 import { acronyms } from '@/lib/acronyms'
 
-export const metadata = { title: 'আজ রাতের সারাংশ' }
+// A layout's title template skips pages in its own segment, so the dashboard names the factory itself.
+export async function generateMetadata() {
+  const f = await getFactory()
+  return { title: { absolute: f.exists ? `আজ রাতের সারাংশ · ${f.name}` : 'আজ রাতের সারাংশ' } }
+}
 
 export default async function TonightPage() {
   const t = today()
-  const [exceptions, openOrders, allSewing, recent, bls] = await Promise.all([
+  const [config, exceptions, openOrders, allSewing, recent, bls] = await Promise.all([
+    getConfig(),
     getExceptions(),
     db.select().from(orders).where(isNull(orders.closedAt)),
     db.select().from(sewing),
@@ -65,7 +71,7 @@ export default async function TonightPage() {
                     </span>
                     <span className="hidden shrink-0 text-xs text-subtle sm:block">
                       <span className="sr-only">{e.kind === 'gate' ? 'গেট' : e.kind === 'risk' ? 'ঝুঁকি' : 'তথ্য'} · </span>
-                      {DEPT_LABEL[e.dept] ?? e.dept}
+                      {optionLabel(config.departments, e.dept)}
                     </span>
                   </Link>
                 </li>
@@ -78,7 +84,7 @@ export default async function TonightPage() {
           <Section title="ফ্লোরে চলমান অর্ডার">
             <ul className="flex flex-col gap-4">
               {openOrders.map((o) => {
-                const p = projection(o, allSewing.filter((s) => s.orderId === o.id))
+                const p = projection(o, allSewing.filter((s) => s.orderId === o.id), config.production.shipBufferDays)
                 return (
                   <li key={o.id}>
                     <Link href={`/os/orders/${o.id}`} className="group flex flex-col gap-2">
@@ -90,7 +96,7 @@ export default async function TonightPage() {
                         {o.buyer} · {n(o.quantity)} পিস
                         {p.sewn ? ` · ${n(p.sewn)} পিস সেলাই হয়েছে` : ''}
                       </span>
-                      <StageRail stage={o.stage} />
+                      <StageRail stage={o.stage} labels={config.stages} />
                     </Link>
                   </li>
                 )

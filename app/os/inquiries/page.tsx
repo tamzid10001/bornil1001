@@ -2,14 +2,18 @@ import Link from 'next/link'
 import { desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { inquiries } from '@/lib/db/schema'
+import { getConfig } from '@/lib/settings'
+import { getActor, grantsFor } from '@/lib/actor'
 import { day, n, stamp } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
-import { Chip, Empty, PageHeader, Section } from '@/components/os/ui'
+import { Chip, Empty, ModuleOff, PageHeader, Section } from '@/components/os/ui'
 import { createInquiry } from '../actions/sales'
 
 export const metadata = { title: 'ইনকোয়ারি' }
 
 export default async function InquiriesPage() {
+  const [config, actor] = await Promise.all([getConfig(), getActor()])
+  if (!config.modules.inquiries) return <ModuleOff title="ইনকোয়ারি" canChange={grantsFor(actor)['settings.manage']} />
   const rows = await db.select().from(inquiries).orderBy(desc(inquiries.createdAt))
   return (
     <>

@@ -1,5 +1,5 @@
 import type { BondEntry, Order } from '@/lib/db/schema'
-import { today } from '@/lib/domain'
+import { today, unitLabel } from '@/lib/config'
 import { day, n } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
 import { Empty, Section } from '@/components/os/ui'
@@ -10,17 +10,18 @@ export function BondSection({
   ud,
   entries,
   nameOf,
-  role,
+  canWrite: allowed,
 }: {
   order: Order
-  ud: { id: number; number: string; yarnPermittedKg: number } | undefined
+  ud: { id: number; number: string; material: string; permittedQty: number; permittedUnit: string } | undefined
   entries: BondEntry[]
   nameOf: (id: number | null) => string
-  role: string
+  canWrite: boolean
 }) {
-  const received = entries.filter((e) => e.kind === 'in').reduce((s, e) => s + e.qtyKg, 0)
-  const issued = entries.filter((e) => e.kind === 'out').reduce((s, e) => s + e.qtyKg, 0)
-  const canWrite = ['owner', 'store', 'commercial'].includes(role) && !order.closedAt
+  const received = entries.filter((e) => e.kind === 'in').reduce((s, e) => s + e.qty, 0)
+  const issued = entries.filter((e) => e.kind === 'out').reduce((s, e) => s + e.qty, 0)
+  const canWrite = allowed && !order.closedAt
+  const unit = unitLabel(ud?.permittedUnit ?? 'kg')
   let balance = 0
 
   return (
@@ -33,13 +34,13 @@ export function BondSection({
       ) : (
         <>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
-            <Figure label="ইউডিতে অনুমোদিত" value={`${n(ud.yarnPermittedKg)} কেজি`} />
-            <Figure label="বন্ডে গ্রহণ" value={`${n(received)} কেজি`} tone={received > ud.yarnPermittedKg ? 'alert' : undefined} />
-            <Figure label="ফ্লোরে দেওয়া" value={`${n(issued)} কেজি`} />
-            <Figure label="গুদামে আছে" value={`${n(received - issued)} কেজি`} />
+            <Figure label={`ইউডিতে অনুমোদিত ${ud.material}`} value={`${n(ud.permittedQty)} ${unit}`} />
+            <Figure label="বন্ডে গ্রহণ" value={`${n(received)} ${unit}`} tone={received > ud.permittedQty ? 'alert' : undefined} />
+            <Figure label="ফ্লোরে দেওয়া" value={`${n(issued)} ${unit}`} />
+            <Figure label="গুদামে আছে" value={`${n(received - issued)} ${unit}`} />
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-key" role="img" aria-label={`অনুমোদিত পরিমাণের ${n((received / ud.yarnPermittedKg) * 100)}% গ্রহণ করা হয়েছে`}>
-            <div className="h-full bg-foreground" style={{ width: `${Math.min(100, (received / ud.yarnPermittedKg) * 100)}%` }} />
+          <div className="h-1.5 overflow-hidden rounded-full bg-key" role="img" aria-label={`অনুমোদিত পরিমাণের ${n((received / ud.permittedQty) * 100)}% গ্রহণ করা হয়েছে`}>
+            <div className="h-full bg-foreground" style={{ width: `${Math.min(100, (received / ud.permittedQty) * 100)}%` }} />
           </div>
 
           {entries.length ? (
@@ -57,7 +58,7 @@ export function BondSection({
                 </thead>
                 <tbody>
                   {entries.map((e) => {
-                    balance += e.kind === 'in' ? e.qtyKg : -e.qtyKg
+                    balance += e.kind === 'in' ? e.qty : -e.qty
                     return (
                       <tr key={e.id} className="border-b border-rule">
                         <td className="py-2 pr-3">{day(e.on)}</td>
@@ -66,8 +67,8 @@ export function BondSection({
                           <span className="block text-xs text-muted">{nameOf(e.createdBy)}</span>
                         </td>
                         <td className="py-2 pr-3 text-muted">{e.ref}</td>
-                        <td className="num py-2 pr-3 text-right">{e.kind === 'in' ? n(e.qtyKg) : ''}</td>
-                        <td className="num py-2 pr-3 text-right">{e.kind === 'out' ? n(e.qtyKg) : ''}</td>
+                        <td className="num py-2 pr-3 text-right">{e.kind === 'in' ? n(e.qty) : ''}</td>
+                        <td className="num py-2 pr-3 text-right">{e.kind === 'out' ? n(e.qty) : ''}</td>
                         <td className="num py-2 text-right font-medium">{n(balance)}</td>
                       </tr>
                     )
@@ -93,7 +94,7 @@ export function BondSection({
               </fieldset>
               <div className="grid gap-3 sm:grid-cols-4">
                 <input name="material" required className="field sm:col-span-2" placeholder="যেমন ৩০/১ কম্বড কটন সুতা" aria-label="কাঁচামাল" defaultValue={order.fabric ?? ''} />
-                <input name="qty" type="number" step="0.1" min={0.1} required className="field num" placeholder="কেজি" aria-label="পরিমাণ (কেজি)" />
+                <input name="qty" type="number" step="0.1" min={0.1} required className="field num" placeholder={unit} aria-label={`পরিমাণ (${unit})`} />
                 <input name="on" type="date" required defaultValue={today()} max={today()} className="field" aria-label="তারিখ" />
               </div>
               <input name="ref" required className="field" placeholder="বিল অব এন্ট্রি / চালান / ইস্যু স্লিপ নং" aria-label="সূত্র" />

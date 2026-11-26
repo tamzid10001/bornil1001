@@ -3,10 +3,12 @@
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { bl, bom, bondLedger, cartons, invoices, lcAmendments, lcs, orders, techPacks, tna, ud } from '@/lib/db/schema'
-import { record, requireActor } from '@/lib/actor'
+import { record, requirePermission } from '@/lib/actor'
 import { int, isoDate, num, run, str, type ActionState } from '@/lib/action'
-import { allowRoles, loadOpenOrder, refreshOrder } from '@/lib/order-guard'
-import { backSchedule, today } from '@/lib/domain'
+import { loadOpenOrder, refreshOrder } from '@/lib/order-guard'
+import { nextCode } from '@/lib/codes'
+import { getConfig } from '@/lib/settings'
+import { backSchedule, today, unitLabel } from '@/lib/config'
 import { blChecks } from '@/lib/queries'
 import { invoiceChecks, overlappingRange, packingTotals } from '@/lib/export-checks'
 import { readTechPack } from '@/lib/techpack'
@@ -16,20 +18,25 @@ import { bn, day, n, tk } from '@/lib/format'
 
 export async function replanTna(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
-    const actor = await requireActor()
-    allowRoles(actor.role, ['planner', 'merchandiser'], 'পরিকল্পনা নতুন করে হিসাব করতে')
+    const actor = await requirePermission('plan.manage')
+    const config = await getConfig()
     const o = await loadOpenOrder(fd)
     if (o.tnaCommitted) throw new Error('পরিকল্পনা নিশ্চিত হয়ে গেছে — এখন আর তারিখ বদলানো যায় না।')
     const plan = {
-      lines: int(fd, 'lines', { min: 1, max: 60, label: 'লাইন সংখ্যা' }),
-      perLineDay: int(fd, 'per_line_day', { min: 50, max: 5000, label: 'লাইনপ্রতি দৈনিক উৎপাদন' }),
-      fabricLeadDays: int(fd, 'fabric_lead_days', { min: 3, max: 120, label: 'কাপড়ের লিড টাইম' }),
+      lines: int(fd, 'lines', { min: 1, max: 200, label: 'লাইন সংখ্যা' }),
+      perLineDay: int(fd, 'per_line_day', { min: 10, max: 20000, label: 'লাইনপ্রতি দৈনিক উৎপাদন' }),
+      fabricLeadDays: int(fd, 'fabric_lead_days', { min: 1, max: 180, label: 'কাপড়ের লিড টাইম' }),
     }
-    const s = backSchedule(o.shipDate, o.quantity, plan)
+    const s = backSchedule(config.tna, o.shipDate, o.quantity, plan, o.category)
+    const done = new Map((await db.select().from(tna).where(eq(tna.orderId, o.id))).map((m) => [m.name, m.doneAt]))
     await db.transaction(async (tx) => {
       await tx.update(orders).set({ planLines: plan.lines, planPerLineDay: plan.perLineDay, planFabricLeadDays: plan.fabricLeadDays }).where(eq(orders.id, o.id))
       await tx.delete(tna).where(eq(tna.orderId, o.id))
-      await tx.insert(tna).values(s.rows.map((m) => ({ orderId: o.id, name: m.name, ownerDept: m.dept, dueDate: m.due, sort: m.sort })))
+      if (s.rows.length) {
+        await tx
+          .insert(tna)
+          .values(s.rows.map((m) => ({ orderId: o.id, name: m.key, label: m.label, ownerDept: m.dept, dueDate: m.due, sort: m.sort, doneAt: done.get(m.key) ?? null })))
+      }
     })
     await record(actor, 'ক্রিটিক্যাল পাথ নতুন করে হিসাব করেছেন', 'order', o.id, `${o.code}: ${bn(plan.lines)}টি লাইন, সেলাই ${bn(s.sewingDays)} দিন`)
     refreshOrder(o)
@@ -49,8 +56,8 @@ const AMENDABLE: Record<string, { label: string; kind: 'money' | 'date' | 'int' 
 
 export async function amendLc(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
-    const actor = await requireActor()
-    allowRoles(actor.role, ['commercial'], 'এলসি সংশোধনী লিখতে')
+    const actor = await requirePermission('commercial.manage')
+    const config = await getConfig()
     const o = await loadOpenOrder(fd)
     const lcId = int(fd, 'lc_id')
     const field = str(fd, 'field')
@@ -82,7 +89,7 @@ export async function amendLc(_: ActionState, fd: FormData): Promise<ActionState
     const [updated] = await db.select().from(lcs).where(eq(lcs.id, lc.id))
     const drafts = await db.select().from(bl).where(and(eq(bl.orderId, o.id), inArray(bl.status, ['draft', 'discrepant'])))
     for (const b of drafts) {
-      const status = blChecks(b, updated).every((x) => x.ok) ? 'draft' : 'discrepant'
+      const status = !config.gates.bl || blChecks(b, updated, config.commercial.blTolerance).every((x) => x.ok) ? 'draft' : 'discrepant'
       if (status !== b.status) await db.update(bl).set({ status }).where(eq(bl.id, b.id))
     }
     await record(actor, `এলসি সংশোধনী #${bn(c + 1)} লিখেছেন`, 'order', o.id, `${lc.number}: ${spec.label} — ${reason}`)
@@ -95,8 +102,7 @@ export async function amendLc(_: ActionState, fd: FormData): Promise<ActionState
 
 export async function bondEntry(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
-    const actor = await requireActor()
-    allowRoles(actor.role, ['store', 'commercial'], 'বন্ডেড গুদামের হিসাব লিখতে')
+    const actor = await requirePermission('bond.manage')
     const o = await loadOpenOrder(fd)
     const kind = str(fd, 'kind')
     if (kind !== 'in' && kind !== 'out') throw new Error('গ্রহণ নাকি ব্যবহার, তা বেছে নিন।')
@@ -104,38 +110,36 @@ export async function bondEntry(_: ActionState, fd: FormData): Promise<ActionSta
     const ref = str(fd, 'ref')
     if (!material) throw new Error('কাঁচামালের নাম লিখুন।')
     if (!ref) throw new Error(kind === 'in' ? 'বিল অব এন্ট্রি বা চালান নম্বর লিখুন।' : 'ইস্যু স্লিপ নম্বর লিখুন।')
-    const qty = num(fd, 'qty', { min: 0.1, max: 1_000_000, label: 'পরিমাণ (কেজি)' })
-    const on = isoDate(fd, 'on')
-    if (on > today()) throw new Error('ভবিষ্যতের তারিখে হিসাব লেখা যায় না।')
     const [u] = await db.select().from(ud).where(eq(ud.orderId, o.id))
     if (!u) throw new Error('আগে ইউডি ইস্যু করুন — ইউডি ছাড়া বন্ডে কাঁচামাল ঢোকানো যায় না।')
+    const unit = unitLabel(u.permittedUnit)
+    const qty = num(fd, 'qty', { min: 0.1, max: 100_000_000, label: `পরিমাণ (${unit})` })
+    const on = isoDate(fd, 'on')
+    if (on > today()) throw new Error('ভবিষ্যতের তারিখে হিসাব লেখা যায় না।')
 
     const [{ received, issued }] = await db
       .select({
-        received: sql<number>`coalesce(sum(case when ${bondLedger.kind} = 'in' then ${bondLedger.qtyKg} end), 0)::float`,
-        issued: sql<number>`coalesce(sum(case when ${bondLedger.kind} = 'out' then ${bondLedger.qtyKg} end), 0)::float`,
+        received: sql<number>`coalesce(sum(case when ${bondLedger.kind} = 'in' then ${bondLedger.qty} end), 0)::float`,
+        issued: sql<number>`coalesce(sum(case when ${bondLedger.kind} = 'out' then ${bondLedger.qty} end), 0)::float`,
       })
       .from(bondLedger)
       .where(eq(bondLedger.orderId, o.id))
-    if (kind === 'in' && received + qty > u.yarnPermittedKg)
-      throw new Error(`ইউডিতে অনুমোদিত ${n(u.yarnPermittedKg)} কেজি। ইতোমধ্যে ${n(received)} কেজি এসেছে — আর ${n(Math.max(0, u.yarnPermittedKg - received))} কেজি আনা যাবে।`)
-    if (kind === 'out' && qty > received - issued) throw new Error(`বন্ডে আছে মাত্র ${n(received - issued)} কেজি।`)
+    if (kind === 'in' && received + qty > u.permittedQty)
+      throw new Error(`ইউডিতে অনুমোদিত ${n(u.permittedQty)} ${unit}। ইতোমধ্যে ${n(received)} ${unit} এসেছে — আর ${n(Math.max(0, u.permittedQty - received))} ${unit} আনা যাবে।`)
+    if (kind === 'out' && qty > received - issued) throw new Error(`বন্ডে আছে মাত্র ${n(received - issued)} ${unit}।`)
 
-    await db.insert(bondLedger).values({ orderId: o.id, udId: u.id, kind, material, qtyKg: qty, ref, on, createdBy: actor.id })
-    await record(actor, kind === 'in' ? 'বন্ডে কাঁচামাল গ্রহণ করেছেন' : 'বন্ড থেকে কাঁচামাল দিয়েছেন', 'order', o.id, `${o.code}: ${material} ${n(qty)} কেজি · ${ref}`)
+    await db.insert(bondLedger).values({ orderId: o.id, udId: u.id, kind, material, qty, unit: u.permittedUnit, ref, on, createdBy: actor.id })
+    await record(actor, kind === 'in' ? 'বন্ডে কাঁচামাল গ্রহণ করেছেন' : 'বন্ড থেকে কাঁচামাল দিয়েছেন', 'order', o.id, `${o.code}: ${material} ${n(qty)} ${unit} · ${ref}`)
     refreshOrder(o)
-    return kind === 'in' ? `${n(qty)} কেজি বন্ডে গ্রহণ করা হয়েছে` : `${n(qty)} কেজি ফ্লোরে দেওয়া হয়েছে`
+    return kind === 'in' ? `${n(qty)} ${unit} বন্ডে গ্রহণ করা হয়েছে` : `${n(qty)} ${unit} ফ্লোরে দেওয়া হয়েছে`
   })
 }
 
 /* ---------- packing list ---------- */
 
-const PACKERS = ['store', 'qa', 'commercial']
-
 export async function addCartons(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
-    const actor = await requireActor()
-    allowRoles(actor.role, PACKERS, 'প্যাকিং লিস্টে কার্টন যোগ করতে')
+    const actor = await requirePermission('packing.manage')
     const o = await loadOpenOrder(fd)
     await assertNoIssuedInvoice(o.id)
     const from = int(fd, 'from', { min: 1, max: 100_000, label: 'শুরুর কার্টন নং' })
@@ -166,8 +170,7 @@ export async function addCartons(_: ActionState, fd: FormData): Promise<ActionSt
 
 export async function removeCartons(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
-    const actor = await requireActor()
-    allowRoles(actor.role, PACKERS, 'প্যাকিং লিস্ট বদলাতে')
+    const actor = await requirePermission('packing.manage')
     const o = await loadOpenOrder(fd)
     await assertNoIssuedInvoice(o.id)
     const id = int(fd, 'carton_id')
@@ -195,8 +198,8 @@ async function invoiceContext(orderId: number) {
 
 export async function saveInvoice(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
-    const actor = await requireActor()
-    allowRoles(actor.role, ['commercial'], 'কমার্শিয়াল ইনভয়েস তৈরি করতে')
+    const actor = await requirePermission('commercial.manage')
+    const config = await getConfig()
     const o = await loadOpenOrder(fd)
     const ctx = await invoiceContext(o.id)
     if (!ctx.packed) throw new Error('আগে প্যাকিং লিস্ট তৈরি করুন — ইনভয়েসের পরিমাণ সেখান থেকে আসে।')
@@ -217,10 +220,7 @@ export async function saveInvoice(_: ActionState, fd: FormData): Promise<ActionS
     const status = failed.length ? 'discrepant' : 'draft'
     const [existing] = await db.select().from(invoices).where(and(eq(invoices.orderId, o.id), inArray(invoices.status, ['draft', 'discrepant'])))
     if (existing) await db.update(invoices).set({ ...values, status }).where(eq(invoices.id, existing.id))
-    else {
-      const [{ c }] = await db.select({ c: sql<number>`count(*)::int` }).from(invoices)
-      await db.insert(invoices).values({ ...values, number: `INV-${new Date().getFullYear()}-${String(c + 1).padStart(4, '0')}`, status })
-    }
+    else await db.insert(invoices).values({ ...values, number: await nextCode('invoice', config.numbering), status })
     await record(actor, 'কমার্শিয়াল ইনভয়েসের খসড়া তৈরি করেছেন', 'order', o.id, `${o.code}: ${tk(values.amount)}${failed.length ? ` · ${bn(failed.length)}টি অমিল` : ''}`)
     refreshOrder(o)
     return failed.length ? `${bn(failed.length)}টি অমিল — ইস্যুর আগে ঠিক করুন` : 'ইনভয়েস এলসি, প্যাকিং লিস্ট ও বি/এল-এর সঙ্গে মিলেছে'
@@ -229,8 +229,7 @@ export async function saveInvoice(_: ActionState, fd: FormData): Promise<ActionS
 
 export async function issueInvoice(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
-    const actor = await requireActor()
-    allowRoles(actor.role, ['commercial'], 'কমার্শিয়াল ইনভয়েস ইস্যু করতে')
+    const actor = await requirePermission('commercial.manage')
     const o = await loadOpenOrder(fd)
     const id = int(fd, 'invoice_id')
     const [inv] = await db.select().from(invoices).where(and(eq(invoices.id, id), eq(invoices.orderId, o.id)))
@@ -250,8 +249,7 @@ export async function issueInvoice(_: ActionState, fd: FormData): Promise<Action
 
 export async function readPack(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
-    const actor = await requireActor()
-    allowRoles(actor.role, ['merchandiser'], 'টেক প্যাক যোগ করতে')
+    const actor = await requirePermission('techpack.manage')
     const o = await loadOpenOrder(fd)
     const body = str(fd, 'body')
     if (body.length < 40) throw new Error('টেক প্যাকের লেখা পেস্ট করুন — অন্তত কয়েক লাইন।')
@@ -266,8 +264,7 @@ export async function readPack(_: ActionState, fd: FormData): Promise<ActionStat
 
 export async function addPackTrims(_: ActionState, fd: FormData): Promise<ActionState> {
   return run(async () => {
-    const actor = await requireActor()
-    allowRoles(actor.role, ['merchandiser', 'store'], 'বিওএম-এ ট্রিম যোগ করতে')
+    const actor = await requirePermission('techpack.manage')
     const o = await loadOpenOrder(fd)
     const id = int(fd, 'pack_id')
     const [pack] = await db.select().from(techPacks).where(and(eq(techPacks.id, id), eq(techPacks.orderId, o.id)))
@@ -279,7 +276,7 @@ export async function addPackTrims(_: ActionState, fd: FormData): Promise<Action
     const have = new Set(existing.map((e) => e.material.toLowerCase()))
     const fresh = usable.filter((t) => !have.has(t.item.toLowerCase()))
     if (fresh.length)
-      await db.insert(bom).values(fresh.map((t) => ({ orderId: o.id, material: t.item, qty: Math.ceil(t.qtyPerPc! * o.quantity * 1.03), unit: 'pcs', rate: 0, supplier: null, source: 'local' })))
+      await db.insert(bom).values(fresh.map((t) => ({ orderId: o.id, material: t.item, kind: 'trim', qty: Math.ceil(t.qtyPerPc! * o.quantity * 1.03), unit: 'pcs', rate: 0, supplier: null, source: 'local' })))
     await db.update(techPacks).set({ trimsAdded: true }).where(eq(techPacks.id, pack.id))
     await record(actor, 'টেক প্যাক থেকে ট্রিম বিওএম-এ যোগ করেছেন', 'order', o.id, `${o.code}: ${bn(fresh.length)}টি ট্রিম`)
     refreshOrder(o)

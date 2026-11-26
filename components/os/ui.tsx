@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { GATE_LABEL, STAGE_LABEL, STAGES, STATUS_LABEL } from '@/lib/domain'
+import { GATE_LABEL, STAGES, STATUS_LABEL } from '@/lib/domain'
+import { DEFAULT_STAGES } from '@/lib/config'
 import { acronyms } from '@/lib/acronyms'
 
 export function PageHeader({
@@ -87,17 +88,17 @@ export function Empty({ children }: { children: React.ReactNode }) {
   return <p className="rounded-lg border border-dashed border-rule px-4 py-6 text-center text-sm text-muted">{children}</p>
 }
 
-export function StageRail({ stage }: { stage: string }) {
+export function StageRail({ stage, labels = DEFAULT_STAGES }: { stage: string; labels?: Record<string, string> }) {
   const idx = STAGES.indexOf(stage as (typeof STAGES)[number])
   return (
-    <ol className="flex items-center gap-1" aria-label={`ধাপ: ${STAGE_LABEL[stage] ?? stage}`}>
+    <ol className="flex items-center gap-1" aria-label={`ধাপ: ${labels[stage] ?? stage}`}>
       {STAGES.map((s, i) => (
-        <li key={s} className="flex items-center gap-1" title={STAGE_LABEL[s]}>
+        <li key={s} className="flex items-center gap-1" title={labels[s]}>
           <span
             className={`block h-1.5 w-5 rounded-full ${i < idx ? 'bg-foreground' : i === idx ? 'bg-ink-fill' : 'bg-rule'}`}
           />
           <span className="sr-only">
-            {STAGE_LABEL[s]}
+            {labels[s]}
             {i === idx ? ' (চলমান)' : i < idx ? ' (সম্পন্ন)' : ''}
           </span>
         </li>
@@ -118,6 +119,28 @@ export function GateNote({ gate, open, children }: { gate: string; open: boolean
       </span>
       <span className="leading-relaxed">{children}</span>
     </div>
+  )
+}
+
+/** Shown in place of a page whose module the factory has switched off. */
+export function ModuleOff({ title, canChange }: { title: string; canChange: boolean }) {
+  return (
+    <>
+      <PageHeader title={title} />
+      <Empty>
+        এই কারখানায় “{title}” মডিউলটি বন্ধ রাখা আছে।{' '}
+        {canChange ? <TextLink href="/os/settings/workflow">সেটিংস থেকে চালু করুন</TextLink> : 'চালু করতে মালিকের সঙ্গে কথা বলুন।'}
+      </Empty>
+    </>
+  )
+}
+
+export function NoAccess({ title, what }: { title: string; what: string }) {
+  return (
+    <>
+      <PageHeader title={title} />
+      <Empty>{what} দেখার অনুমতি আপনার ভূমিকায় নেই। মালিক সেটিংস → ভূমিকা থেকে অনুমতি দিতে পারেন।</Empty>
+    </>
   )
 }
 

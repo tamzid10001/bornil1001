@@ -4,7 +4,15 @@ import * as schema from './schema'
 
 const globalForDb = globalThis as unknown as { pool?: Pool }
 
-export const pool = globalForDb.pool ?? new Pool({ connectionString: process.env.DATABASE_URL })
+// Small, short-lived pool: serverless instances are many and brief, and Neon's pooler does the rest.
+export const pool =
+  globalForDb.pool ??
+  new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 5,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 10_000,
+  })
 if (process.env.NODE_ENV !== 'production') globalForDb.pool = pool
 
 export const db = drizzle(pool, { schema })

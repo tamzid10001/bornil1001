@@ -9,6 +9,7 @@ import {
   Mail,
   Moon,
   Package,
+  Settings,
   Shield,
   Stamp,
   Wallet,
@@ -27,6 +28,7 @@ const ICONS: Record<string, LucideIcon> = {
   landmark: Landmark,
   wallet: Wallet,
   stamp: Stamp,
+  settings: Settings,
 }
 
 type Group = { label: string; items: { href: string; label: string; icon: string; badge?: number }[] }

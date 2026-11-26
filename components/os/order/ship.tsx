@@ -1,5 +1,6 @@
 import type { Lc, Order } from '@/lib/db/schema'
-import { canPass, today } from '@/lib/domain'
+import type { Grants } from '@/lib/actor'
+import { today, type Config } from '@/lib/config'
 import { blChecks } from '@/lib/queries'
 import { stamp } from '@/lib/format'
 import { ActionForm, Submit } from '@/components/os/action-form'
@@ -23,29 +24,39 @@ export function ShipSection({
   master,
   bls,
   nameOf,
-  role,
+  can,
+  config,
   quantityAccepted,
 }: {
   order: Order
   master: Lc | undefined
   bls: Bl[]
   nameOf: (id: number | null) => string
-  role: string
+  can: Grants
+  config: Config
   quantityAccepted: boolean
 }) {
+  const gated = config.gates.bl
   const current = bls.find((b) => b.status !== 'released') ?? bls.find((b) => b.status === 'released')
-  const checks = current ? blChecks(current, master) : []
-  const clean = checks.length > 0 && checks.every((c) => c.ok)
+  const checks = current && gated ? blChecks(current, master, config.commercial.blTolerance) : []
+  const clean = !gated || (checks.length > 0 && checks.every((c) => c.ok))
   const released = current?.status === 'released'
-  const canEdit = !order.closedAt && !released && (role === 'commercial' || role === 'owner')
+  const canEdit = !order.closedAt && !released && can['commercial.manage']
+  const canRelease = gated ? can['gate.bl'] : can['commercial.manage']
 
   return (
     <Section title="শিপিংয়ের কাগজপত্র">
-      <GateNote gate="b/l" open={released || clean}>
-        {released
-          ? `ব্যাংকে পাঠিয়েছেন ${nameOf(current!.releasedBy)} · ${stamp(current!.releasedAt)}`
-          : 'বি/এল-এর প্রতিটি তথ্য মাস্টার এলসির সঙ্গে মিললে তবেই কাগজপত্র কারখানা থেকে পাঠানো হবে। অমিল হলে ব্যাংক ফি লাগে, টাকাও দেরিতে আসে।'}
-      </GateNote>
+      {gated ? (
+        <GateNote gate="b/l" open={released || clean}>
+          {released
+            ? `ব্যাংকে পাঠিয়েছেন ${nameOf(current!.releasedBy)} · ${stamp(current!.releasedAt)}`
+            : 'বি/এল-এর প্রতিটি তথ্য মাস্টার এলসির সঙ্গে মিললে তবেই কাগজপত্র কারখানা থেকে পাঠানো হবে। অমিল হলে ব্যাংক ফি লাগে, টাকাও দেরিতে আসে।'}
+        </GateNote>
+      ) : released ? (
+        <p className="text-sm text-muted">
+          পাঠিয়েছেন {nameOf(current!.releasedBy)} · {stamp(current!.releasedAt)}
+        </p>
+      ) : null}
       {!quantityAccepted && !current ? <p className="text-sm text-muted">চূড়ান্ত পরিদর্শনে লট গৃহীত হওয়ার অপেক্ষায়।</p> : null}
 
       {quantityAccepted || current ? (
@@ -76,7 +87,7 @@ export function ShipSection({
                 <input name="description" defaultValue={current?.description ?? ''} required className="field" />
               </label>
               <Submit quiet small>
-                এলসির সঙ্গে মিলিয়ে দেখুন
+                {gated ? 'এলসির সঙ্গে মিলিয়ে দেখুন' : 'বি/এল সংরক্ষণ করুন'}
               </Submit>
             </ActionForm>
           ) : null}
@@ -84,9 +95,14 @@ export function ShipSection({
           {current ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
-                <span className="label">বি/এল বনাম মাস্টার এলসি</span>
+                <span className="label">{gated ? 'বি/এল বনাম মাস্টার এলসি' : 'বি/এল'}</span>
                 <Chip status={current.status} />
               </div>
+              {!gated ? (
+                <p className="text-sm text-muted">
+                  {current.portLoading} → {current.portDischarge} · {current.description}
+                </p>
+              ) : null}
               <ul className="flex flex-col">
                 {checks.map((c) => (
                   <li key={c.label} className="flex flex-col border-t border-rule py-2 text-sm first:border-t-0">
@@ -105,8 +121,8 @@ export function ShipSection({
                 <ActionForm action={releaseBl}>
                   <input type="hidden" name="order_id" value={order.id} />
                   <input type="hidden" name="bl_id" value={current.id} />
-                  <Submit small disabled={!canPass('bl', role)}>
-                    কাগজপত্র ব্যাংকে পাঠান
+                  <Submit small disabled={!canRelease}>
+                    {gated ? 'কাগজপত্র ব্যাংকে পাঠান' : 'কাগজপত্র পাঠানো হয়েছে লিখুন'}
                   </Submit>
                 </ActionForm>
               ) : null}

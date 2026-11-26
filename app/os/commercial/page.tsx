@@ -2,13 +2,17 @@ import Link from 'next/link'
 import { asc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { bom, lcs, orders, ud } from '@/lib/db/schema'
-import { daysBetween, today } from '@/lib/domain'
+import { daysBetween, today, unitLabel } from '@/lib/config'
+import { getConfig } from '@/lib/settings'
+import { getActor, grantsFor } from '@/lib/actor'
 import { bn, day, n, tk, tkK } from '@/lib/format'
-import { Chip, Empty, PageHeader, Section, Stat } from '@/components/os/ui'
+import { Chip, Empty, ModuleOff, PageHeader, Section, Stat } from '@/components/os/ui'
 
 export const metadata = { title: 'এলসি, বিটুবি ও ইউডি' }
 
 export default async function CommercialPage() {
+  const [config, actor] = await Promise.all([getConfig(), getActor()])
+  if (!config.modules.commercial) return <ModuleOff title="এলসি ও রপ্তানির কাগজ" canChange={grantsFor(actor)['settings.manage']} />
   const [allLcs, allOrders, allUd, allBom] = await Promise.all([
     db.select().from(lcs).orderBy(asc(lcs.maturity)),
     db.select().from(orders),
@@ -124,21 +128,28 @@ export default async function CommercialPage() {
               <tr>
                 <th>ইউডি</th>
                 <th>অর্ডার</th>
-                <th className="text-right">অনুমোদিত সুতা</th>
+                <th className="text-right">অনুমোদিত</th>
                 <th className="text-right">বুক করা</th>
                 <th className="text-right">বাকি সীমা</th>
               </tr>
             </thead>
             <tbody>
               {allUd.map((u) => {
-                const used = allBom.filter((b) => b.orderId === u.orderId && b.unit === 'kg').reduce((s, b) => s + b.qty, 0)
+                const used = allBom.filter((b) => b.orderId === u.orderId && b.kind === 'fabric' && b.unit === u.permittedUnit).reduce((s, b) => s + b.qty, 0)
+                const unit = unitLabel(u.permittedUnit)
                 return (
                   <tr key={u.id}>
                     <td className="font-medium">{u.number}</td>
                     <td>{code(u.orderId)}</td>
-                    <td className="num text-right">{n(u.yarnPermittedKg)} কেজি</td>
-                    <td className="num text-right">{n(used)} কেজি</td>
-                    <td className={`num text-right ${used > u.yarnPermittedKg ? 'text-alert' : 'text-ok'}`}>{n(u.yarnPermittedKg - used)} কেজি</td>
+                    <td className="num text-right">
+                      {u.material} {n(u.permittedQty)} {unit}
+                    </td>
+                    <td className="num text-right">
+                      {n(used)} {unit}
+                    </td>
+                    <td className={`num text-right ${used > u.permittedQty ? 'text-alert' : 'text-ok'}`}>
+                      {n(u.permittedQty - used)} {unit}
+                    </td>
                   </tr>
                 )
               })}

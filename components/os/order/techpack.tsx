@@ -4,9 +4,9 @@ import { ActionForm, Submit } from '@/components/os/action-form'
 import { Chip, Section } from '@/components/os/ui'
 import { addPackTrims, readPack } from '@/app/os/actions/export'
 
-export function TechPackSection({ order, pack, nameOf, role }: { order: Order; pack: TechPack | undefined; nameOf: (id: number | null) => string; role: string }) {
-  const canRead = ['owner', 'merchandiser'].includes(role) && !order.closedAt
-  const canTrim = ['owner', 'merchandiser', 'store'].includes(role) && !order.closedAt
+export function TechPackSection({ order, pack, nameOf, canManage }: { order: Order; pack: TechPack | undefined; nameOf: (id: number | null) => string; canManage: boolean }) {
+  const canRead = canManage && !order.closedAt
+  const canTrim = canManage && !order.closedAt
   const d = pack?.data
   const found = d ? Array.from(new Set(d.measurements.flatMap((m) => Object.keys(m.sizes)))) : []
   const ordered = Object.keys(order.sizes)

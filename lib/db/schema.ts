@@ -1,5 +1,6 @@
 import {
   boolean,
+  customType,
   date,
   doublePrecision,
   integer,
@@ -12,12 +13,76 @@ import {
 
 const ts = (name: string) => timestamp(name, { withTimezone: true })
 const day = (name: string) => date(name, { mode: 'string' })
+const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' })
+
+export const factory = pgTable('factory', {
+  id: integer('id').primaryKey().default(1),
+  name: text('name').notNull(),
+  nameEn: text('name_en'),
+  tagline: text('tagline'),
+  address: text('address'),
+  phone: text('phone'),
+  email: text('email'),
+  website: text('website'),
+  bin: text('bin'),
+  erc: text('erc'),
+  irc: text('irc'),
+  membership: text('membership'),
+  logo: bytea('logo'),
+  logoType: text('logo_type'),
+  logoVersion: integer('logo_version').notNull().default(0),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+})
+
+export const settings = pgTable('settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedBy: integer('updated_by'),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+})
+
+export const roles = pgTable('roles', {
+  id: serial('id').primaryKey(),
+  key: text('key').notNull().unique(),
+  name: text('name').notNull(),
+  permissions: jsonb('permissions').$type<string[]>().notNull().default([]),
+  isOwner: boolean('is_owner').notNull().default(false),
+  sort: integer('sort').notNull().default(0),
+  createdAt: ts('created_at').notNull().defaultNow(),
+})
+
+export const floors = pgTable('floors', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  building: text('building'),
+  sort: integer('sort').notNull().default(0),
+})
+
+export const lines = pgTable('lines', {
+  id: serial('id').primaryKey(),
+  floorId: integer('floor_id').notNull(),
+  name: text('name').notNull(),
+  kind: text('kind').notNull().default('sewing'),
+  hourlyTarget: integer('hourly_target').notNull().default(100),
+  operators: integer('operators').notNull().default(0),
+  active: boolean('active').notNull().default(true),
+  sort: integer('sort').notNull().default(0),
+})
+
+export const counters = pgTable('counters', {
+  key: text('key').primaryKey(),
+  value: integer('value').notNull(),
+})
 
 export const people = pgTable('people', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
   role: text('role').notNull(),
   dept: text('dept').notNull(),
+  email: text('email'),
+  phone: text('phone'),
+  active: boolean('active').notNull().default(true),
+  userId: text('user_id'),
 })
 
 export type ExtractedField = {
@@ -36,6 +101,7 @@ export const inquiries = pgTable('inquiries', {
   subject: text('subject'),
   body: text('body').notNull(),
   style: text('style'),
+  category: text('category'),
   fabric: text('fabric'),
   quantity: integer('quantity'),
   shipDate: day('ship_date'),
@@ -53,9 +119,12 @@ export const quotes = pgTable('quotes', {
   inquiryId: integer('inquiry_id'),
   buyer: text('buyer').notNull(),
   style: text('style').notNull(),
+  category: text('category'),
   quantity: integer('quantity').notNull(),
   rev: integer('rev').notNull().default(1),
-  fabricKg: doublePrecision('fabric_kg').notNull().default(0),
+  /** Fabric consumption per piece, in `fabricUnit`. The column keeps its original knit-era name. */
+  fabricQty: doublePrecision('fabric_kg').notNull().default(0),
+  fabricUnit: text('fabric_unit').notNull().default('kg'),
   fabricRate: doublePrecision('fabric_rate').notNull().default(0),
   cmMinutes: doublePrecision('cm_minutes').notNull().default(0),
   cmRate: doublePrecision('cm_rate').notNull().default(0),
@@ -76,6 +145,7 @@ export const orders = pgTable('orders', {
   quoteId: integer('quote_id'),
   buyer: text('buyer').notNull(),
   style: text('style').notNull(),
+  category: text('category'),
   fabric: text('fabric'),
   quantity: integer('quantity').notNull(),
   sizes: jsonb('sizes').$type<Record<string, number>>().notNull().default({}),
@@ -116,7 +186,8 @@ export const bondLedger = pgTable('bond_ledger', {
   udId: integer('ud_id').notNull(),
   kind: text('kind').notNull(),
   material: text('material').notNull(),
-  qtyKg: doublePrecision('qty_kg').notNull(),
+  qty: doublePrecision('qty_kg').notNull(),
+  unit: text('unit').notNull().default('kg'),
   ref: text('ref').notNull(),
   on: day('on_date').notNull(),
   createdBy: integer('created_by'),
@@ -174,6 +245,7 @@ export const tna = pgTable('tna', {
   id: serial('id').primaryKey(),
   orderId: integer('order_id').notNull(),
   name: text('name').notNull(),
+  label: text('label'),
   ownerDept: text('owner_dept').notNull(),
   dueDate: day('due_date').notNull(),
   doneAt: day('done_at'),
@@ -205,7 +277,9 @@ export const ud = pgTable('ud', {
   id: serial('id').primaryKey(),
   number: text('number').notNull(),
   orderId: integer('order_id').notNull(),
-  yarnPermittedKg: doublePrecision('yarn_permitted_kg').notNull(),
+  material: text('material').notNull().default('সুতা'),
+  permittedQty: doublePrecision('yarn_permitted_kg').notNull(),
+  permittedUnit: text('permitted_unit').notNull().default('kg'),
   createdAt: ts('created_at').notNull().defaultNow(),
 })
 
@@ -213,6 +287,7 @@ export const bom = pgTable('bom', {
   id: serial('id').primaryKey(),
   orderId: integer('order_id').notNull(),
   material: text('material').notNull(),
+  kind: text('kind').notNull().default('trim'),
   qty: doublePrecision('qty').notNull(),
   unit: text('unit').notNull(),
   rate: doublePrecision('rate').notNull().default(0),
@@ -264,6 +339,7 @@ export const lots = pgTable('lots', {
   orderId: integer('order_id').notNull(),
   lotSize: integer('lot_size').notNull(),
   aql: doublePrecision('aql').notNull(),
+  level: text('level').notNull().default('II'),
   sample: integer('sample').notNull(),
   major: integer('major').notNull(),
   acceptMax: integer('accept_max').notNull(),
@@ -290,7 +366,7 @@ export const bl = pgTable('bl', {
 export const machines = pgTable('machines', {
   id: serial('id').primaryKey(),
   code: text('code').notNull(),
-  line: integer('line').notNull(),
+  line: integer('line'),
   kind: text('kind').notNull(),
   status: text('status').notNull().default('running'),
 })
@@ -336,3 +412,6 @@ export type BondEntry = typeof bondLedger.$inferSelect
 export type Carton = typeof cartons.$inferSelect
 export type Invoice = typeof invoices.$inferSelect
 export type TechPack = typeof techPacks.$inferSelect
+export type Role = typeof roles.$inferSelect
+export type Floor = typeof floors.$inferSelect
+export type Line = typeof lines.$inferSelect
