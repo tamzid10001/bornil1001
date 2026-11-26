@@ -1,0 +1,120 @@
+@import 'tailwindcss';
+
+:root {
+  --paper: #f5f4f0;
+  --graphite: #18191c;
+  --g2: #55575b;
+  --g3: #6a6c72;
+  --key: #e8e7e1;
+  --seg: #cfcec8;
+  --ink: #2e46d1;
+  --ink-fill: #2e46d1;
+  --on-ink: #ffffff;
+  --alert: #b4361f;
+  --alert-soft: #f3e3dc;
+  --ok: #2c6e49;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1a1b1e;
+    --graphite: #edece7;
+    --g2: #a9aaaf;
+    --g3: #8c8d93;
+    --key: #262728;
+    --seg: #3a3b41;
+    --ink: #93a3ff;
+    --ink-fill: #4258e0;
+    --on-ink: #ffffff;
+    --alert: #f08a6e;
+    --alert-soft: #3a2621;
+    --ok: #7cc49a;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-background: var(--paper);
+  --color-foreground: var(--graphite);
+  --color-muted: var(--g2);
+  --color-subtle: var(--g3);
+  --color-key: var(--key);
+  --color-rule: var(--seg);
+  --color-ink: var(--ink);
+  --color-ink-fill: var(--ink-fill);
+  --color-on-ink: var(--on-ink);
+  --color-alert: var(--alert);
+  --color-alert-soft: var(--alert-soft);
+  --color-ok: var(--ok);
+  --font-sans: var(--font-plex), var(--font-anek), 'Noto Sans Bengali', sans-serif;
+  --font-heading: var(--font-anek), var(--font-plex), sans-serif;
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--seg);
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  ::selection {
+    background: var(--ink-fill);
+    color: var(--on-ink);
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .field {
+    @apply h-10 w-full rounded-lg border border-rule bg-background px-3 text-foreground placeholder:text-subtle;
+  }
+  textarea.field {
+    @apply h-auto py-2 leading-relaxed;
+  }
+  .btn {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-full bg-ink-fill px-5 font-medium text-on-ink transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-quiet {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-full bg-key px-5 font-medium text-foreground transition-colors hover:bg-rule disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply h-8 px-4 text-sm;
+  }
+  .label {
+    @apply text-xs font-medium uppercase tracking-wider text-subtle;
+  }
+  .tbl {
+    @apply w-full border-collapse text-sm;
+  }
+  .tbl th {
+    @apply border-b border-rule py-2 pr-4 text-left text-xs font-medium text-subtle;
+  }
+  .tbl td {
+    @apply border-b border-rule py-2.5 pr-4 align-top;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
